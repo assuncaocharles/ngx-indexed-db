@@ -1,0 +1,37 @@
+{
+	"name": "ngx-indexed-db",
+	"version": "1.0.11",
+	"description": "Angular wrapper to IndexedDB database.",
+	"main": "./lib/index.js",
+	"types": "./lib/angular2-indexeddb.d.ts",
+	"scripts": {
+		"prepublish": "tsc",
+		"compile": "tsc",
+		"build": "npm run compile",
+		"typedoc": "typedoc --out ./docs --mode modules --tsconfig ./tsconfig.json ./src/",
+		"posttypedoc": "shx cp .nojekyll docs/.nojekyll"
+	},
+	"author": "Charles Assunção",
+	"license": "MIT",
+	"files": [
+		"lib/"
+	],
+	"keywords": [
+		"indexed",
+		"db",
+		"indexeddb",
+		"angular",
+		"ng",
+		"ngx",
+		"storage"
+	],
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/assuncaocharles/ngx-indexed-db"
+	},
+	"devDependencies": {
+		"shx": "^0.3.2",
+		"typedoc": "^0.11.1",
+		"typescript": "^3.0.1"
+	}
+}

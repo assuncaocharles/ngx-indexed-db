@@ -1,0 +1,21 @@
+{
+	"compilerOptions": {
+		"target": "es5",
+		"module": "commonjs",
+		"sourceMap": true,
+		"moduleResolution": "node",
+		"emitDecoratorMetadata": true,
+		"experimentalDecorators": true,
+		"stripInternal": true,
+		"declaration": true,
+		"strictNullChecks": true,
+		"skipLibCheck": true,
+		"noImplicitAny": true,
+		"outDir": "./lib",
+		"lib": ["es2015", "dom"]
+	},
+	"files": ["./src/index.ts"],
+	"angularCompilerOptions": {
+		"skipTemplateCodegen": true
+	}
+}
