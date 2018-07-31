@@ -11,11 +11,11 @@ deploy:
 - provider: pages
   skip_cleanup: true
   local_dir: docs/
-  github_token: $GITHUB_TOKEN
+  github_token: "$GITHUB_TOKEN"
   on:
     tags: true
 - provider: releases
-  api_key: $GITHUB_TOKEN
+  api_key: "$GITHUB_TOKEN"
   file_glob: true
   skip_cleanup: true
   on:
@@ -23,6 +23,10 @@ deploy:
 - provider: npm
   skip_cleanup: true
   email: junioassuncaocharles@gmail.com
-  api_key: $NPM_TOKEN
+  api_key: "$NPM_TOKEN"
   on:
     tags: true
+env:
+  global:
+  - secure: KMm+wIS3ud+G5bcOBMvtZBnY1ZblQTwQkrn+O+oaiOf+0maeUYPxEipvofgFH7rgfH2hHqdV0Ew5/uDr2swJ8By/WdHsc9ZP5quBQX3BAoE1kZQQlayUzkmRpLxlUK2SM/s0JZoMe4pO5bCa9AqKHwn7Vzj+ClB9GasbZQyL4ZSqT2uWxGNQMbrLgfUGImRm08zUNjJkqzp9A1NvihnVzqX7mfdU8NoFZyZgDCgVcMRPWgkSqH1pQUbEMVulZ065qN5goGPzcS5HyfSoM6VU7nM3UO7Yc8mqURHODeW9xMQO7Tp4xlMhzG05tGb5x+Yhe45cKtJIixdEEmOwyrwanQsqr6DkjzXN/h7JEV5jwvKb8FKfZIuyuoK2Z8vG6V8iyOOyyBzW9V9ZzORI6TzTnhGlazn5y2SyhzkPlxnPvdYHbM7xpDjHjP/UEl5U3s0/Ngm5pZSo75ybAD4FegEipL3RMLJFCjxzz5wBo/by/2ux51+1PKmET5WXzH7oKIDz6FoAEpovzC92TM0R/ciNvmIF5CFBaTX3m0b5G1AWLcbos2EbA3rHx0VaO4f82DMjkplqnUMpxKsi+MLvPNRVZrFcezn3bSUoBLO1PYZnDju2EFhHojt596eoHuDnGDOn5PGqu7jw0GScO1xfu3UJwy4AAos+QmtAjDwUHQ57XyU=
+  - secure: AjSz1zLVbEyJQ5SzD4wwx/pNtoRD9UpxTo1tQOPzG/wXhC+bvXtGhBkvbPlRgjmy4kLZzmacxh1FbrQOdzOWZYTi9pn8XjFcjq14BZXTFu4i3itANoe6JfybWNaI+L472AfBj0XMbM8tOPZrcM0KGNhz+J6C1kdofzKqWpN8v9vaMQ0OhtMEOAaucOzcnCWwxbPKuXrzEtDn8JJnnS3b3Z1XuNOySq8W36aXrHOLzuE+lpXUXXIMb9mDuTb0igi4JnKIqhXVWT1R+OG7nbLJOtChCixEJypDbwxm0FHygODR8Ce6m9H0eUErOmEJxETo6b/iXzlmh4dP2Dtlz/kMF/VHMTfYWcVgus1siLbNdTbYbHvXu8J5h4gweLg/yXqF0ER9JXLE73ptAqfsQ1ilWVgzmabRX5veJaCOGyD3HXmOwtYJxzSRbt03I90vfDTZG6EZd/jIhsypDyK2SSuIzQrbrVJSCkRjpl1ZGzR6xhookOZ8qnTTzY0oRGwoBCaD0ZWPT+hZqupaMrcDnnf9ix9knMniCFwG7VdqoTNHT0DN9twwJxiJvplaJvYQgfs5FL5L0hwpP9Dp3GtB7zXryGqyqRRK+yZsXvKXMeIBSs5KH9KHgJbuisbsX5dnouuc7lNVY7rJD43TtThAwhsHlYjaQVwrEK32eTEbbsBddRg=
