@@ -1,6 +1,6 @@
 {
 	"name": "ngx-indexed-db",
-	"version": "1.0.11",
+	"version": "1.0.12",
 	"description": "Angular wrapper to IndexedDB database.",
 	"main": "./lib/index.js",
 	"types": "./lib/angular2-indexeddb.d.ts",
