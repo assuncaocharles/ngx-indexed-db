@@ -1,21 +1,29 @@
 {
-	"compilerOptions": {
-		"target": "es5",
-		"module": "commonjs",
-		"sourceMap": true,
-		"moduleResolution": "node",
-		"emitDecoratorMetadata": true,
-		"experimentalDecorators": true,
-		"stripInternal": true,
-		"declaration": true,
-		"strictNullChecks": true,
-		"skipLibCheck": true,
-		"noImplicitAny": true,
-		"outDir": "./lib",
-		"lib": ["es2015", "dom"]
-	},
-	"files": ["./src/index.ts"],
-	"angularCompilerOptions": {
-		"skipTemplateCodegen": true
-	}
+  "compileOnSave": false,
+  "compilerOptions": {
+    "baseUrl": "./",
+    "outDir": "./dist/out-tsc",
+    "sourceMap": true,
+    "declaration": false,
+    "module": "es2015",
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "target": "es5",
+    "typeRoots": [
+      "node_modules/@types"
+    ],
+    "lib": [
+      "es2017",
+      "dom"
+    ],
+    "paths": {
+      "ngx-indexed-db": [
+        "dist/ngx-indexed-db"
+      ],
+      "ngx-indexed-db/*": [
+        "dist/ngx-indexed-db/*"
+      ]
+    }
+  }
 }

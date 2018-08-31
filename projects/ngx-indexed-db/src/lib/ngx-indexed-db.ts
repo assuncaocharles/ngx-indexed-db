@@ -1,5 +1,4 @@
-import { Options } from './angular2-indexeddb';
-export class AngularIndexedDB {
+export class NgxIndexedDB {
 	utils: Utils;
 	dbWrapper: DbWrapper;
 
