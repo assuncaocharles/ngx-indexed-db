@@ -24,9 +24,9 @@ deploy:
       on:
           tags: true
     - provider: npm
-      repo: dist/ngx-indexed-db
       skip_cleanup: true
       email: junioassuncaocharles@gmail.com
       api_key: '$NPM_TOKEN'
       on:
           tags: true
+          repo: dist/ngx-indexed-db
