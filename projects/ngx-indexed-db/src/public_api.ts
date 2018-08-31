@@ -1,1 +1,1 @@
-export { AngularIndexedDB, IndexDetails } from './lib/ngx-indexed-db';
+export { NgxIndexedDB, IndexDetails } from './lib/ngx-indexed-db';
