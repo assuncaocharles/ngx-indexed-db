@@ -16,24 +16,24 @@ You can choose your preferred method of installation:
 
 ## Usage
 
-Import the the `AngularIndexedDB` class as a dependency:
+Import the the `NgxIndexedDB` class as a dependency:
 
 ```js
-import { AngularIndexedDB } from 'ngx-indexed-db';
+import { NgxIndexedDB } from 'ngx-indexed-db';
 ```
 
-### AngularIndexedDB service
+### NgxIndexedDB service
 
 First instantiate the service as follows:
 
 ```js
-let db = new AngularIndexedDB('myDb', 1);
+let db = new NgxIndexedDB('myDb', 1);
 ```
 
 The first argument is the name of your database and the second is the database version.
 If you forget the version you the service will default to version 1.
 
-Use the APIs that the AngularIndexedDB service exposes to use indexeddb.
+Use the APIs that the NgxIndexedDB service exposes to use indexeddb.
 In the API the following functions:
 
 -   openDatabase(version, createCallback): opens the database for usage and update it's objectStore/s.
