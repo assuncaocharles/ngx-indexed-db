@@ -30,4 +30,3 @@ deploy:
       api_key: '$NPM_TOKEN'
       on:
           tags: true
-          repo: dist/ngx-indexed-db
