@@ -1,11 +1,14 @@
 language: nodejs
 before_script:
+    - npm i npm@latest -g
     - npm install
     - npm run build
 script:
     - npm run build
 after_success:
     - npm run typedoc
+    - cp README.md dist/ngx-indexed-db
+    - cp LICENSE dist/ngx-indexed-db
     - npm pack
 deploy:
     - provider: pages
