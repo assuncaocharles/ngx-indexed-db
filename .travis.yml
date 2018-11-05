@@ -1,7 +1,4 @@
 language: nodejs
-node_js:
-    - 'iojs'
-    - '8'
 before_script:
     - npm i npm@latest -g
     - npm install
