@@ -1,7 +1,7 @@
 language: nodejs
 before_script:
-    - npm i npm@latest -g
     - npm i node -g
+    - npm i npm@latest -g
     - npm install
     - npm run build
 script:
