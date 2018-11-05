@@ -1,7 +1,7 @@
 language: nodejs
 before_script:
-    - nvm install 7.4
-    - nvm use 7.4
+    - nvm install 10.13.0
+    - nvm use 10.13.0
     - npm i npm@latest -g
     - npm install
     - npm run build
