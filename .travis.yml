@@ -1,5 +1,6 @@
 language: nodejs
 before_script:
+    - nvm install 7.4
     - nvm use 7.4
     - npm i npm@latest -g
     - npm install
