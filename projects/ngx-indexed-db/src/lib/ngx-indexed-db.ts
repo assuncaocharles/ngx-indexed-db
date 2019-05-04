@@ -124,6 +124,18 @@ export class NgxIndexedDB {
 		});
 	}
 
+	deleteDatabase() {
+		return new Promise((resolve, reject) => {
+			this.dbWrapper.db.close();
+			const deleteDBRequest = this.utils.indexedDB.deleteDatabase(this.dbWrapper.dbName);
+			deleteDBRequest.onsuccess = resolve;
+			deleteDBRequest.onerror = reject;
+			deleteDBRequest.onblocked = () => {
+				throw new Error('Unable to delete database because it\'s blocked');
+			};
+		});
+	}
+
 	openCursor(storeName: string, cursorCallback: (evt: Event) => void, keyRange?: IDBKeyRange) {
 		return new Promise<any>((resolve, reject) => {
 			this.dbWrapper.validateBeforeTransaction(storeName, reject);
@@ -161,7 +173,6 @@ export class NgxIndexedDB {
 				objectStore = transaction.objectStore(storeName),
 				index = objectStore.index(indexName),
 				request = index.get(key);
-
 			request.onsuccess = event => {
 				resolve((<IDBOpenDBRequest>event.target).result);
 			};

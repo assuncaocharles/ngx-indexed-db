@@ -189,6 +189,21 @@ db.clear('people').then(
 );
 ```
 
+-   deleteDatabase(): deletes the entire database.
+
+Usage example:
+
+```js
+db.deleteDatabase().then(
+	() => {
+		console.log('Database deleted successfully');
+	},
+	error => {
+		console.log(error);
+	}
+);
+```
+
 ## License
 
 Released under the terms of the [MIT License](LICENSE).
