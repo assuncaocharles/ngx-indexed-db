@@ -7,12 +7,9 @@ It exposes very simple promises API to enable the usage of IndexedDB without mos
 
 ## Installation
 
-You can choose your preferred method of installation:
-
--   Download from npm:
-    ```
-    npm install ngx-indexed-db
-    ```
+```
+npm install ngx-indexed-db
+```
 
 ## Usage
 
