@@ -1,77 +1,70 @@
 {
-	"name": "ngx-indexed-db",
-	"description": "Angular wrapper to IndexedDB database.",
-	"version": "2.0.7",
-	"license": "ISC",
-	"engines": {
-		"node": ">= 7.4.0"
-	},
-	"scripts": {
-		"ng": "ng",
-		"start": "ng serve",
-		"build": "ng build --project ngx-indexed-db",
-		"typedoc": "typedoc --out ./docs --mode modules --tsconfig ./projects/ngx-indexed-db/tsconfig.lib.json ",
-		"test": "ng test",
-		"lint": "ng lint",
-		"e2e": "ng e2e"
-	},
-	"author": "Charles Assunção",
-	"private": false,
-	"keywords": [
-		"indexed",
-		"db",
-		"indexeddb",
-		"angular",
-		"ng",
-		"ngx",
-		"storage"
-	],
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/assuncaocharles/ngx-indexed-db"
-	},
-	"dependencies": {
-		"@angular/animations": "^6.1.0",
-		"@angular/common": "^6.1.0",
-		"@angular/compiler": "^6.1.0",
-		"@angular/core": "^6.1.0",
-		"@angular/forms": "^6.1.0",
-		"@angular/http": "^6.1.0",
-		"@angular/platform-browser": "^6.1.0",
-		"@angular/platform-browser-dynamic": "^6.1.0",
-		"@angular/router": "^6.1.0",
-		"core-js": "^3.0.0",
-		"rxjs": "^6.0.0",
-		"zone.js": "~0.8.26"
-	},
-	"devDependencies": {
-		"@angular-devkit/build-angular": "^0.800.0",
-		"@angular-devkit/build-ng-packagr": "^0.13.8",
-		"@angular/cli": "^7.3.8",
-		"@angular/compiler-cli": "^7.2.14",
-		"@angular/language-service": "^6.1.0",
-		"@types/jasmine": "~3.3.0",
-		"@types/jasminewd2": "~2.0.3",
-		"@types/node": "~12.0.1",
-		"codelyzer": "~4.2.1",
-		"jasmine-core": "~3.4.0",
-		"jasmine-spec-reporter": "~4.2.1",
-		"karma": "^4.1.0",
-		"karma-chrome-launcher": "~2.2.0",
-		"karma-coverage-istanbul-reporter": "~2.0.0",
-		"karma-jasmine": "~2.0.0",
-		"karma-jasmine-html-reporter": "^1.4.1",
-		"lodash": "^4.17.11",
-		"ng-packagr": "^5.1.0",
-		"protractor": "~6.0.0",
-		"shx": "^0.3.2",
-		"tar": "^4.4.2",
-		"ts-node": "~8.2.0",
-		"tsickle": ">=0.29.0",
-		"tslib": "^1.9.0",
-		"tslint": "~5.9.1",
-		"typedoc": "^0.14.2",
-		"typescript": "^3.2.4",
-		"webpack-dev-server": "^3.3.1"
-	}
+  "name": "ngx-indexed-db",
+  "description": "Angular wrapper to IndexedDB database.",
+  "version": "2.0.7",
+  "license": "ISC",
+  "engines": {
+    "node": ">= 10.16.0"
+  },
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build --project ngx-indexed-db",
+    "typedoc": "typedoc --out ./docs --mode modules --tsconfig ./projects/ngx-indexed-db/tsconfig.lib.json ",
+    "test": "ng test",
+    "lint": "ng lint",
+    "e2e": "ng e2e"
+  },
+  "author": "Charles Assunção",
+  "private": false,
+  "keywords": [
+    "indexed",
+    "db",
+    "indexeddb",
+    "angular",
+    "ng",
+    "ngx",
+    "storage"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/assuncaocharles/ngx-indexed-db"
+  },
+  "dependencies": {
+    "@angular/common": "^8.0.0",
+    "@angular/compiler": "^8.0.0",
+    "@angular/core": "^8.0.0",
+    "rxjs": "^6.5.2"
+  },
+  "devDependencies": {
+    "@angular-devkit/build-angular": "~0.800.0",
+    "@angular-devkit/build-ng-packagr": "~0.800.0",
+    "@angular/cli": "^8.0.1",
+    "@angular/compiler-cli": "^8.0.0",
+    "@angular/language-service": "^8.0.0",
+    "@types/jasmine": "^3.3.13",
+    "@types/jasminewd2": "^2.0.6",
+    "@types/node": "^12.0.5",
+    "codelyzer": "^5.0.1",
+    "jasmine-core": "~3.4.0",
+    "jasmine-spec-reporter": "~4.2.1",
+    "karma": "^4.1.0",
+    "karma-chrome-launcher": "~2.2.0",
+    "karma-coverage-istanbul-reporter": "^2.0.5",
+    "karma-jasmine": "~2.0.0",
+    "karma-jasmine-html-reporter": "^1.4.2",
+    "lodash": "^4.17.11",
+    "marked": "^0.6.2",
+    "ng-packagr": "^5.3.0",
+    "protractor": "~6.0.0",
+    "shx": "^0.3.2",
+    "tar": "^4.4.10",
+    "ts-node": "^8.2.0",
+    "tsickle": "^0.35.0",
+    "tslib": "^1.9.0",
+    "tslint": "~5.17.0",
+    "typedoc": "^0.14.2",
+    "typescript": "^3.4.5",
+    "webpack-dev-server": "^3.7.0"
+  }
 }
