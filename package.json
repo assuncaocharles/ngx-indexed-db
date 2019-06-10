@@ -2,7 +2,7 @@
 	"name": "ngx-indexed-db",
 	"description": "Angular wrapper to IndexedDB database.",
 	"version": "2.2.0",
-	"license": "MIT",
+	"license": "ISC",
 	"engines": {
 		"node": ">= 10.16.0"
 	},
