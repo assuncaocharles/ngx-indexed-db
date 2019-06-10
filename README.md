@@ -120,6 +120,23 @@ db.add('people', { name: 'name', email: 'email' }).then(
 
 In the previous example I'm using undefined as the key because the key is configured in the objectStore as auto-generated.
 
+-   count(storeName, keyRange?): Returns number of rows in the object store.
+    First parameter is the store name to count rows of.
+    Second parameter is an optional IDBKeyRange object or a number value (e.g. to test for the key's existence).
+
+Usage example:
+
+```js
+db.count('people').then(
+	peopleCount => {
+		console.log(peopleCount);
+	},
+	error => {
+		console.log(error);
+	}
+);
+```
+
 -   update(storeName, value, key?): Updates the given value in the objectStore.
     The first parameter is the store name to modify, the second parameter is the value to update and the third parameter is the key (if there is no key don't provide it).
     **update** returns a promise that is resolved when the value was updated or rejected if an error occurred.
