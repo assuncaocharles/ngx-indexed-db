@@ -83,6 +83,23 @@ export class NgxIndexedDB {
 		});
 	}
 
+	getAllFast(storeName: string, keyRange?: IDBKeyRange, count?: number) {
+		return new Promise<any>((resolve, reject) => {
+			this.dbWrapper.validateBeforeTransaction(storeName, reject);
+
+			let transaction = this.dbWrapper.createTransaction(
+				this.dbWrapper.optionsGenerator(DBMode.readonly, storeName, reject, resolve)
+				),
+				objectStore = transaction.objectStore(storeName),
+				request: IDBRequest;
+
+			request = objectStore.getAll(keyRange, count);
+
+			request.onerror = (e) => reject(e);
+			request.onsuccess = (e) => resolve((<any>e.target).result);
+		});
+	}
+
 	add(storeName: string, value: any, key?: any) {
 		return new Promise<any>((resolve, reject) => {
 			this.dbWrapper.validateBeforeTransaction(storeName, reject);

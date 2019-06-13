@@ -84,6 +84,28 @@ db.getAll('people').then(
 );
 ```
 
+-   getAllFast(storeName, keyRange, count): returns an array of all the items in the given objectStore.
+    It works faster than `getAll()` because it does not use `openCursor()` underneath but it doesn't
+    allow to specify `indexDetails` and also might provide worse support for older browsers.
+
+    The first parameter is the store name to query.
+    The second parameter is an optional IDBKeyRange object.
+    The third parameter specifies the number of values to return if more than one is found.
+    **getAllFast** returns a promise that is resolved to the array of items or rejected if an error occurred.
+
+Usage example:
+
+```js
+db.getAllFast('people').then(
+	people => {
+		console.log(people);
+	},
+	error => {
+		console.log(error);
+	}
+);
+```
+
 -   getByIndex(storeName, indexName, key): returns an stored item using an objectStore's index.
     The first parameter is the store name to query, the second parameter is the index and third parameter is the item to query.
     **getByIndex** returns a promise that is resolved when the item successfully returned or rejected if an error occurred.
