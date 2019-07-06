@@ -55,7 +55,7 @@
 		"karma-jasmine": "~2.0.0",
 		"karma-jasmine-html-reporter": "^1.4.2",
 		"lodash": "^4.17.11",
-		"marked": "^0.6.2",
+		"marked": "^0.7.0",
 		"ng-packagr": "^5.3.0",
 		"protractor": "~6.0.0",
 		"shx": "^0.3.2",
