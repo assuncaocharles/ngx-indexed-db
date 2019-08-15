@@ -48,7 +48,7 @@
 		"object-literal-sort-keys": false,
 		"one-line": [true, "check-open-brace", "check-catch", "check-else", "check-whitespace"],
 		"prefer-const": false,
-		"quotemark": [true, "single"],
+		"quotemark": [false, "single"],
 		"radix": true,
 		"semicolon": [true, "always"],
 		"triple-equals": [true, "allow-null-check"],

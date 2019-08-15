@@ -94,6 +94,7 @@ export class NgxIndexedDB {
 			let request = objectStore.add(value, key);
 			request.onsuccess = (evt: any) => {
 				key = evt.target.result;
+				resolve(evt);
 			};
 		});
 	}
@@ -103,15 +104,15 @@ export class NgxIndexedDB {
 			this.dbWrapper.validateBeforeTransaction(storeName, reject);
 
 			let transaction = this.dbWrapper.createTransaction(
-				this.dbWrapper.optionsGenerator(DBMode.readonly, storeName, reject, resolve)
+					this.dbWrapper.optionsGenerator(DBMode.readonly, storeName, reject, resolve)
 				),
 				objectStore = transaction.objectStore(storeName),
 				request: IDBRequest;
 
 			request = objectStore.count(keyRange);
 
-			request.onerror = (e) => reject(e);
-			request.onsuccess = (e) => resolve((<any>e.target).result);
+			request.onerror = e => reject(e);
+			request.onsuccess = e => resolve((<any>e.target).result);
 		});
 	}
 
@@ -148,7 +149,7 @@ export class NgxIndexedDB {
 			deleteDBRequest.onsuccess = resolve;
 			deleteDBRequest.onerror = reject;
 			deleteDBRequest.onblocked = () => {
-				throw new Error('Unable to delete database because it\'s blocked');
+				throw new Error("Unable to delete database because it's blocked");
 			};
 		});
 	}
