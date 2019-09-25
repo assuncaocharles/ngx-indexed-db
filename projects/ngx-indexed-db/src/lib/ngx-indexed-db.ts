@@ -196,6 +196,21 @@ export class NgxIndexedDB {
 			};
 		});
 	}
+
+	getAllByIndex(storeName: string, indexName: string, key: any) {
+		return new Promise<any>((resolve, reject) => {
+			this.dbWrapper.validateBeforeTransaction(storeName, reject);
+			let transaction = this.dbWrapper.createTransaction(
+					this.dbWrapper.optionsGenerator(DBMode.readonly, storeName, reject, resolve)
+				),
+				objectStore = transaction.objectStore(storeName),
+				index = objectStore.index(indexName),
+				request = index.getAll(key);
+			request.onsuccess = event => {
+				resolve((<IDBOpenDBRequest>event.target).result);
+			};
+		});
+	}
 }
 
 export class Utils {
