@@ -6,6 +6,10 @@
 	"engines": {
 		"node": ">= 10.16.0"
 	},
+	"hooks": {
+		"pre-commit": "npm run format",
+		"pre-push": "npm run lint"
+	},
 	"scripts": {
 		"ng": "ng",
 		"start": "ng serve",
@@ -48,6 +52,7 @@
 		"@types/node": "^12.7.2",
 		"codelyzer": "^5.0.1",
 		"cz-conventional-changelog": "^3.0.2",
+		"husky": "^3.0.5",
 		"jasmine-core": "~3.4.0",
 		"jasmine-spec-reporter": "~4.2.1",
 		"karma": "^4.2.0",
