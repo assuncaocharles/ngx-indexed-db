@@ -18,7 +18,8 @@
 		"format": "prettier \"projects/**/*.{ts,json}\" --write"
 	},
 	"hooks": {
-		"pre-commit": "npm run format && npm run lint"
+		"pre-commit": "npm run format",
+		"pre-push": "npm run lint"
 	},
 	"private": false,
 	"keywords": [
