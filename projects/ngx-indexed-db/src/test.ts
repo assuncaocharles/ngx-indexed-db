@@ -7,7 +7,7 @@ import 'zone.js/dist/zone';
 
 import 'zone.js/dist/zone-testing';
 
-declare const require: any;
+         declare const require: any;
 
 // First, initialize the Angular testing environment.
 getTestBed().initTestEnvironment(BrowserDynamicTestingModule, platformBrowserDynamicTesting());
