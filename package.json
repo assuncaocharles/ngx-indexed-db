@@ -7,8 +7,10 @@
 		"node": ">= 10.16.0"
 	},
 	"hooks": {
-		"pre-commit": "npm run format",
-		"pre-push": "npm run lint"
+		"pre-commit": "lint-staged"
+	},
+	"lint-staged": {
+		"projects/**/*.ts": "npm run prettier && npm run lint"
 	},
 	"scripts": {
 		"ng": "ng",
