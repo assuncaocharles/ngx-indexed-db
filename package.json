@@ -13,7 +13,8 @@
 		"typedoc": "typedoc --out ./docs --mode modules --tsconfig ./projects/ngx-indexed-db/tsconfig.lib.json ",
 		"test": "ng test",
 		"lint": "ng lint",
-		"e2e": "ng e2e"
+		"e2e": "ng e2e",
+		"format": "prettier \"projects/**/*.ts\" --write"
 	},
 	"author": "Charles Assunção",
 	"private": false,
@@ -57,6 +58,7 @@
 		"lodash": "^4.17.15",
 		"marked": "^0.7.0",
 		"ng-packagr": "^5.5.0",
+		"prettier": "^1.18.2",
 		"protractor": "~6.0.0",
 		"shx": "^0.3.2",
 		"tar": "^4.4.10",
