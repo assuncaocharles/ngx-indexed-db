@@ -1,16 +1,11 @@
 {
 	"name": "ngx-indexed-db",
+	"author": "Charles Assunção",
 	"description": "Angular wrapper to IndexedDB database.",
 	"version": "2.2.1",
 	"license": "ISC",
 	"engines": {
 		"node": ">= 10.16.0"
-	},
-	"hooks": {
-		"pre-commit": "lint-staged"
-	},
-	"lint-staged": {
-		"projects/**/*.{ts,json}": "npm run prettier && npm run lint"
 	},
 	"scripts": {
 		"ng": "ng",
@@ -20,9 +15,11 @@
 		"test": "ng test",
 		"lint": "ng lint",
 		"e2e": "ng e2e",
-		"format": "prettier \"projects/**/*.ts\" --write"
+		"format": "prettier \"projects/**/*.{ts,json}\" --write"
 	},
-	"author": "Charles Assunção",
+	"hooks": {
+		"pre-commit": "npm run prettier && npm run lint"
+	},
 	"private": false,
 	"keywords": [
 		"indexed",
