@@ -10,7 +10,7 @@
 		"pre-commit": "lint-staged"
 	},
 	"lint-staged": {
-		"projects/**/*.ts": "npm run prettier && npm run lint"
+		"projects/**/*.{ts,json}": "npm run prettier && npm run lint"
 	},
 	"scripts": {
 		"ng": "ng",
