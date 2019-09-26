@@ -17,9 +17,11 @@
 		"e2e": "ng e2e",
 		"format": "prettier \"projects/**/*.{ts,json}\" --write"
 	},
-	"hooks": {
-		"pre-commit": "npm run format",
-		"pre-push": "npm run lint"
+	"husky": {
+		"hooks": {
+			"pre-commit": "npm run format",
+			"pre-push": "npm run lint"
+		}
 	},
 	"private": false,
 	"keywords": [
