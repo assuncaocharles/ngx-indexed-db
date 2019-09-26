@@ -12,6 +12,8 @@ after_success:
     - cp README.md dist/ngx-indexed-db
     - cp LICENSE dist/ngx-indexed-db
     - npm pack
+    - npm version patch
+    - npm publish
 deploy:
     - provider: pages
       skip_cleanup: true
