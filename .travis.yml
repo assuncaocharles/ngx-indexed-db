@@ -1,18 +1,20 @@
-language: nodejs
+sudo: false
+language: node_js
+node_js: ['10']
 before_script:
-    - nvm install 10.13.0
-    - nvm use 10.13.0
-    - npm i npm@latest -g
     - npm install
     - npm run build
 script:
     - npm run build
-after_success:
     - npm run typedoc
     - cp README.md dist/ngx-indexed-db
     - cp LICENSE dist/ngx-indexed-db
     - npm pack
     - npm version patch
+cache:
+    directories:
+        - node_modules
+after_success:
     - npm publish
 deploy:
     - provider: pages
