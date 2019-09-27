@@ -9,7 +9,6 @@ script:
     - cp README.md dist/ngx-indexed-db
     - cp LICENSE dist/ngx-indexed-db
     - npm pack
-    - npm version patch
 cache:
     directories:
         - node_modules
