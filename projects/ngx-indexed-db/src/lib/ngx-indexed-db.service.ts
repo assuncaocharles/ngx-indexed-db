@@ -1,8 +1,160 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Inject } from '@angular/core';
+import { CONFIG_TOKEN, DBConfig } from './ngxindexeddb.module';
+import { openDatabase, DBMode, Key } from './ngx-indexed-db';
+import { createTransaction, optionsGenerator, validateBeforeTransaction } from '../utils';
 
-@Injectable({
-	providedIn: 'root'
-})
+@Injectable()
 export class NgxIndexedDBService {
-	constructor() {}
+	set currentStore(_currentStore: string) {
+		this._currentStore = _currentStore;
+	}
+	private _currentStore: string;
+
+	constructor(@Inject(CONFIG_TOKEN) private dbConfig: DBConfig) {}
+
+	add<T>(value: T, key?: any) {
+		return new Promise<number>((resolve, reject) => {
+			openDatabase(this.dbConfig.name, this.dbConfig.version).then((db: IDBDatabase) => {
+				let transaction = createTransaction(
+						db,
+						optionsGenerator(DBMode.readwrite, this._currentStore, reject, resolve)
+					),
+					objectStore = transaction.objectStore(this._currentStore);
+				let request = objectStore.add(value, key);
+				request.onsuccess = (evt: any) => {
+					key = evt.target.result;
+					resolve(key);
+				};
+			});
+		});
+	}
+
+	getByID<T>(id: string | number) {
+		return new Promise<T>((resolve, reject) => {
+			openDatabase(this.dbConfig.name, this.dbConfig.version).then((db: IDBDatabase) => {
+				validateBeforeTransaction(db, this._currentStore, reject);
+				let transaction = createTransaction(
+						db,
+						optionsGenerator(DBMode.readonly, this._currentStore, reject, resolve)
+					),
+					objectStore = transaction.objectStore(this._currentStore),
+					request: IDBRequest;
+				request = objectStore.get(+id);
+				request.onsuccess = function(event: Event) {
+					resolve((event.target as any).result as T);
+				};
+			});
+		});
+	}
+
+	getAll<T>() {
+		return new Promise<T[]>((resolve, reject) => {
+			openDatabase(this.dbConfig.name, this.dbConfig.version).then(db => {
+				validateBeforeTransaction(db, this._currentStore, reject);
+				let transaction = createTransaction(
+						db,
+						optionsGenerator(DBMode.readonly, this._currentStore, reject, resolve)
+					),
+					objectStore = transaction.objectStore(this._currentStore),
+					result: Array<any> = [];
+
+				const request: IDBRequest = objectStore.getAll();
+
+				request.onerror = function(e) {
+					reject(e);
+				};
+				request.onsuccess = function({ target: { successResult } }: any) {
+					resolve(successResult as T[]);
+				};
+			});
+		});
+	}
+
+	update<T>(value: T, key?: any) {
+		return new Promise<any>((resolve, reject) => {
+			openDatabase(this.dbConfig.name, this.dbConfig.version).then(db => {
+				validateBeforeTransaction(db, this._currentStore, reject);
+				let transaction = createTransaction(
+						db,
+						optionsGenerator(DBMode.readwrite, this._currentStore, reject, resolve)
+					),
+					objectStore = transaction.objectStore(this._currentStore);
+				transaction.oncomplete = event => {
+					resolve(event);
+				};
+				objectStore.put(value, key);
+			});
+		});
+	}
+
+	deleteRecord(key: Key) {
+		return new Promise<any>((resolve, reject) => {
+			openDatabase(this.dbConfig.name, this.dbConfig.version).then(db => {
+				validateBeforeTransaction(db, this._currentStore, reject);
+				let transaction = createTransaction(
+						db,
+						optionsGenerator(DBMode.readwrite, this._currentStore, reject, resolve)
+					),
+					objectStore = transaction.objectStore(this._currentStore);
+				let request = objectStore.delete(key);
+				request.onsuccess = event => {
+					resolve(event);
+				};
+			});
+		});
+	}
+
+	clear() {
+		return new Promise<any>((resolve, reject) => {
+			openDatabase(this.dbConfig.name, this.dbConfig.version).then(db => {
+				validateBeforeTransaction(db, this._currentStore, reject);
+				let transaction = createTransaction(
+						db,
+						optionsGenerator(DBMode.readwrite, this._currentStore, reject, resolve)
+					),
+					objectStore = transaction.objectStore(this._currentStore);
+				objectStore.clear();
+				transaction.oncomplete = event => {
+					resolve();
+				};
+			});
+		});
+	}
+
+	openCursor(cursorCallback: (event: Event) => void, keyRange?: IDBKeyRange) {
+		return new Promise<void>((resolve, reject) => {
+			openDatabase(this.dbConfig.name, this.dbConfig.version).then(db => {
+				validateBeforeTransaction(db, this._currentStore, reject);
+				let transaction = createTransaction(
+						db,
+						optionsGenerator(DBMode.readonly, this._currentStore, reject, resolve)
+					),
+					objectStore = transaction.objectStore(this._currentStore),
+					request = objectStore.openCursor(keyRange);
+
+				request.onsuccess = (event: Event) => {
+					cursorCallback(event);
+					resolve();
+				};
+			});
+		});
+	}
+
+	getByIndex(indexName: string, key: any) {
+		return new Promise<any>((resolve, reject) => {
+			openDatabase(this.dbConfig.name, this.dbConfig.version).then(db => {
+				validateBeforeTransaction(db, this._currentStore, reject);
+				let transaction = createTransaction(
+						db,
+						optionsGenerator(DBMode.readonly, this._currentStore, reject, resolve)
+					),
+					objectStore = transaction.objectStore(this._currentStore),
+					index = objectStore.index(indexName),
+					request = index.get(key);
+				request.onsuccess = (event: Event) => {
+					resolve((<IDBOpenDBRequest>event.target).result);
+				};
+			});
+		});
+	}
 }
