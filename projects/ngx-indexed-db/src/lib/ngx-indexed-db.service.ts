@@ -1,6 +1,6 @@
 import { Injectable, Inject } from '@angular/core';
 import { CONFIG_TOKEN, DBConfig } from './ngxindexeddb.module';
-import { openDatabase, DBMode, Key } from './ngx-indexed-db';
+import { openDatabase, DBMode, Key, RequestEvent } from './ngx-indexed-db';
 import { createTransaction, optionsGenerator, validateBeforeTransaction } from '../utils';
 
 @Injectable()
@@ -63,8 +63,8 @@ export class NgxIndexedDBService {
 				request.onerror = function(e) {
 					reject(e);
 				};
-				request.onsuccess = function({ target: { successResult } }: any) {
-					resolve(successResult as T[]);
+				request.onsuccess = function({ target: { result: ResultAll } }: RequestEvent<T>) {
+					resolve(ResultAll as T[]);
 				};
 			});
 		});

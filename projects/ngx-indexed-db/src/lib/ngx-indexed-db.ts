@@ -14,6 +14,14 @@ export interface IndexDetails {
 	indexName: string;
 	order: string;
 }
+export interface RequestEventTarget<T> extends EventTarget {
+	result: T | T[];
+}
+
+export interface RequestEvent<T> extends Event {
+	target: RequestEventTarget<T>;
+}
+
 const indexedDB: IDBFactory =
 	window.indexedDB || (<any>window).mozIndexedDB || (<any>window).webkitIndexedDB || (<any>window).msIndexedDB;
 

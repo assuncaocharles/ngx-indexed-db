@@ -16,7 +16,7 @@ npm install ngx-indexed-db
 Import the `NgxIndexedDBModule` and initiate it:
 
 ```js
-import { NgxIndexedDBModule } from 'ngx-indexed-db/dist/ngx-indexed-db';
+import { NgxIndexedDBModule } from 'ngx-indexed-db';
 
 const dbConfig: DBConfig  = {name: 'MyDb', version: 1, objectStoresMeta: [
   {
@@ -44,7 +44,7 @@ const dbConfig: DBConfig  = {name: 'MyDb', version: 1, objectStoresMeta: [
 First, import and set the table/object store to work with:
 
 ```js
-import { NgxIndexedDBService } from 'ngx-indexed-db/dist/ngx-indexed-db';
+import { NgxIndexedDBService } from 'ngx-indexed-db';
 
 ...
   export class AppComponent {
