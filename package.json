@@ -2,7 +2,7 @@
 	"name": "ngx-indexed-db",
 	"author": "Charles Assunção",
 	"description": "Angular wrapper to IndexedDB database.",
-	"version": "3.0.0",
+	"version": "3.0.3",
 	"license": "ISC",
 	"files": [
 		"dist/ngx-indexed-db"
@@ -14,7 +14,7 @@
 	"scripts": {
 		"ng": "ng",
 		"start": "ng serve",
-		"build": "ng build --project ngx-indexed-db",
+		"build": "ng build --project ngx-indexed-db --prod",
 		"typedoc": "typedoc --out ./docs --mode modules --tsconfig ./projects/ngx-indexed-db/tsconfig.lib.json ",
 		"test": "ng test",
 		"lint": "ng lint",
