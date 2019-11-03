@@ -28,16 +28,7 @@ export const CONFIG_TOKEN = new InjectionToken<DBConfig>(null);
 	imports: [CommonModule]
 })
 export class NgxIndexedDBModule {
-	static forRoot(dbConfig: DBConfig): ModuleWithProviders {
-		if (!dbConfig.name) {
-			throw new Error('NgxIndexedDB: Please, provide the dbName in the configuration');
-		}
-		if (!dbConfig.version) {
-			throw new Error('NgxIndexedDB: Please, provide the db version in the configuration');
-		}
-
-		CreateObjectStore(dbConfig.name, dbConfig.version, dbConfig.objectStoresMeta);
-
+	static forRoot(dbConfig: DBConfig): ModuleWithProviders<NgxIndexedDBModule> {
 		return {
 			ngModule: NgxIndexedDBModule,
 			providers: [NgxIndexedDBService, { provide: CONFIG_TOKEN, useValue: dbConfig }]

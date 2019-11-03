@@ -1,6 +1,6 @@
 import { Injectable, Inject } from '@angular/core';
 import { CONFIG_TOKEN, DBConfig } from './ngxindexeddb.module';
-import { openDatabase, DBMode, Key, RequestEvent } from './ngx-indexed-db';
+import { openDatabase, DBMode, Key, RequestEvent, CreateObjectStore } from './ngx-indexed-db';
 import { createTransaction, optionsGenerator, validateBeforeTransaction } from '../utils';
 
 @Injectable()
@@ -10,7 +10,15 @@ export class NgxIndexedDBService {
 	}
 	private _currentStore: string;
 
-	constructor(@Inject(CONFIG_TOKEN) private dbConfig: DBConfig) {}
+	constructor(@Inject(CONFIG_TOKEN) private dbConfig: DBConfig) {
+		if (!dbConfig.name) {
+			throw new Error('NgxIndexedDB: Please, provide the dbName in the configuration');
+		}
+		if (!dbConfig.version) {
+			throw new Error('NgxIndexedDB: Please, provide the db version in the configuration');
+		}
+		CreateObjectStore(dbConfig.name, dbConfig.version, dbConfig.objectStoresMeta);
+	}
 
 	add<T>(value: T, key?: any) {
 		return new Promise<number>((resolve, reject) => {
