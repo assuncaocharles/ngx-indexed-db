@@ -37,6 +37,25 @@ export class NgxIndexedDBService {
 		});
 	}
 
+	getByKey<T>(key: any) {
+		return new Promise<any>((resolve, reject) => {
+			openDatabase(this.dbConfig.name, this.dbConfig.version).then((db: IDBDatabase) => {
+				let transaction = createTransaction(
+						db,
+						optionsGenerator(DBMode.readonly, this._currentStore, reject, resolve)
+					),
+					objectStore = transaction.objectStore(this._currentStore);
+				let request = objectStore.get(key);
+				request.onsuccess = function(event: Event) {
+					resolve((<any>event.target).result);
+				};
+				request.onerror = function(event: Event) {
+					reject(event);
+				};
+			});
+		});
+	}
+
 	getByID<T>(id: string | number) {
 		return new Promise<T>((resolve, reject) => {
 			openDatabase(this.dbConfig.name, this.dbConfig.version).then((db: IDBDatabase) => {
