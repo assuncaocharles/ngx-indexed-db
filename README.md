@@ -18,16 +18,26 @@ Import the `NgxIndexedDBModule` and initiate it:
 ```js
 import { NgxIndexedDBModule } from 'ngx-indexed-db';
 
-const dbConfig: DBConfig  = {name: 'MyDb', version: 1, objectStoresMeta: [
-  {
+const dbConfig: DBConfig  = {
+  name: 'MyDb',
+  version: 1,
+  objectStoresMeta: [{
     store: 'people',
     storeConfig: { keyPath: 'id', autoIncrement: true },
     storeSchema: [
       { name: 'name', keypath: 'name', options: { unique: false } },
       { name: 'email', keypath: 'email', options: { unique: false } }
     ]
+  }],
+  objectStoresMigration: {
+    2: (db, transaction) => {
+      // add a new indexed for version 2 of the store
+      const store = transaction.objectStore("people");
+      store.createIndex('phone', 'phone', { unique: false });
+      store.createIndex('age', 'age', { unique: false });
+    }
   }
-]};
+};
 
 @NgModule({
   ...
