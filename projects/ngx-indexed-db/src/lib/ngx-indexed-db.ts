@@ -46,15 +46,15 @@ export function openDatabase(dbName: string, version: number, upgradeCallback?: 
 }
 
 export function CreateObjectStore(
-  dbName: string,
-  version: number,
-  storeSchemas: ObjectStoreMeta[],
-  storeMigrations?: { [key: number]: (db: IDBDatabase, transaction: IDBTransaction) => void }
+	dbName: string,
+	version: number,
+	storeSchemas: ObjectStoreMeta[],
+	storeMigrations?: { [key: number]: (db: IDBDatabase, transaction: IDBTransaction) => void }
 ) {
 	const request: IDBOpenDBRequest = indexedDB.open(dbName, version);
 
 	request.onupgradeneeded = function(event: IDBVersionChangeEvent) {
-    const database: IDBDatabase = (event.target as any).result;
+		const database: IDBDatabase = (event.target as any).result;
 
 		storeSchemas.forEach((storeSchema: ObjectStoreMeta) => {
 			if (!database.objectStoreNames.contains(storeSchema.store)) {
@@ -63,20 +63,20 @@ export function CreateObjectStore(
 					objectStore.createIndex(schema.name, schema.keypath, schema.options);
 				});
 			}
-    });
+		});
 
-    if (storeMigrations) {
-      Object.keys(storeMigrations)
-        .map(k => parseInt(k, 10))
-        .filter(v => v > event.oldVersion)
-        .sort()
-        .forEach(v => {
-          storeMigrations[v](database, request.transaction);
-        });
-    }
+		if (storeMigrations) {
+			Object.keys(storeMigrations)
+				.map(k => parseInt(k, 10))
+				.filter(v => v > event.oldVersion)
+				.sort()
+				.forEach(v => {
+					storeMigrations[v](database, request.transaction);
+				});
+		}
 
-    database.close();
-  };
+		database.close();
+	};
 
 	request.onsuccess = function(e: any) {
 		e.target.result.close();
