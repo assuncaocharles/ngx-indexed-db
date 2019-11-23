@@ -148,6 +148,20 @@ export class NgxIndexedDBService {
 		});
 	}
 
+	delete(key: any) {
+		return new Promise<any>((resolve, reject) => {
+			openDatabase(this.dbConfig.name, this.dbConfig.version).then(db => {
+				validateBeforeTransaction(db, this._currentStore, reject);
+				let transaction = createTransaction(
+						db,
+						optionsGenerator(DBMode.readwrite, this._currentStore, reject, resolve)
+					),
+					objectStore = transaction.objectStore(this._currentStore);
+				objectStore['delete'](key);
+			});
+		});
+	}
+
 	openCursor(cursorCallback: (event: Event) => void, keyRange?: IDBKeyRange) {
 		return new Promise<void>((resolve, reject) => {
 			openDatabase(this.dbConfig.name, this.dbConfig.version).then(db => {
