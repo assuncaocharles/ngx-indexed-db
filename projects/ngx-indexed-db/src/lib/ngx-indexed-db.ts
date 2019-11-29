@@ -49,7 +49,7 @@ export function CreateObjectStore(
 	dbName: string,
 	version: number,
 	storeSchemas: ObjectStoreMeta[],
-	storeMigrations?: { [key: number]: (db: IDBDatabase, transaction: IDBTransaction) => void }
+	migrationFactory?: () => { [key: number]: (db: IDBDatabase, transaction: IDBTransaction) => void }
 ) {
 	const request: IDBOpenDBRequest = indexedDB.open(dbName, version);
 
@@ -65,11 +65,12 @@ export function CreateObjectStore(
 			}
 		});
 
+		const storeMigrations = migrationFactory && migrationFactory();
 		if (storeMigrations) {
 			Object.keys(storeMigrations)
 				.map(k => parseInt(k, 10))
 				.filter(v => v > event.oldVersion)
-				.sort()
+				.sort((a, b) => a - b)
 				.forEach(v => {
 					storeMigrations[v](database, request.transaction);
 				});
