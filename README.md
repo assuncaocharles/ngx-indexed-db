@@ -28,15 +28,60 @@ const dbConfig: DBConfig  = {
       { name: 'name', keypath: 'name', options: { unique: false } },
       { name: 'email', keypath: 'email', options: { unique: false } }
     ]
-  }],
-  objectStoresMigration: {
-    2: (db, transaction) => {
-      // add a new indexed for version 2 of the store
+  }]
+};
+
+@NgModule({
+  ...
+  imports: [
+    ...
+    NgxIndexedDBModule.forRoot(dbConfig)
+  ],
+  ...
+})
+```
+
+### Migrations
+
+```
+import { NgxIndexedDBModule } from 'ngx-indexed-db';
+
+// Ahead of time compiles requires an exported function for factories
+export function migrationFactory() {
+  // The animal table was added but none of the existing
+  // tables or data needed to be modifies so a migrator is not included.
+  return {
+    1: (db, transaction) => {
       const store = transaction.objectStore("people");
-      store.createIndex('phone', 'phone', { unique: false });
+      store.createIndex('country', 'country', { unique: false });
+    },
+    3: (db, transaction) => {
+      const store = transaction.objectStore("people");
       store.createIndex('age', 'age', { unique: false });
     }
-  }
+  };
+}
+
+const dbConfig: DBConfig  = {
+  name: 'MyDb',
+  version: 3,
+  objectStoresMeta: [{
+    store: 'people',
+    storeConfig: { keyPath: 'id', autoIncrement: true },
+    storeSchema: [
+      { name: 'name', keypath: 'name', options: { unique: false } },
+      { name: 'email', keypath: 'email', options: { unique: false } }
+    ]
+  }, {
+    // animals added in version 2
+    store: 'animals',
+    storeConfig: { keyPath: 'id', autoIncrement: true },
+    storeSchema: [
+      { name: 'name', keypath: 'name', options: { unique: true } },
+    ]
+  }],
+  // provide the migration factory to the DBConfig
+  migrationFactory
 };
 
 @NgModule({

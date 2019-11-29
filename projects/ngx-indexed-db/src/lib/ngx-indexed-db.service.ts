@@ -17,7 +17,7 @@ export class NgxIndexedDBService {
 		if (!dbConfig.version) {
 			throw new Error('NgxIndexedDB: Please, provide the db version in the configuration');
 		}
-		CreateObjectStore(dbConfig.name, dbConfig.version, dbConfig.objectStoresMeta, dbConfig.objectStoresMigration);
+		CreateObjectStore(dbConfig.name, dbConfig.version, dbConfig.objectStoresMeta, dbConfig.migrationFactory);
 	}
 
 	add<T>(value: T, key?: any) {
