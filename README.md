@@ -43,7 +43,7 @@ const dbConfig: DBConfig  = {
 
 ### Migrations
 
-```
+```js
 import { NgxIndexedDBModule } from 'ngx-indexed-db';
 
 // Ahead of time compiles requires an exported function for factories
