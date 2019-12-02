@@ -1,7 +1,7 @@
 import { Injectable, Inject } from '@angular/core';
-import { CONFIG_TOKEN, DBConfig } from './ngxindexeddb.module';
 import { openDatabase, DBMode, Key, RequestEvent, CreateObjectStore } from './ngx-indexed-db';
 import { createTransaction, optionsGenerator, validateBeforeTransaction } from '../utils';
+import { CONFIG_TOKEN, DBConfig } from './ngx-indexed-db.meta';
 
 @Injectable()
 export class NgxIndexedDBService {
