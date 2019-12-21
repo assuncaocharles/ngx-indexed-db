@@ -216,13 +216,13 @@ this.dbService.count().then(
 #### update(value, key?)
 
 Updates the given value in the objectStore.
-The first parameter is the store name to modify, the second parameter is the value to update and the third parameter is the key (if there is no key don't provide it).
+The first parameter is the value to update, the second parameter is the key (if there is no key don't provide it).
 **update** returns a promise that is resolved when the value was updated or rejected if an error occurred.
 
 Usage example (update without a key):
 
 ```js
-this.dbService.update('people', { id: 3, name: 'name', email: 'email' }).then(
+this.dbService.update({ id: 3, name: 'name', email: 'email' }).then(
 	() => {
 		// Do something after update
 	},
