@@ -8,6 +8,9 @@ export class NgxIndexedDBService {
 	set currentStore(_currentStore: string) {
 		this._currentStore = _currentStore;
 	}
+	get currentStore(): string {
+		return this._currentStore;
+	}
 	private _currentStore: string;
 
 	constructor(@Inject(CONFIG_TOKEN) private dbConfig: DBConfig) {
