@@ -205,4 +205,19 @@ export class NgxIndexedDBService {
 			});
 		});
 	}
+
+	count(storeName: string, keyRange?: IDBValidKey | IDBKeyRange) {
+		return new Promise<any>((resolve, reject) => {
+			openDatabase(this.dbConfig.name, this.dbConfig.version).then(db => {
+				validateBeforeTransaction(db, this._currentStore, reject);
+				let transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, reject, resolve)),
+					objectStore = transaction.objectStore(storeName),
+					request: IDBRequest;
+
+				request = objectStore.count(keyRange);
+				request.onerror = e => reject(e);
+				request.onsuccess = e => resolve((<any>e.target).result);
+			});
+		});
+	}
 }
