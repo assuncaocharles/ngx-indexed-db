@@ -112,11 +112,11 @@ export class NgxIndexedDBService {
 				transaction.oncomplete = event => {
 					resolve(event);
 				};
-        if(key){
-          objectStore.put(value, key);
-        } else {
-          objectStore.put(value);
-        }
+				if (key) {
+					objectStore.put(value, key);
+				} else {
+					objectStore.put(value);
+				}
 			});
 		});
 	}
