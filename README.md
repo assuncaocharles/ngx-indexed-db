@@ -52,11 +52,11 @@ export function migrationFactory() {
   // to be modified so a migrator for that version is not included.
   return {
     1: (db, transaction) => {
-      const store = transaction.objectStore("people");
+      const store = transaction.objectStore('people');
       store.createIndex('country', 'country', { unique: false });
     },
     3: (db, transaction) => {
-      const store = transaction.objectStore("people");
+      const store = transaction.objectStore('people');
       store.createIndex('age', 'age', { unique: false });
     }
   };
@@ -96,15 +96,14 @@ const dbConfig: DBConfig  = {
 
 ### NgxIndexedDB service
 
-First, import and set the table/object store to work with:
+First, import the service:
 
 ```js
 import { NgxIndexedDBService } from 'ngx-indexed-db';
 
 ...
   export class AppComponent {
-    constructor(private dbService: NgxIndexedDBService){
-      dbService.currentStore = 'people';
+    constructor(private dbService: NgxIndexedDBService){      
     }
   }
 ```
@@ -114,7 +113,7 @@ import { NgxIndexedDBService } from 'ngx-indexed-db';
 Use the APIs that the NgxIndexedDB service exposes to use indexeddb.
 In the API the following functions:
 
-#### getByKey(key)
+#### getByKey(storeName, key)
 
 Returns the object that is stored in the objectStore by its key.
 The first parameter is the store name to query and the second one is the object's key.
@@ -123,7 +122,7 @@ The first parameter is the store name to query and the second one is the object'
 Usage example:
 
 ```js
-this.dbService.getByKey(1).then(
+this.dbService.getByKey('people', 1).then(
 	person => {
 		console.log(person);
 	},
@@ -133,7 +132,7 @@ this.dbService.getByKey(1).then(
 );
 ```
 
-#### getAll(keyRange, indexDetails)
+#### getAll(storeName, keyRange, indexDetails)
 
 Returns an array of all the items in the given objectStore.
 The first parameter is the store name to query.
@@ -144,7 +143,7 @@ The third parameter is an index details which must include index name and an opt
 Usage example:
 
 ```js
-this.dbService.getAll().then(
+this.dbService.getAll('people').then(
 	people => {
 		console.log(people);
 	},
@@ -154,7 +153,7 @@ this.dbService.getAll().then(
 );
 ```
 
-#### getByIndex(indexName, key)
+#### getByIndex(storeName, indexName, key)
 
 Returns an stored item using an objectStore's index.
 The first parameter is the store name to query, the second parameter is the index and third parameter is the item to query.
@@ -163,7 +162,7 @@ The first parameter is the store name to query, the second parameter is the inde
 Usage example:
 
 ```js
-this.dbService.getByIndex('name', 'Dave').then(
+this.dbService.getByIndex('people', 'name', 'Dave').then(
 	person => {
 		console.log(person);
 	},
@@ -173,7 +172,7 @@ this.dbService.getByIndex('name', 'Dave').then(
 );
 ```
 
-#### add(value, key)
+#### add(storeName, value, key)
 
 Adds to the given objectStore the key and value pair.
 The first parameter is the store name to modify, the second parameter is the value and the third parameter is the key (if not auto-generated).
@@ -182,7 +181,7 @@ The first parameter is the store name to modify, the second parameter is the val
 Usage example (add without a key):
 
 ```js
-this.dbService.add({ name: 'name', email: 'email' }).then(
+this.dbService.add('people', { name: 'name', email: 'email' }).then(
 	() => {
 		// Do something after the value was added
 	},
@@ -194,7 +193,7 @@ this.dbService.add({ name: 'name', email: 'email' }).then(
 
 _In the previous example I'm using undefined as the key because the key is configured in the objectStore as auto-generated._
 
-#### count(keyRange?)
+#### count(storeName, keyRange?)
 
 Returns number of rows in the object store.
 First parameter is the store name to count rows of.
@@ -203,7 +202,7 @@ Second parameter is an optional IDBKeyRange object or a number value (e.g. to te
 Usage example:
 
 ```js
-this.dbService.count().then(
+this.dbService.count('people').then(
 	peopleCount => {
 		console.log(peopleCount);
 	},
@@ -213,7 +212,7 @@ this.dbService.count().then(
 );
 ```
 
-#### update(value, key?)
+#### update(storeName, value, key?)
 
 Updates the given value in the objectStore.
 The first parameter is the value to update, the second parameter is the key (if there is no key don't provide it).
@@ -222,7 +221,7 @@ The first parameter is the value to update, the second parameter is the key (if 
 Usage example (update without a key):
 
 ```js
-this.dbService.update({ id: 3, name: 'name', email: 'email' }).then(
+this.dbService.update('people', { id: 3, name: 'name', email: 'email' }).then(
 	() => {
 		// Do something after update
 	},
@@ -232,7 +231,7 @@ this.dbService.update({ id: 3, name: 'name', email: 'email' }).then(
 );
 ```
 
-#### delete(key)
+#### delete(storeName, key)
 
 Deletes the object that correspond with the key from the objectStore.
 The first parameter is the store name to modify and the second parameter is the key to delete.
@@ -251,7 +250,7 @@ this.dbService.delete('people', 3).then(
 );
 ```
 
-#### openCursor(cursorCallback, keyRange)
+#### openCursor(storeName, cursorCallback, keyRange)
 
 Opens an objectStore cursor to enable iterating on the objectStore.
 The first parameter is the store name, the second parameter is a callback function to run when the cursor succeeds to be opened and the third parameter is optional IDBKeyRange object.
@@ -271,7 +270,7 @@ this.dbService.openCursor('people', (evt) => {
 }, IDBKeyRange.bound("A", "F"));
 ```
 
-#### clear()
+#### clear(storeName)
 
 Clears all the data in an objectStore.
 The first parameter is the store name to clear.
@@ -280,7 +279,7 @@ The first parameter is the store name to clear.
 Usage example:
 
 ```js
-this.dbService.clear().then(
+this.dbService.clear('people').then(
 	() => {
 		// Do something after clear
 	},
