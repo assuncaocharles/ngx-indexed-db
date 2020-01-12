@@ -78,7 +78,7 @@
 		"tsickle": "^0.38.0",
 		"tslib": "^1.10.0",
 		"tslint": "~5.17.0",
-		"typedoc": "^0.15.0",
+		"typedoc": "^0.16.0",
 		"typescript": "^3.5.3",
 		"webpack-dev-server": "^3.8.0"
 	},
