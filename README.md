@@ -44,7 +44,7 @@ const dbConfig: DBConfig  = {
 ### Migrations
 
 ```js
-import { NgxIndexedDBModule } from 'ngx-indexed-db';
+import { NgxIndexedDBModule, DBConfig } from 'ngx-indexed-db';
 
 // Ahead of time compiles requires an exported function for factories
 export function migrationFactory() {
@@ -103,7 +103,7 @@ import { NgxIndexedDBService } from 'ngx-indexed-db';
 
 ...
   export class AppComponent {
-    constructor(private dbService: NgxIndexedDBService){      
+    constructor(private dbService: NgxIndexedDBService){
     }
   }
 ```
