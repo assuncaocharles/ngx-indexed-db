@@ -5,6 +5,9 @@ import { CONFIG_TOKEN, DBConfig } from './ngx-indexed-db.meta';
 
 @Injectable()
 export class NgxIndexedDBService {
+	indexedDB =
+		window.indexedDB || (<any>window).mozIndexedDB || (<any>window).webkitIndexedDB || (<any>window).msIndexedDB;
+
 	constructor(@Inject(CONFIG_TOKEN) private dbConfig: DBConfig) {
 		if (!dbConfig.name) {
 			throw new Error('NgxIndexedDB: Please, provide the dbName in the configuration');
@@ -134,6 +137,19 @@ export class NgxIndexedDBService {
 					objectStore = transaction.objectStore(storeName);
 				objectStore['delete'](key);
 			});
+		});
+	}
+
+	deleteDatabase() {
+		return new Promise(async (resolve, reject) => {
+			const db = await openDatabase(this.dbConfig.name, this.dbConfig.version);
+			db.close();
+			const deleteDBRequest = this.indexedDB.deleteDatabase(this.dbConfig.name);
+			deleteDBRequest.onsuccess = resolve;
+			deleteDBRequest.onerror = reject;
+			deleteDBRequest.onblocked = () => {
+				throw new Error("Unable to delete database because it's blocked");
+			};
 		});
 	}
 
