@@ -143,7 +143,7 @@ export class NgxIndexedDBService {
 	deleteDatabase() {
 		return new Promise(async (resolve, reject) => {
 			const db = await openDatabase(this.dbConfig.name, this.dbConfig.version);
-			db.close();
+			await db.close();
 			const deleteDBRequest = this.indexedDB.deleteDatabase(this.dbConfig.name);
 			deleteDBRequest.onsuccess = resolve;
 			deleteDBRequest.onerror = reject;
