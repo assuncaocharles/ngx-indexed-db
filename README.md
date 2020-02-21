@@ -270,6 +270,26 @@ this.dbService.openCursor('people', (evt) => {
 }, IDBKeyRange.bound("A", "F"));
 ```
 
+#### openCursorByIndex(storeName, indexName, keyRange, cursorCallback)
+
+Opens an index cursor to enable iterating on the objectStore.
+The first parameter is the store name, the second parameter is the index on which to filter, the third parameter is an IDBKeyRange object for criteria and the last parameter is a callback function to run when the cursor succeeds to be opened.
+**openCursorByIndex** returns a promise that is resolved when the cursor finishes running or rejected if an error occurred.
+
+Usage example:
+
+```js
+this.dbService.openCursorByIndex('people', 'name', IDBKeyRange.only('john'), (evt) => {
+    var cursor = (<any>evt.target).result;
+    if(cursor) {
+        console.log(cursor.value);
+        cursor.continue();
+    } else {
+        console.log('Entries all displayed.');
+    }
+});
+```
+
 #### clear(storeName)
 
 Clears all the data in an objectStore.
