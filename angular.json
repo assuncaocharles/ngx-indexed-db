@@ -44,5 +44,8 @@
       }
     }
   },
-  "defaultProject": "ngx-indexed-db-lib"
+  "defaultProject": "ngx-indexed-db-lib",
+  "cli": {
+    "analytics": "d8180378-6953-475f-b9b8-2c63bd2a2c6c"
+  }
 }

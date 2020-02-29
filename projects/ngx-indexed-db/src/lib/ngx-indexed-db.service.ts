@@ -38,10 +38,10 @@ export class NgxIndexedDBService {
 				let transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, reject, resolve)),
 					objectStore = transaction.objectStore(storeName);
 				let request = objectStore.get(key);
-				request.onsuccess = function (event: Event) {
+				request.onsuccess = function(event: Event) {
 					resolve((<any>event.target).result);
 				};
-				request.onerror = function (event: Event) {
+				request.onerror = function(event: Event) {
 					reject(event);
 				};
 			});
@@ -56,7 +56,7 @@ export class NgxIndexedDBService {
 					objectStore = transaction.objectStore(storeName),
 					request: IDBRequest;
 				request = objectStore.get(+id);
-				request.onsuccess = function (event: Event) {
+				request.onsuccess = function(event: Event) {
 					resolve((event.target as any).result as T);
 				};
 			});
@@ -73,10 +73,10 @@ export class NgxIndexedDBService {
 
 				const request: IDBRequest = objectStore.getAll();
 
-				request.onerror = function (e) {
+				request.onerror = function(e) {
 					reject(e);
 				};
-				request.onsuccess = function ({ target: { result: ResultAll } }: RequestEvent<T>) {
+				request.onsuccess = function({ target: { result: ResultAll } }: RequestEvent<T>) {
 					resolve(ResultAll as T[]);
 				};
 			});
@@ -176,7 +176,12 @@ export class NgxIndexedDBService {
 	 * @param keyRange The range value and criteria to apply on the index.
 	 * @param cursorCallback A callback called when done.
 	 */
-	openCursorByIndex(storeName: string, indexName: string, keyRange: IDBKeyRange, cursorCallback: (event: Event) => void) {
+	openCursorByIndex(
+		storeName: string,
+		indexName: string,
+		keyRange: IDBKeyRange,
+		cursorCallback: (event: Event) => void
+	) {
 		return new Promise<void>((resolve, reject) => {
 			openDatabase(this.dbConfig.name, this.dbConfig.version).then(db => {
 				validateBeforeTransaction(db, storeName, reject);
