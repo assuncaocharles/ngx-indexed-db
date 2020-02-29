@@ -13,6 +13,7 @@ cache:
     directories:
         - node_modules
 after_success:
+    - cd dist/ngx-indexed-db
     - npm publish
 deploy:
     - provider: pages
