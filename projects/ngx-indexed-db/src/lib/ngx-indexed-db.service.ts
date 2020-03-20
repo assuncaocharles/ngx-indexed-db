@@ -176,7 +176,12 @@ export class NgxIndexedDBService {
 	 * @param keyRange The range value and criteria to apply on the index.
 	 * @param cursorCallback A callback called when done.
 	 */
-	openCursorByIndex(storeName: string, indexName: string, keyRange: IDBKeyRange, cursorCallback: (event: Event) => void) {
+	openCursorByIndex(
+		storeName: string,
+		indexName: string,
+		keyRange: IDBKeyRange,
+		cursorCallback: (event: Event) => void
+	) {
 		return new Promise<void>((resolve, reject) => {
 			openDatabase(this.dbConfig.name, this.dbConfig.version).then(db => {
 				validateBeforeTransaction(db, storeName, reject);

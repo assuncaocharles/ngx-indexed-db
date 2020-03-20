@@ -1,6 +1,23 @@
 {
 	"name": "ngx-indexed-db",
-	"version": "3.0.0",
+	"author": "Charles Assunção",
+	"description": "Angular wrapper to IndexedDB database.",
+	"version": "4.0.10",
+	"license": "ISC",
+	"private": false,
+	"keywords": [
+		"indexed",
+		"db",
+		"indexeddb",
+		"angular",
+		"ng",
+		"ngx",
+		"storage"
+	],
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/assuncaocharles/ngx-indexed-db"
+	},
 	"peerDependencies": {
 		"@angular/common": "^8.0.0-rc.0 || ^8.0.0",
 		"@angular/core": "^8.0.0-rc.0 || ^8.0.0"

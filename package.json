@@ -2,10 +2,10 @@
 	"name": "ngx-indexed-db",
 	"author": "Charles Assunção",
 	"description": "Angular wrapper to IndexedDB database.",
-	"version": "4.0.2",
+	"version": "4.0.10",
 	"license": "ISC",
 	"files": [
-		"dist/ngx-indexed-db"
+		"dist/**/*"
 	],
 	"main": "./dist/ngx-indexed-db/bundles/ngx-indexed-db.umd.js",
 	"engines": {
@@ -46,13 +46,12 @@
 		"@angular/compiler": "^8.2.2",
 		"@angular/core": "^8.2.2",
 		"@angular/platform-browser-dynamic": "^8.2.8",
-		"fsevents": "^1.2.9",
 		"rxjs": "^6.5.2"
 	},
 	"devDependencies": {
 		"@angular-devkit/build-angular": "^0.900.2",
-		"@angular-devkit/build-ng-packagr": "~0.803.0",
-		"@angular/cli": "^8.2.2",
+		"@angular-devkit/build-ng-packagr": "~0.900.4",
+		"@angular/cli": "^9.0.3",
 		"@angular/compiler-cli": "^8.2.2",
 		"@angular/language-service": "^8.2.2",
 		"@types/jasmine": "^3.4.0",
@@ -70,7 +69,7 @@
 		"karma-jasmine-html-reporter": "^1.4.2",
 		"lodash": "^4.17.15",
 		"marked": "^0.8.0",
-		"ng-packagr": "^5.5.0",
+		"ng-packagr": "^9.0.1",
 		"prettier": "^1.18.2",
 		"protractor": "~6.0.0",
 		"shx": "^0.3.2",
