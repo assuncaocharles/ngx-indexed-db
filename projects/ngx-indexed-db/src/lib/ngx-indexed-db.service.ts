@@ -23,7 +23,14 @@ export class NgxIndexedDBService {
 			openDatabase(this.dbConfig.name, this.dbConfig.version).then((db: IDBDatabase) => {
 				let transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, reject, resolve)),
 					objectStore = transaction.objectStore(storeName);
-				let request = objectStore.add(value, key);
+
+				let request: IDBRequest;
+				if (key) {
+					request = objectStore.add(value, key);
+				} else {
+					request = objectStore.add(value);
+				}
+
 				request.onsuccess = (evt: any) => {
 					key = evt.target.result;
 					resolve(key);
