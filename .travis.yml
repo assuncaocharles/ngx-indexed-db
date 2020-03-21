@@ -5,7 +5,6 @@ before_script:
     - npm install
 script:
     - npm run build
-    - npm run typedoc
     - cp README.md dist/ngx-indexed-db
     - cp LICENSE dist/ngx-indexed-db
     - npm pack
