@@ -49,7 +49,7 @@
 		"rxjs": "^6.5.2"
 	},
 	"devDependencies": {
-		"@angular-devkit/build-angular": "^0.900.2",
+		"@angular-devkit/build-angular": "^0.901.0",
 		"@angular-devkit/build-ng-packagr": "~0.900.4",
 		"@angular/cli": "^9.0.3",
 		"@angular/compiler-cli": "^8.2.2",
