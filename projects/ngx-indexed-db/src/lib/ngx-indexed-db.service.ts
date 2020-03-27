@@ -166,7 +166,7 @@ export class NgxIndexedDBService {
 				validateBeforeTransaction(db, storeName, reject);
 				let transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, reject, resolve)),
 					objectStore = transaction.objectStore(storeName),
-					request = objectStore.openCursor(keyRange);
+					request = keyRange === undefined ? objectStore.openCursor() : objectStore.openCursor(keyRange);
 
 				request.onsuccess = (event: Event) => {
 					cursorCallback(event);
