@@ -24,9 +24,9 @@ export interface RequestEvent<T> extends Event {
 
 export function openDatabase(indexedDB: IDBFactory, dbName: string, version: number, upgradeCallback?: Function) {
 	return new Promise<IDBDatabase>((resolve, reject) => {
-	  if (!indexedDB) {
-	    reject('IndexedDB not available');
-    }
+		if (!indexedDB) {
+			reject('IndexedDB not available');
+		}
 		const request = indexedDB.open(dbName, version);
 		let db: IDBDatabase;
 		request.onsuccess = (event: Event) => {
@@ -45,16 +45,16 @@ export function openDatabase(indexedDB: IDBFactory, dbName: string, version: num
 }
 
 export function CreateObjectStore(
-  indexedDB: IDBFactory,
+	indexedDB: IDBFactory,
 	dbName: string,
 	version: number,
 	storeSchemas: ObjectStoreMeta[],
 	migrationFactory?: () => { [key: number]: (db: IDBDatabase, transaction: IDBTransaction) => void }
 ) {
-  if (!indexedDB) {
-    return;
-  }
-  const request: IDBOpenDBRequest = indexedDB.open(dbName, version);
+	if (!indexedDB) {
+		return;
+	}
+	const request: IDBOpenDBRequest = indexedDB.open(dbName, version);
 
 	request.onupgradeneeded = function(event: IDBVersionChangeEvent) {
 		const database: IDBDatabase = (event.target as any).result;

@@ -1,28 +1,36 @@
-import {Injectable, Inject, PLATFORM_ID} from '@angular/core';
+import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { openDatabase, DBMode, Key, RequestEvent, CreateObjectStore } from './ngx-indexed-db';
 import { createTransaction, optionsGenerator, validateBeforeTransaction } from '../utils';
 import { CONFIG_TOKEN, DBConfig } from './ngx-indexed-db.meta';
-import {isPlatformBrowser} from "@angular/common";
+import { isPlatformBrowser } from '@angular/common';
 
 @Injectable()
 export class NgxIndexedDBService {
+	private readonly isBrowser: boolean;
+	indexedDB;
 
-  private readonly isBrowser: boolean;
-  indexedDB;
-
-	constructor(@Inject(CONFIG_TOKEN) private dbConfig: DBConfig,
-              @Inject(PLATFORM_ID) private platformId: any) {
+	constructor(@Inject(CONFIG_TOKEN) private dbConfig: DBConfig, @Inject(PLATFORM_ID) private platformId: any) {
 		if (!dbConfig.name) {
 			throw new Error('NgxIndexedDB: Please, provide the dbName in the configuration');
 		}
 		if (!dbConfig.version) {
 			throw new Error('NgxIndexedDB: Please, provide the db version in the configuration');
 		}
-    this.isBrowser = isPlatformBrowser(platformId);
-    if (this.isBrowser) {
-      this.indexedDB = window.indexedDB || (<any>window).mozIndexedDB || (<any>window).webkitIndexedDB || (<any>window).msIndexedDB;
-      CreateObjectStore(this.indexedDB, dbConfig.name, dbConfig.version, dbConfig.objectStoresMeta, dbConfig.migrationFactory);
-    }
+		this.isBrowser = isPlatformBrowser(platformId);
+		if (this.isBrowser) {
+			this.indexedDB =
+				window.indexedDB ||
+				(<any>window).mozIndexedDB ||
+				(<any>window).webkitIndexedDB ||
+				(<any>window).msIndexedDB;
+			CreateObjectStore(
+				this.indexedDB,
+				dbConfig.name,
+				dbConfig.version,
+				dbConfig.objectStoresMeta,
+				dbConfig.migrationFactory
+			);
+		}
 	}
 
 	add<T>(storeName: string, value: T, key?: any) {
