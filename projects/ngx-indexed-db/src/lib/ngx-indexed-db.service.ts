@@ -220,26 +220,26 @@ export class NgxIndexedDBService {
 		});
 	}
 
-  /**
-   * Returns all items by an index.
-   * @param storeName The name of the store to query
-   * @param indexName The index name to filter
-   * @param keyRange  The range value and criteria to apply on the index.
-   */
+	/**
+	 * Returns all items by an index.
+	 * @param storeName The name of the store to query
+	 * @param indexName The index name to filter
+	 * @param keyRange  The range value and criteria to apply on the index.
+	 */
 	getAllByIndex<T>(storeName: string, indexName: string, keyRange: IDBKeyRange): Promise<T[]> {
-    const data: T[] = [];
-	  return new Promise<T[]>((resolve, reject) => {
-	    this.openCursorByIndex(storeName, indexName, keyRange, event => {
-        const cursor: IDBCursorWithValue = (event.target as IDBRequest<IDBCursorWithValue>).result;
-        if (cursor) {
-          data.push(cursor.value);
-          cursor.continue();
-        } else {
-          resolve(data);
-        }
-      }).catch(reason => reject(reason))
-    });
-  }
+		const data: T[] = [];
+		return new Promise<T[]>((resolve, reject) => {
+			this.openCursorByIndex(storeName, indexName, keyRange, event => {
+				const cursor: IDBCursorWithValue = (event.target as IDBRequest<IDBCursorWithValue>).result;
+				if (cursor) {
+					data.push(cursor.value);
+					cursor.continue();
+				} else {
+					resolve(data);
+				}
+			}).catch(reason => reject(reason));
+		});
+	}
 
 	getByIndex(storeName: string, indexName: string, key: any) {
 		return new Promise<any>((resolve, reject) => {
