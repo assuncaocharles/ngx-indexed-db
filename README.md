@@ -290,6 +290,28 @@ this.dbService.openCursorByIndex('people', 'name', IDBKeyRange.only('john'), (ev
 });
 ```
 
+#### getAllByIndex(storeName, indexName, keyRange)
+
+Returns an array of all the items in the given objectStore matching the key range for the specified index.
+The first parameter is the store name to query.
+The second parameter is an index details which must include index name and an optional order parameter.
+The third parameter is an `IDBKeyRange` object.
+**getAllByIndex** returns a promise that is resolved when we have the array of items or rejected if an error occurred.
+
+
+Usage example: 
+
+```js
+this.dbService.getAllByIndex('people', 'name', IDBKeyRange.only('john')).then(
+  (array) => {
+    // Do something with the array
+  },
+  error => {
+		console.log(error);
+  }
+);
+```
+
 #### clear(storeName)
 
 Clears all the data in an objectStore.

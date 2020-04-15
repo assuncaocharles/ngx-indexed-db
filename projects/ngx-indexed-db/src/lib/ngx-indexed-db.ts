@@ -22,11 +22,11 @@ export interface RequestEvent<T> extends Event {
 	target: RequestEventTarget<T>;
 }
 
-const indexedDB: IDBFactory =
-	window.indexedDB || (<any>window).mozIndexedDB || (<any>window).webkitIndexedDB || (<any>window).msIndexedDB;
-
-export function openDatabase(dbName: string, version: number, upgradeCallback?: Function) {
+export function openDatabase(indexedDB: IDBFactory, dbName: string, version: number, upgradeCallback?: Function) {
 	return new Promise<IDBDatabase>((resolve, reject) => {
+		if (!indexedDB) {
+			reject('IndexedDB not available');
+		}
 		const request = indexedDB.open(dbName, version);
 		let db: IDBDatabase;
 		request.onsuccess = (event: Event) => {
@@ -38,7 +38,6 @@ export function openDatabase(dbName: string, version: number, upgradeCallback?: 
 		};
 		if (typeof upgradeCallback === 'function') {
 			request.onupgradeneeded = (event: Event) => {
-				console.log('checkout');
 				upgradeCallback(event, db);
 			};
 		}
@@ -46,11 +45,15 @@ export function openDatabase(dbName: string, version: number, upgradeCallback?: 
 }
 
 export function CreateObjectStore(
+	indexedDB: IDBFactory,
 	dbName: string,
 	version: number,
 	storeSchemas: ObjectStoreMeta[],
 	migrationFactory?: () => { [key: number]: (db: IDBDatabase, transaction: IDBTransaction) => void }
 ) {
+	if (!indexedDB) {
+		return;
+	}
 	const request: IDBOpenDBRequest = indexedDB.open(dbName, version);
 
 	request.onupgradeneeded = function(event: IDBVersionChangeEvent) {

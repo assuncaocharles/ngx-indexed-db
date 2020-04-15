@@ -1,26 +1,41 @@
-import { Injectable, Inject } from '@angular/core';
+import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { openDatabase, DBMode, Key, RequestEvent, CreateObjectStore } from './ngx-indexed-db';
 import { createTransaction, optionsGenerator, validateBeforeTransaction } from '../utils';
 import { CONFIG_TOKEN, DBConfig } from './ngx-indexed-db.meta';
+import { isPlatformBrowser } from '@angular/common';
 
 @Injectable()
 export class NgxIndexedDBService {
-	indexedDB =
-		window.indexedDB || (<any>window).mozIndexedDB || (<any>window).webkitIndexedDB || (<any>window).msIndexedDB;
+	private readonly isBrowser: boolean;
+	indexedDB;
 
-	constructor(@Inject(CONFIG_TOKEN) private dbConfig: DBConfig) {
+	constructor(@Inject(CONFIG_TOKEN) private dbConfig: DBConfig, @Inject(PLATFORM_ID) private platformId: any) {
 		if (!dbConfig.name) {
 			throw new Error('NgxIndexedDB: Please, provide the dbName in the configuration');
 		}
 		if (!dbConfig.version) {
 			throw new Error('NgxIndexedDB: Please, provide the db version in the configuration');
 		}
-		CreateObjectStore(dbConfig.name, dbConfig.version, dbConfig.objectStoresMeta, dbConfig.migrationFactory);
+		this.isBrowser = isPlatformBrowser(platformId);
+		if (this.isBrowser) {
+			this.indexedDB =
+				window.indexedDB ||
+				(<any>window).mozIndexedDB ||
+				(<any>window).webkitIndexedDB ||
+				(<any>window).msIndexedDB;
+			CreateObjectStore(
+				this.indexedDB,
+				dbConfig.name,
+				dbConfig.version,
+				dbConfig.objectStoresMeta,
+				dbConfig.migrationFactory
+			);
+		}
 	}
 
 	add<T>(storeName: string, value: T, key?: any) {
 		return new Promise<number>((resolve, reject) => {
-			openDatabase(this.dbConfig.name, this.dbConfig.version).then((db: IDBDatabase) => {
+			openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version).then((db: IDBDatabase) => {
 				let transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, reject, resolve)),
 					objectStore = transaction.objectStore(storeName);
 
@@ -41,7 +56,7 @@ export class NgxIndexedDBService {
 
 	getByKey<T>(storeName: string, key: any) {
 		return new Promise<any>((resolve, reject) => {
-			openDatabase(this.dbConfig.name, this.dbConfig.version).then((db: IDBDatabase) => {
+			openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version).then((db: IDBDatabase) => {
 				let transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, reject, resolve)),
 					objectStore = transaction.objectStore(storeName);
 				let request = objectStore.get(key);
@@ -57,7 +72,7 @@ export class NgxIndexedDBService {
 
 	getByID<T>(storeName: string, id: string | number) {
 		return new Promise<T>((resolve, reject) => {
-			openDatabase(this.dbConfig.name, this.dbConfig.version).then((db: IDBDatabase) => {
+			openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version).then((db: IDBDatabase) => {
 				validateBeforeTransaction(db, storeName, reject);
 				let transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, reject, resolve)),
 					objectStore = transaction.objectStore(storeName),
@@ -72,7 +87,7 @@ export class NgxIndexedDBService {
 
 	getAll<T>(storeName: string) {
 		return new Promise<T[]>((resolve, reject) => {
-			openDatabase(this.dbConfig.name, this.dbConfig.version).then(db => {
+			openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version).then(db => {
 				validateBeforeTransaction(db, storeName, reject);
 				let transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, reject, resolve)),
 					objectStore = transaction.objectStore(storeName),
@@ -92,7 +107,7 @@ export class NgxIndexedDBService {
 
 	update<T>(storeName: string, value: T, key?: any) {
 		return new Promise<any>((resolve, reject) => {
-			openDatabase(this.dbConfig.name, this.dbConfig.version).then(db => {
+			openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version).then(db => {
 				validateBeforeTransaction(db, storeName, reject);
 				let transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, reject, resolve)),
 					objectStore = transaction.objectStore(storeName);
@@ -110,7 +125,7 @@ export class NgxIndexedDBService {
 
 	deleteRecord(storeName: string, key: Key) {
 		return new Promise<any>((resolve, reject) => {
-			openDatabase(this.dbConfig.name, this.dbConfig.version).then(db => {
+			openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version).then(db => {
 				validateBeforeTransaction(db, storeName, reject);
 				let transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, reject, resolve)),
 					objectStore = transaction.objectStore(storeName);
@@ -124,7 +139,7 @@ export class NgxIndexedDBService {
 
 	clear(storeName: string) {
 		return new Promise<any>((resolve, reject) => {
-			openDatabase(this.dbConfig.name, this.dbConfig.version).then(db => {
+			openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version).then(db => {
 				validateBeforeTransaction(db, storeName, reject);
 				let transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, reject, resolve)),
 					objectStore = transaction.objectStore(storeName);
@@ -138,7 +153,7 @@ export class NgxIndexedDBService {
 
 	delete(storeName: string, key: any) {
 		return new Promise<any>((resolve, reject) => {
-			openDatabase(this.dbConfig.name, this.dbConfig.version).then(db => {
+			openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version).then(db => {
 				validateBeforeTransaction(db, storeName, reject);
 				let transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, reject, resolve)),
 					objectStore = transaction.objectStore(storeName);
@@ -149,7 +164,7 @@ export class NgxIndexedDBService {
 
 	deleteDatabase() {
 		return new Promise(async (resolve, reject) => {
-			const db = await openDatabase(this.dbConfig.name, this.dbConfig.version);
+			const db = await openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version);
 			await db.close();
 			const deleteDBRequest = this.indexedDB.deleteDatabase(this.dbConfig.name);
 			deleteDBRequest.onsuccess = resolve;
@@ -162,7 +177,7 @@ export class NgxIndexedDBService {
 
 	openCursor(storeName: string, cursorCallback: (event: Event) => void, keyRange?: IDBKeyRange) {
 		return new Promise<void>((resolve, reject) => {
-			openDatabase(this.dbConfig.name, this.dbConfig.version).then(db => {
+			openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version).then(db => {
 				validateBeforeTransaction(db, storeName, reject);
 				let transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, reject, resolve)),
 					objectStore = transaction.objectStore(storeName),
@@ -190,7 +205,7 @@ export class NgxIndexedDBService {
 		cursorCallback: (event: Event) => void
 	) {
 		return new Promise<void>((resolve, reject) => {
-			openDatabase(this.dbConfig.name, this.dbConfig.version).then(db => {
+			openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version).then(db => {
 				validateBeforeTransaction(db, storeName, reject);
 				let transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, reject, resolve)),
 					objectStore = transaction.objectStore(storeName),
@@ -205,9 +220,30 @@ export class NgxIndexedDBService {
 		});
 	}
 
+	/**
+	 * Returns all items by an index.
+	 * @param storeName The name of the store to query
+	 * @param indexName The index name to filter
+	 * @param keyRange  The range value and criteria to apply on the index.
+	 */
+	getAllByIndex<T>(storeName: string, indexName: string, keyRange: IDBKeyRange): Promise<T[]> {
+		const data: T[] = [];
+		return new Promise<T[]>((resolve, reject) => {
+			this.openCursorByIndex(storeName, indexName, keyRange, event => {
+				const cursor: IDBCursorWithValue = (event.target as IDBRequest<IDBCursorWithValue>).result;
+				if (cursor) {
+					data.push(cursor.value);
+					cursor.continue();
+				} else {
+					resolve(data);
+				}
+			}).catch(reason => reject(reason));
+		});
+	}
+
 	getByIndex(storeName: string, indexName: string, key: any) {
 		return new Promise<any>((resolve, reject) => {
-			openDatabase(this.dbConfig.name, this.dbConfig.version).then(db => {
+			openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version).then(db => {
 				validateBeforeTransaction(db, storeName, reject);
 				let transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, reject, resolve)),
 					objectStore = transaction.objectStore(storeName),
@@ -222,7 +258,7 @@ export class NgxIndexedDBService {
 
 	count(storeName: string, keyRange?: IDBValidKey | IDBKeyRange) {
 		return new Promise<any>((resolve, reject) => {
-			openDatabase(this.dbConfig.name, this.dbConfig.version).then(db => {
+			openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version).then(db => {
 				validateBeforeTransaction(db, storeName, reject);
 				let transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, reject, resolve)),
 					objectStore = transaction.objectStore(storeName),
