@@ -5,7 +5,7 @@
 		"Christophe Jordens"
 	],
 	"description": "Angular wrapper to IndexedDB database.",
-	"version": "5.0.0",
+	"version": "5.0.1",
 	"license": "ISC",
 	"private": false,
 	"keywords": [
