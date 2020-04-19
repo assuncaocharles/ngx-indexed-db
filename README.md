@@ -132,12 +132,10 @@ this.dbService.getByKey('people', 1).then(
 );
 ```
 
-#### getAll(storeName, keyRange, indexDetails)
+#### getAll(storeName)
 
 Returns an array of all the items in the given objectStore.
 The first parameter is the store name to query.
-The second parameter is an optional IDBKeyRange object.
-The third parameter is an index details which must include index name and an optional order parameter.
 **getAll** returns a promise that is resolved when we have the array of items or rejected if an error occurred.
 
 Usage example:
@@ -298,17 +296,16 @@ The second parameter is an index details which must include index name and an op
 The third parameter is an `IDBKeyRange` object.
 **getAllByIndex** returns a promise that is resolved when we have the array of items or rejected if an error occurred.
 
-
-Usage example: 
+Usage example:
 
 ```js
 this.dbService.getAllByIndex('people', 'name', IDBKeyRange.only('john')).then(
-  (array) => {
-    // Do something with the array
-  },
-  error => {
+	array => {
+		// Do something with the array
+	},
+	error => {
 		console.log(error);
-  }
+	}
 );
 ```
 
