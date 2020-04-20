@@ -46,7 +46,12 @@ export class NgxIndexedDBService {
 				migrationFactory
 			);
 		} else {
-			CreateObjectStore(this.indexedDB, this.dbConfig.name, this.dbConfig.version, storeSchemas);
+			CreateObjectStore(
+				this.indexedDB, 
+				this.dbConfig.name, 
+				this.dbConfig.version, 
+				storeSchemas
+			);
 		}
 	}
 
@@ -64,7 +69,12 @@ export class NgxIndexedDBService {
 				migrationFactory
 			);
 		} else {
-			CreateObjectStore(this.indexedDB, this.dbConfig.name, this.dbConfig.version, storeSchemas);
+			CreateObjectStore(
+				this.indexedDB,
+				this.dbConfig.name, 
+				this.dbConfig.version, 
+				storeSchemas
+			);
 		}
 	}
 
