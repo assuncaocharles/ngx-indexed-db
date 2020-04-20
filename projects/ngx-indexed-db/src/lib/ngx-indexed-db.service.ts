@@ -36,10 +36,16 @@ export class NgxIndexedDBService {
 	createObjectStores(
 		storeSchemas: ObjectStoreMeta[],
 		migrationFactory?: () => { [key: number]: (db: IDBDatabase, transaction: IDBTransaction) => void }
-	){
-		if(migrationFactory != null){
-			CreateObjectStore(this.indexedDB, this.dbConfig.name, this.dbConfig.version, storeSchemas, migrationFactory);
-		}else{
+	) {
+		if (migrationFactory != null) {
+			CreateObjectStore(
+				this.indexedDB,
+				this.dbConfig.name,
+				this.dbConfig.version,
+				storeSchemas,
+				migrationFactory
+			);
+		} else {
 			CreateObjectStore(this.indexedDB, this.dbConfig.name, this.dbConfig.version, storeSchemas);
 		}
 	}
@@ -47,11 +53,17 @@ export class NgxIndexedDBService {
 	createObjectStore(
 		storeSchema: ObjectStoreMeta,
 		migrationFactory?: () => { [key: number]: (db: IDBDatabase, transaction: IDBTransaction) => void }
-	){
-		let storeSchemas:ObjectStoreMeta[] = [storeSchema];
-		if(migrationFactory != null){
-			CreateObjectStore(this.indexedDB, this.dbConfig.name, this.dbConfig.version, storeSchemas, migrationFactory);
-		}else{
+	) {
+		let storeSchemas: ObjectStoreMeta[] = [storeSchema];
+		if (migrationFactory != null) {
+			CreateObjectStore(
+				this.indexedDB,
+				this.dbConfig.name,
+				this.dbConfig.version,
+				storeSchemas,
+				migrationFactory
+			);
+		} else {
 			CreateObjectStore(this.indexedDB, this.dbConfig.name, this.dbConfig.version, storeSchemas);
 		}
 	}
