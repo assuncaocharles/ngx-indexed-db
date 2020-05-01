@@ -77,7 +77,7 @@ export class NgxIndexedDBService {
 				let transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, reject, resolve)),
 					objectStore = transaction.objectStore(storeName),
 					request: IDBRequest;
-				request = objectStore.get(+id);
+				request = objectStore.get(id);
 				request.onsuccess = function(event: Event) {
 					resolve((event.target as any).result as T);
 				};
