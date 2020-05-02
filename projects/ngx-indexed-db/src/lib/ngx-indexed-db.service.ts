@@ -38,13 +38,7 @@ export class NgxIndexedDBService {
 		migrationFactory?: () => { [key: number]: (db: IDBDatabase, transaction: IDBTransaction) => void }
 	) {
 		let storeSchemas: ObjectStoreMeta[] = [storeSchema];
-		CreateObjectStore(
-			this.indexedDB,
-			this.dbConfig.name,
-			this.dbConfig.version,
-			storeSchemas,
-			migrationFactory
-		);
+		CreateObjectStore(this.indexedDB, this.dbConfig.name, this.dbConfig.version, storeSchemas, migrationFactory);
 	}
 
 	add<T>(storeName: string, value: T, key?: any) {
@@ -74,10 +68,10 @@ export class NgxIndexedDBService {
 				let transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, reject, resolve)),
 					objectStore = transaction.objectStore(storeName);
 				let request = objectStore.get(key);
-				request.onsuccess = function (event: Event) {
+				request.onsuccess = function(event: Event) {
 					resolve((<any>event.target).result);
 				};
-				request.onerror = function (event: Event) {
+				request.onerror = function(event: Event) {
 					reject(event);
 				};
 			});
@@ -92,7 +86,7 @@ export class NgxIndexedDBService {
 					objectStore = transaction.objectStore(storeName),
 					request: IDBRequest;
 				request = objectStore.get(+id);
-				request.onsuccess = function (event: Event) {
+				request.onsuccess = function(event: Event) {
 					resolve((event.target as any).result as T);
 				};
 			});
@@ -109,10 +103,10 @@ export class NgxIndexedDBService {
 
 				const request: IDBRequest = objectStore.getAll();
 
-				request.onerror = function (e) {
+				request.onerror = function(e) {
 					reject(e);
 				};
-				request.onsuccess = function ({ target: { result: ResultAll } }: RequestEvent<T>) {
+				request.onsuccess = function({ target: { result: ResultAll } }: RequestEvent<T>) {
 					resolve(ResultAll as T[]);
 				};
 			});
