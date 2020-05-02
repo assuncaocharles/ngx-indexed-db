@@ -170,6 +170,30 @@ this.dbService.getByIndex('people', 'name', 'Dave').then(
 );
 ```
 
+#### createObjectStore(storeSchema, migrationFactory)
+
+Create object store with given Store Schema and Migration Factory.
+The first parameter is the store schema of type ObjectStoreMeta, the second parameter is the migration factory.
+
+Usage example:
+
+```js
+
+const storeSchema: ObjectStoreMeta  = {
+    store: 'people',
+    storeConfig: { keyPath: 'id', autoIncrement: true },
+    storeSchema: [
+      { name: 'name', keypath: 'name', options: { unique: false } },
+      { name: 'email', keypath: 'email', options: { unique: false } }
+    ]
+  }
+  
+ // provide the migration factory to the DBConfig
+ migrationFactory
+  
+this.dbService.createObjectStore(storeSchema, migrationFactory);
+```
+
 #### add(storeName, value, key)
 
 Adds to the given objectStore the key and value pair.
