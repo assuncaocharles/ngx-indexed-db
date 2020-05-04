@@ -1,5 +1,5 @@
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
-import { openDatabase, DBMode, Key, RequestEvent, CreateObjectStore } from './ngx-indexed-db';
+import { openDatabase, DBMode, Key, RequestEvent, CreateObjectStore, ObjectStoreMeta } from './ngx-indexed-db';
 import { createTransaction, optionsGenerator, validateBeforeTransaction } from '../utils';
 import { CONFIG_TOKEN, DBConfig } from './ngx-indexed-db.meta';
 import { isPlatformBrowser } from '@angular/common';
@@ -31,6 +31,14 @@ export class NgxIndexedDBService {
 				dbConfig.migrationFactory
 			);
 		}
+	}
+
+	createObjectStore(
+		storeSchema: ObjectStoreMeta,
+		migrationFactory?: () => { [key: number]: (db: IDBDatabase, transaction: IDBTransaction) => void }
+	) {
+		let storeSchemas: ObjectStoreMeta[] = [storeSchema];
+		CreateObjectStore(this.indexedDB, this.dbConfig.name, this.dbConfig.version, storeSchemas, migrationFactory);
 	}
 
 	add<T>(storeName: string, value: T, key?: any) {
