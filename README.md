@@ -170,7 +170,7 @@ this.dbService.getByIndex('people', 'name', 'Dave').then(
 );
 ```
 
-#### createObjectStore(storeSchema, migrationFactory)
+#### createObjectStore(storeSchema, migrationFactory?)
 
 Create object store with given Store Schema and Migration Factory.
 The first parameter is the store schema of type ObjectStoreMeta, the second parameter is the migration factory.
@@ -188,10 +188,8 @@ const storeSchema: ObjectStoreMeta  = {
     ]
   }
   
- // provide the migration factory to the DBConfig
- migrationFactory
   
-this.dbService.createObjectStore(storeSchema, migrationFactory);
+this.dbService.createObjectStore(storeSchema);
 ```
 
 #### add(storeName, value, key)
