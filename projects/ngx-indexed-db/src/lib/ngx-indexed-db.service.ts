@@ -58,7 +58,7 @@ export class NgxIndexedDBService {
 					key = evt.target.result;
 					resolve(key);
 				};
-			});
+			}).catch(reason => reject(reason));
 		});
 	}
 
@@ -74,7 +74,7 @@ export class NgxIndexedDBService {
 				request.onerror = function(event: Event) {
 					reject(event);
 				};
-			});
+			}).catch(reason => reject(reason));
 		});
 	}
 
@@ -89,7 +89,7 @@ export class NgxIndexedDBService {
 				request.onsuccess = function(event: Event) {
 					resolve((event.target as any).result as T);
 				};
-			});
+			}).catch(reason => reject(reason));
 		});
 	}
 
@@ -109,7 +109,7 @@ export class NgxIndexedDBService {
 				request.onsuccess = function({ target: { result: ResultAll } }: RequestEvent<T>) {
 					resolve(ResultAll as T[]);
 				};
-			});
+			}).catch(reason => reject(reason));
 		});
 	}
 
@@ -127,7 +127,7 @@ export class NgxIndexedDBService {
 				} else {
 					objectStore.put(value);
 				}
-			});
+			}).catch(reason => reject(reason));
 		});
 	}
 
@@ -141,7 +141,7 @@ export class NgxIndexedDBService {
 				request.onsuccess = event => {
 					resolve(event);
 				};
-			});
+			}).catch(reason => reject(reason));
 		});
 	}
 
@@ -155,7 +155,7 @@ export class NgxIndexedDBService {
 				transaction.oncomplete = event => {
 					resolve();
 				};
-			});
+			}).catch(reason => reject(reason));
 		});
 	}
 
@@ -166,7 +166,7 @@ export class NgxIndexedDBService {
 				let transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, reject, resolve)),
 					objectStore = transaction.objectStore(storeName);
 				objectStore['delete'](key);
-			});
+			}).catch(reason => reject(reason));
 		});
 	}
 
@@ -174,7 +174,7 @@ export class NgxIndexedDBService {
 		return new Promise(async (resolve, reject) => {
 			const db = await openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version);
 			await db.close();
-			const deleteDBRequest = this.indexedDB.deleteDatabase(this.dbConfig.name);
+			const deleteDBRequest = this.indexedDB.deleteDatabase(this.dbConfig.name).catch(reason => reject(reason));
 			deleteDBRequest.onsuccess = resolve;
 			deleteDBRequest.onerror = reject;
 			deleteDBRequest.onblocked = () => {
@@ -195,7 +195,7 @@ export class NgxIndexedDBService {
 					cursorCallback(event);
 					resolve();
 				};
-			});
+			}).catch(reason => reject(reason));
 		});
 	}
 
@@ -224,7 +224,7 @@ export class NgxIndexedDBService {
 					cursorCallback(event);
 					resolve();
 				};
-			});
+			}).catch(reason => reject(reason));
 		});
 	}
 
@@ -260,7 +260,7 @@ export class NgxIndexedDBService {
 				request.onsuccess = (event: Event) => {
 					resolve((<IDBOpenDBRequest>event.target).result);
 				};
-			});
+			}).catch(reason => reject(reason));
 		});
 	}
 
@@ -275,7 +275,7 @@ export class NgxIndexedDBService {
 				request = objectStore.count(keyRange);
 				request.onerror = e => reject(e);
 				request.onsuccess = e => resolve((<any>e.target).result);
-			});
+			}).catch(reason => reject(reason));
 		});
 	}
 }
