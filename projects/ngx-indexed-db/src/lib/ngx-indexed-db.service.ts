@@ -172,14 +172,17 @@ export class NgxIndexedDBService {
 
 	deleteDatabase() {
 		return new Promise(async (resolve, reject) => {
-			const db = await openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version);
-			await db.close();
-			const deleteDBRequest = this.indexedDB.deleteDatabase(this.dbConfig.name).catch(reason => reject(reason));
-			deleteDBRequest.onsuccess = resolve;
-			deleteDBRequest.onerror = reject;
-			deleteDBRequest.onblocked = () => {
-				throw new Error("Unable to delete database because it's blocked");
-			};
+			openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+			.then(db => {
+				db.close();
+				const deleteDBRequest = this.indexedDB.deleteDatabase(this.dbConfig.name);
+				deleteDBRequest.onsuccess = resolve;
+				deleteDBRequest.onerror = reject;
+				deleteDBRequest.onblocked = () => {
+					throw new Error("Unable to delete database because it's blocked");
+				};
+			})
+			.catch(reason => reject(reason));
 		});
 	}
 
