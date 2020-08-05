@@ -63,7 +63,7 @@ export class NgxIndexedDBService {
 	}
 
 	getByKey<T>(storeName: string, key: any) {
-		return new Promise<any>((resolve, reject) => {
+		return new Promise<T>((resolve, reject) => {
 			openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version).then((db: IDBDatabase) => {
 				let transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, reject, resolve)),
 					objectStore = transaction.objectStore(storeName);
@@ -253,8 +253,8 @@ export class NgxIndexedDBService {
 		});
 	}
 
-	getByIndex(storeName: string, indexName: string, key: any) {
-		return new Promise<any>((resolve, reject) => {
+	getByIndex<T>(storeName: string, indexName: string, key: any) {
+		return new Promise<T>((resolve, reject) => {
 			openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version).then(db => {
 				validateBeforeTransaction(db, storeName, reject);
 				let transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, reject, resolve)),
@@ -262,7 +262,7 @@ export class NgxIndexedDBService {
 					index = objectStore.index(indexName),
 					request = index.get(key);
 				request.onsuccess = (event: Event) => {
-					resolve((<IDBOpenDBRequest>event.target).result);
+					resolve((<any>event.target).result);
 				};
 			}).catch(reason => reject(reason));
 		});
