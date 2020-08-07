@@ -67,9 +67,9 @@ export class NgxIndexedDBService {
 			openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version).then((db: IDBDatabase) => {
 				let transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, reject, resolve)),
 					objectStore = transaction.objectStore(storeName);
-				let request = objectStore.get(key);
+				let request = objectStore.get(key) as IDBRequest<T>;
 				request.onsuccess = function(event: Event) {
-					resolve((<any>event.target).result);
+					resolve((event.target as IDBRequest<T>).result);
 				};
 				request.onerror = function(event: Event) {
 					reject(event);
@@ -85,9 +85,9 @@ export class NgxIndexedDBService {
 				let transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, reject, resolve)),
 					objectStore = transaction.objectStore(storeName),
 					request: IDBRequest;
-				request = objectStore.get(id);
+				request = objectStore.get(id) as IDBRequest<T>;
 				request.onsuccess = function(event: Event) {
-					resolve((event.target as any).result as T);
+					resolve((event.target as IDBRequest<T>).result);
 				};
 			}).catch(reason => reject(reason));
 		});
@@ -260,9 +260,9 @@ export class NgxIndexedDBService {
 				let transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, reject, resolve)),
 					objectStore = transaction.objectStore(storeName),
 					index = objectStore.index(indexName),
-					request = index.get(key);
+					request = index.get(key) as IDBRequest<T>;
 				request.onsuccess = (event: Event) => {
-					resolve((<any>event.target).result);
+					resolve((event.target as IDBRequest<T>).result);
 				};
 			}).catch(reason => reject(reason));
 		});
