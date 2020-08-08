@@ -123,12 +123,12 @@ Usage example:
 
 ```js
 this.dbService.getByKey('people', 1).then(
-	person => {
-		console.log(person);
-	},
-	error => {
-		console.log(error);
-	}
+  (person) => {
+    console.log(person);
+  },
+  (error) => {
+    console.log(error);
+  }
 );
 ```
 
@@ -142,12 +142,12 @@ Usage example:
 
 ```js
 this.dbService.getAll('people').then(
-	people => {
-		console.log(people);
-	},
-	error => {
-		console.log(error);
-	}
+  (people) => {
+    console.log(people);
+  },
+  (error) => {
+    console.log(error);
+  }
 );
 ```
 
@@ -161,12 +161,12 @@ Usage example:
 
 ```js
 this.dbService.getByIndex('people', 'name', 'Dave').then(
-	person => {
-		console.log(person);
-	},
-	error => {
-		console.log(error);
-	}
+  (person) => {
+    console.log(person);
+  },
+  (error) => {
+    console.log(error);
+  }
 );
 ```
 
@@ -178,17 +178,15 @@ The first parameter is the store schema of type ObjectStoreMeta, the second para
 Usage example:
 
 ```js
+const storeSchema: ObjectStoreMeta = {
+  store: 'people',
+  storeConfig: { keyPath: 'id', autoIncrement: true },
+  storeSchema: [
+    { name: 'name', keypath: 'name', options: { unique: false } },
+    { name: 'email', keypath: 'email', options: { unique: false } },
+  ],
+};
 
-const storeSchema: ObjectStoreMeta  = {
-    store: 'people',
-    storeConfig: { keyPath: 'id', autoIncrement: true },
-    storeSchema: [
-      { name: 'name', keypath: 'name', options: { unique: false } },
-      { name: 'email', keypath: 'email', options: { unique: false } }
-    ]
-  }
-  
-  
 this.dbService.createObjectStore(storeSchema);
 ```
 
@@ -202,12 +200,12 @@ Usage example (add without a key):
 
 ```js
 this.dbService.add('people', { name: 'name', email: 'email' }).then(
-	() => {
-		// Do something after the value was added
-	},
-	error => {
-		console.log(error);
-	}
+  () => {
+    // Do something after the value was added
+  },
+  (error) => {
+    console.log(error);
+  }
 );
 ```
 
@@ -223,12 +221,12 @@ Usage example:
 
 ```js
 this.dbService.count('people').then(
-	peopleCount => {
-		console.log(peopleCount);
-	},
-	error => {
-		console.log(error);
-	}
+  (peopleCount) => {
+    console.log(peopleCount);
+  },
+  (error) => {
+    console.log(error);
+  }
 );
 ```
 
@@ -242,12 +240,12 @@ Usage example (update without a key):
 
 ```js
 this.dbService.update('people', { id: 3, name: 'name', email: 'email' }).then(
-	() => {
-		// Do something after update
-	},
-	error => {
-		console.log(error);
-	}
+  () => {
+    // Do something after update
+  },
+  (error) => {
+    console.log(error);
+  }
 );
 ```
 
@@ -261,12 +259,12 @@ Usage example:
 
 ```js
 this.dbService.delete('people', 3).then(
-	() => {
-		// Do something after delete
-	},
-	error => {
-		console.log(error);
-	}
+  () => {
+    // Do something after delete
+  },
+  (error) => {
+    console.log(error);
+  }
 );
 ```
 
@@ -322,12 +320,12 @@ Usage example:
 
 ```js
 this.dbService.getAllByIndex('people', 'name', IDBKeyRange.only('john')).then(
-	array => {
-		// Do something with the array
-	},
-	error => {
-		console.log(error);
-	}
+  (array) => {
+    // Do something with the array
+  },
+  (error) => {
+    console.log(error);
+  }
 );
 ```
 
@@ -341,12 +339,12 @@ Usage example:
 
 ```js
 this.dbService.clear('people').then(
-	() => {
-		// Do something after clear
-	},
-	error => {
-		console.log(error);
-	}
+  () => {
+    // Do something after clear
+  },
+  (error) => {
+    console.log(error);
+  }
 );
 ```
 
@@ -358,12 +356,12 @@ Usage example:
 
 ```js
 this.dbService.deleteDatabase().then(
-	() => {
-		console.log('Database deleted successfully');
-	},
-	error => {
-		console.log(error);
-	}
+  () => {
+    console.log('Database deleted successfully');
+  },
+  (error) => {
+    console.log(error);
+  }
 );
 ```
 

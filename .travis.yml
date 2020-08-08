@@ -1,0 +1,37 @@
+sudo: false
+language: node_js
+node_js: ['10']
+before_script:
+    - npm install
+script:
+    - npm run build
+    - npm run typedoc
+    - cp README.md dist/ngx-indexed-db
+    - cp LICENSE dist/ngx-indexed-db
+    - npm pack
+cache:
+    directories:
+        - node_modules
+after_success:
+    - cd dist/ngx-indexed-db
+    - npm publish
+deploy:
+    - provider: pages
+      skip_cleanup: true
+      local_dir: docs/
+      github_token: '$GITHUB_TOKEN'
+      on:
+          tags: true
+    - provider: releases
+      api_key: '$GITHUB_TOKEN'
+      file_glob: true
+      skip_cleanup: true
+      on:
+          tags: true
+    - provider: npm
+      skip_cleanup: true
+      email: junioassuncaocharles@gmail.com
+      local_dir: dist/ngx-indexed-db/
+      api_key: '$NPM_TOKEN'
+      on:
+          tags: true
