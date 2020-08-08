@@ -3,283 +3,306 @@ import { openDatabase, DBMode, Key, RequestEvent, CreateObjectStore, ObjectStore
 import { createTransaction, optionsGenerator, validateBeforeTransaction } from '../utils';
 import { CONFIG_TOKEN, DBConfig } from './ngx-indexed-db.meta';
 import { isPlatformBrowser } from '@angular/common';
+import { Observable } from 'rxjs';
 
 @Injectable()
 export class NgxIndexedDBService {
-	private readonly isBrowser: boolean;
-	indexedDB;
+  private readonly isBrowser: boolean;
+  private indexedDB: IDBFactory;
+  public indexedDB$: Observable<IDBFactory>;
 
-	constructor(@Inject(CONFIG_TOKEN) private dbConfig: DBConfig, @Inject(PLATFORM_ID) private platformId: any) {
-		if (!dbConfig.name) {
-			throw new Error('NgxIndexedDB: Please, provide the dbName in the configuration');
-		}
-		if (!dbConfig.version) {
-			throw new Error('NgxIndexedDB: Please, provide the db version in the configuration');
-		}
-		this.isBrowser = isPlatformBrowser(platformId);
-		if (this.isBrowser) {
-			this.indexedDB =
-				window.indexedDB ||
-				(<any>window).mozIndexedDB ||
-				(<any>window).webkitIndexedDB ||
-				(<any>window).msIndexedDB;
-			CreateObjectStore(
-				this.indexedDB,
-				dbConfig.name,
-				dbConfig.version,
-				dbConfig.objectStoresMeta,
-				dbConfig.migrationFactory
-			);
-		}
-	}
+  constructor(@Inject(CONFIG_TOKEN) private dbConfig: DBConfig, @Inject(PLATFORM_ID) private platformId: any) {
+    if (!dbConfig.name) {
+      throw new Error('NgxIndexedDB: Please, provide the dbName in the configuration');
+    }
+    if (!dbConfig.version) {
+      throw new Error('NgxIndexedDB: Please, provide the db version in the configuration');
+    }
+    this.isBrowser = isPlatformBrowser(platformId);
+    if (this.isBrowser) {
+      this.indexedDB =
+        window.indexedDB || (<any>window).mozIndexedDB || (<any>window).webkitIndexedDB || (<any>window).msIndexedDB;
+      CreateObjectStore(
+        this.indexedDB,
+        dbConfig.name,
+        dbConfig.version,
+        dbConfig.objectStoresMeta,
+        dbConfig.migrationFactory
+      );
+    }
+  }
 
-	createObjectStore(
-		storeSchema: ObjectStoreMeta,
-		migrationFactory?: () => { [key: number]: (db: IDBDatabase, transaction: IDBTransaction) => void }
-	) {
-		let storeSchemas: ObjectStoreMeta[] = [storeSchema];
-		CreateObjectStore(this.indexedDB, this.dbConfig.name, this.dbConfig.version, storeSchemas, migrationFactory);
-	}
+  createObjectStore(
+    storeSchema: ObjectStoreMeta,
+    migrationFactory?: () => { [key: number]: (db: IDBDatabase, transaction: IDBTransaction) => void }
+  ) {
+    let storeSchemas: ObjectStoreMeta[] = [storeSchema];
+    CreateObjectStore(this.indexedDB, this.dbConfig.name, this.dbConfig.version, storeSchemas, migrationFactory);
+  }
 
-	add<T>(storeName: string, value: T, key?: any) {
-		return new Promise<number>((resolve, reject) => {
-			openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version).then((db: IDBDatabase) => {
-				let transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, reject, resolve)),
-					objectStore = transaction.objectStore(storeName);
+  add<T>(storeName: string, value: T, key?: any) {
+    return new Promise<number>((resolve, reject) => {
+      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+        .then((db: IDBDatabase) => {
+          let transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, reject, resolve)),
+            objectStore = transaction.objectStore(storeName);
 
-				let request: IDBRequest;
-				if (key) {
-					request = objectStore.add(value, key);
-				} else {
-					request = objectStore.add(value);
-				}
+          let request: IDBRequest;
+          if (key) {
+            request = objectStore.add(value, key);
+          } else {
+            request = objectStore.add(value);
+          }
 
-				request.onsuccess = (evt: any) => {
-					key = evt.target.result;
-					resolve(key);
-				};
-			}).catch(reason => reject(reason));
-		});
-	}
+          request.onsuccess = (evt: any) => {
+            key = evt.target.result;
+            resolve(key);
+          };
+        })
+        .catch(reason => reject(reason));
+    });
+  }
 
-	getByKey<T>(storeName: string, key: any) {
-		return new Promise<T>((resolve, reject) => {
-			openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version).then((db: IDBDatabase) => {
-				let transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, reject, resolve)),
-					objectStore = transaction.objectStore(storeName);
-				let request = objectStore.get(key) as IDBRequest<T>;
-				request.onsuccess = function(event: Event) {
-					resolve((event.target as IDBRequest<T>).result);
-				};
-				request.onerror = function(event: Event) {
-					reject(event);
-				};
-			}).catch(reason => reject(reason));
-		});
-	}
+  getByKey<T>(storeName: string, key: any) {
+    return new Promise<T>((resolve, reject) => {
+      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+        .then((db: IDBDatabase) => {
+          let transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, reject, resolve)),
+            objectStore = transaction.objectStore(storeName);
+          let request = objectStore.get(key) as IDBRequest<T>;
+          request.onsuccess = function(event: Event) {
+            resolve((event.target as IDBRequest<T>).result);
+          };
+          request.onerror = function(event: Event) {
+            reject(event);
+          };
+        })
+        .catch(reason => reject(reason));
+    });
+  }
 
-	getByID<T>(storeName: string, id: string | number) {
-		return new Promise<T>((resolve, reject) => {
-			openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version).then((db: IDBDatabase) => {
-				validateBeforeTransaction(db, storeName, reject);
-				let transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, reject, resolve)),
-					objectStore = transaction.objectStore(storeName),
-					request: IDBRequest;
-				request = objectStore.get(id) as IDBRequest<T>;
-				request.onsuccess = function(event: Event) {
-					resolve((event.target as IDBRequest<T>).result);
-				};
-			}).catch(reason => reject(reason));
-		});
-	}
+  getByID<T>(storeName: string, id: string | number) {
+    return new Promise<T>((resolve, reject) => {
+      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+        .then((db: IDBDatabase) => {
+          validateBeforeTransaction(db, storeName, reject);
+          let transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, reject, resolve)),
+            objectStore = transaction.objectStore(storeName),
+            request: IDBRequest;
+          request = objectStore.get(id) as IDBRequest<T>;
+          request.onsuccess = function(event: Event) {
+            resolve((event.target as IDBRequest<T>).result);
+          };
+        })
+        .catch(reason => reject(reason));
+    });
+  }
 
-	getAll<T>(storeName: string) {
-		return new Promise<T[]>((resolve, reject) => {
-			openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version).then(db => {
-				validateBeforeTransaction(db, storeName, reject);
-				let transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, reject, resolve)),
-					objectStore = transaction.objectStore(storeName),
-					result: Array<any> = [];
+  getAll<T>(storeName: string) {
+    return new Promise<T[]>((resolve, reject) => {
+      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+        .then(db => {
+          validateBeforeTransaction(db, storeName, reject);
+          let transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, reject, resolve)),
+            objectStore = transaction.objectStore(storeName),
+            result: Array<any> = [];
 
-				const request: IDBRequest = objectStore.getAll();
+          const request: IDBRequest = objectStore.getAll();
 
-				request.onerror = function(e) {
-					reject(e);
-				};
-				request.onsuccess = function({ target: { result: ResultAll } }: RequestEvent<T>) {
-					resolve(ResultAll as T[]);
-				};
-			}).catch(reason => reject(reason));
-		});
-	}
+          request.onerror = function(e) {
+            reject(e);
+          };
+          request.onsuccess = function({ target: { result: ResultAll } }: RequestEvent<T>) {
+            resolve(ResultAll as T[]);
+          };
+        })
+        .catch(reason => reject(reason));
+    });
+  }
 
-	update<T>(storeName: string, value: T, key?: any) {
-		return new Promise<any>((resolve, reject) => {
-			openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version).then(db => {
-				validateBeforeTransaction(db, storeName, reject);
-				let transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, reject, resolve)),
-					objectStore = transaction.objectStore(storeName);
-				transaction.oncomplete = event => {
-					resolve(event);
-				};
-				if (key) {
-					objectStore.put(value, key);
-				} else {
-					objectStore.put(value);
-				}
-			}).catch(reason => reject(reason));
-		});
-	}
+  update<T>(storeName: string, value: T, key?: any) {
+    return new Promise<any>((resolve, reject) => {
+      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+        .then(db => {
+          validateBeforeTransaction(db, storeName, reject);
+          let transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, reject, resolve)),
+            objectStore = transaction.objectStore(storeName);
+          transaction.oncomplete = event => {
+            resolve(event);
+          };
+          if (key) {
+            objectStore.put(value, key);
+          } else {
+            objectStore.put(value);
+          }
+        })
+        .catch(reason => reject(reason));
+    });
+  }
 
-	deleteRecord(storeName: string, key: Key) {
-		return new Promise<any>((resolve, reject) => {
-			openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version).then(db => {
-				validateBeforeTransaction(db, storeName, reject);
-				let transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, reject, resolve)),
-					objectStore = transaction.objectStore(storeName);
-				let request = objectStore.delete(key);
-				request.onsuccess = event => {
-					resolve(event);
-				};
-			}).catch(reason => reject(reason));
-		});
-	}
+  deleteRecord(storeName: string, key: Key) {
+    return new Promise<any>((resolve, reject) => {
+      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+        .then(db => {
+          validateBeforeTransaction(db, storeName, reject);
+          let transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, reject, resolve)),
+            objectStore = transaction.objectStore(storeName);
+          let request = objectStore.delete(key);
+          request.onsuccess = event => {
+            resolve(event);
+          };
+        })
+        .catch(reason => reject(reason));
+    });
+  }
 
-	clear(storeName: string) {
-		return new Promise<any>((resolve, reject) => {
-			openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version).then(db => {
-				validateBeforeTransaction(db, storeName, reject);
-				let transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, reject, resolve)),
-					objectStore = transaction.objectStore(storeName);
-				objectStore.clear();
-				transaction.oncomplete = event => {
-					resolve();
-				};
-			}).catch(reason => reject(reason));
-		});
-	}
+  clear(storeName: string) {
+    return new Promise<any>((resolve, reject) => {
+      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+        .then(db => {
+          validateBeforeTransaction(db, storeName, reject);
+          let transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, reject, resolve)),
+            objectStore = transaction.objectStore(storeName);
+          objectStore.clear();
+          transaction.oncomplete = event => {
+            resolve();
+          };
+        })
+        .catch(reason => reject(reason));
+    });
+  }
 
-	delete(storeName: string, key: any) {
-		return new Promise<any>((resolve, reject) => {
-			openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version).then(db => {
-				validateBeforeTransaction(db, storeName, reject);
-				let transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, reject, resolve)),
-					objectStore = transaction.objectStore(storeName);
-				objectStore['delete'](key);
-			}).catch(reason => reject(reason));
-		});
-	}
+  delete(storeName: string, key: any) {
+    return new Promise<any>((resolve, reject) => {
+      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+        .then(db => {
+          validateBeforeTransaction(db, storeName, reject);
+          let transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, reject, resolve)),
+            objectStore = transaction.objectStore(storeName);
+          objectStore['delete'](key);
+        })
+        .catch(reason => reject(reason));
+    });
+  }
 
-	deleteDatabase() {
-		return new Promise(async (resolve, reject) => {
-			try {
-				const db = await openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version);
-				await db.close();
-				const deleteDBRequest = this.indexedDB.deleteDatabase(this.dbConfig.name);
-				deleteDBRequest.onsuccess = resolve;
-				deleteDBRequest.onerror = reject;
-				deleteDBRequest.onblocked = () => {
-					throw new Error("Unable to delete database because it's blocked");
-				};
-			} catch (e) {
-				reject(e);
-			}
-		});
-	}
+  deleteDatabase() {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const db = await openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version);
+        await db.close();
+        const deleteDBRequest = this.indexedDB.deleteDatabase(this.dbConfig.name);
+        deleteDBRequest.onsuccess = resolve;
+        deleteDBRequest.onerror = reject;
+        deleteDBRequest.onblocked = () => {
+          throw new Error("Unable to delete database because it's blocked");
+        };
+      } catch (e) {
+        reject(e);
+      }
+    });
+  }
 
-	openCursor(storeName: string, cursorCallback: (event: Event) => void, keyRange?: IDBKeyRange) {
-		return new Promise<void>((resolve, reject) => {
-			openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version).then(db => {
-				validateBeforeTransaction(db, storeName, reject);
-				let transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, reject, resolve)),
-					objectStore = transaction.objectStore(storeName),
-					request = keyRange === undefined ? objectStore.openCursor() : objectStore.openCursor(keyRange);
+  openCursor(storeName: string, cursorCallback: (event: Event) => void, keyRange?: IDBKeyRange) {
+    return new Promise<void>((resolve, reject) => {
+      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+        .then(db => {
+          validateBeforeTransaction(db, storeName, reject);
+          let transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, reject, resolve)),
+            objectStore = transaction.objectStore(storeName),
+            request = keyRange === undefined ? objectStore.openCursor() : objectStore.openCursor(keyRange);
 
-				request.onsuccess = (event: Event) => {
-					cursorCallback(event);
-					resolve();
-				};
-			}).catch(reason => reject(reason));
-		});
-	}
+          request.onsuccess = (event: Event) => {
+            cursorCallback(event);
+            resolve();
+          };
+        })
+        .catch(reason => reject(reason));
+    });
+  }
 
-	/**
-	 * Open a cursor by index filter.
-	 * @param storeName The name of the store to query.
-	 * @param indexName The index name to filter.
-	 * @param keyRange The range value and criteria to apply on the index.
-	 * @param cursorCallback A callback called when done.
-	 */
-	openCursorByIndex(
-		storeName: string,
-		indexName: string,
-		keyRange: IDBKeyRange,
-		cursorCallback: (event: Event) => void
-	) {
-		return new Promise<void>((resolve, reject) => {
-			openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version).then(db => {
-				validateBeforeTransaction(db, storeName, reject);
-				let transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, reject, resolve)),
-					objectStore = transaction.objectStore(storeName),
-					index = objectStore.index(indexName),
-					request = index.openCursor(keyRange);
+  /**
+   * Open a cursor by index filter.
+   * @param storeName The name of the store to query.
+   * @param indexName The index name to filter.
+   * @param keyRange The range value and criteria to apply on the index.
+   * @param cursorCallback A callback called when done.
+   */
+  openCursorByIndex(
+    storeName: string,
+    indexName: string,
+    keyRange: IDBKeyRange,
+    cursorCallback: (event: Event) => void
+  ) {
+    return new Promise<void>((resolve, reject) => {
+      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+        .then(db => {
+          validateBeforeTransaction(db, storeName, reject);
+          let transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, reject, resolve)),
+            objectStore = transaction.objectStore(storeName),
+            index = objectStore.index(indexName),
+            request = index.openCursor(keyRange);
 
-				request.onsuccess = (event: Event) => {
-					cursorCallback(event);
-					resolve();
-				};
-			}).catch(reason => reject(reason));
-		});
-	}
+          request.onsuccess = (event: Event) => {
+            cursorCallback(event);
+            resolve();
+          };
+        })
+        .catch(reason => reject(reason));
+    });
+  }
 
-	/**
-	 * Returns all items by an index.
-	 * @param storeName The name of the store to query
-	 * @param indexName The index name to filter
-	 * @param keyRange  The range value and criteria to apply on the index.
-	 */
-	getAllByIndex<T>(storeName: string, indexName: string, keyRange: IDBKeyRange): Promise<T[]> {
-		const data: T[] = [];
-		return new Promise<T[]>((resolve, reject) => {
-			this.openCursorByIndex(storeName, indexName, keyRange, event => {
-				const cursor: IDBCursorWithValue = (event.target as IDBRequest<IDBCursorWithValue>).result;
-				if (cursor) {
-					data.push(cursor.value);
-					cursor.continue();
-				} else {
-					resolve(data);
-				}
-			}).catch(reason => reject(reason));
-		});
-	}
+  /**
+   * Returns all items by an index.
+   * @param storeName The name of the store to query
+   * @param indexName The index name to filter
+   * @param keyRange  The range value and criteria to apply on the index.
+   */
+  getAllByIndex<T>(storeName: string, indexName: string, keyRange: IDBKeyRange): Promise<T[]> {
+    const data: T[] = [];
+    return new Promise<T[]>((resolve, reject) => {
+      this.openCursorByIndex(storeName, indexName, keyRange, event => {
+        const cursor: IDBCursorWithValue = (event.target as IDBRequest<IDBCursorWithValue>).result;
+        if (cursor) {
+          data.push(cursor.value);
+          cursor.continue();
+        } else {
+          resolve(data);
+        }
+      }).catch(reason => reject(reason));
+    });
+  }
 
-	getByIndex<T>(storeName: string, indexName: string, key: any) {
-		return new Promise<T>((resolve, reject) => {
-			openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version).then(db => {
-				validateBeforeTransaction(db, storeName, reject);
-				let transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, reject, resolve)),
-					objectStore = transaction.objectStore(storeName),
-					index = objectStore.index(indexName),
-					request = index.get(key) as IDBRequest<T>;
-				request.onsuccess = (event: Event) => {
-					resolve((event.target as IDBRequest<T>).result);
-				};
-			}).catch(reason => reject(reason));
-		});
-	}
+  getByIndex<T>(storeName: string, indexName: string, key: any) {
+    return new Promise<T>((resolve, reject) => {
+      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+        .then(db => {
+          validateBeforeTransaction(db, storeName, reject);
+          let transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, reject, resolve)),
+            objectStore = transaction.objectStore(storeName),
+            index = objectStore.index(indexName),
+            request = index.get(key) as IDBRequest<T>;
+          request.onsuccess = (event: Event) => {
+            resolve((event.target as IDBRequest<T>).result);
+          };
+        })
+        .catch(reason => reject(reason));
+    });
+  }
 
-	count(storeName: string, keyRange?: IDBValidKey | IDBKeyRange) {
-		return new Promise<any>((resolve, reject) => {
-			openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version).then(db => {
-				validateBeforeTransaction(db, storeName, reject);
-				let transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, reject, resolve)),
-					objectStore = transaction.objectStore(storeName),
-					request: IDBRequest;
+  count(storeName: string, keyRange?: IDBValidKey | IDBKeyRange) {
+    return new Promise<any>((resolve, reject) => {
+      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+        .then(db => {
+          validateBeforeTransaction(db, storeName, reject);
+          let transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, reject, resolve)),
+            objectStore = transaction.objectStore(storeName),
+            request: IDBRequest;
 
-				request = objectStore.count(keyRange);
-				request.onerror = e => reject(e);
-				request.onsuccess = e => resolve((<any>e.target).result);
-			}).catch(reason => reject(reason));
-		});
-	}
+          request = objectStore.count(keyRange);
+          request.onerror = e => reject(e);
+          request.onsuccess = e => resolve((<any>e.target).result);
+        })
+        .catch(reason => reject(reason));
+    });
+  }
 }
