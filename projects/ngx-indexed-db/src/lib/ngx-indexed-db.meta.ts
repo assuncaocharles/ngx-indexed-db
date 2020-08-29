@@ -9,7 +9,7 @@ export interface DBConfig {
 
 export interface ObjectStoreMeta {
   store: string;
-  storeConfig: { keyPath: string; autoIncrement: boolean; [key: string]: any };
+  storeConfig: { keyPath?: string; autoIncrement: boolean; [key: string]: any };
   storeSchema: ObjectStoreSchema[];
 }
 
