@@ -3,8 +3,9 @@ language: node_js
 node_js: ['10']
 before_script:
   - npm install
+  - npm install -g yarn
 script:
-  - npm run build:lib
+  - yarn build:lib
   - cp README.md dist/ngx-indexed-db
   - cp LICENSE dist/ngx-indexed-db
   - npm pack
