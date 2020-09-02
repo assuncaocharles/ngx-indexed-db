@@ -12,7 +12,9 @@
     "angular",
     "ng",
     "ngx",
-    "storage"
+    "storage",
+    "schema",
+    "index"
   ],
   "repository": {
     "type": "git",
