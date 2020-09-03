@@ -336,24 +336,26 @@ export class NgxIndexedDBService<T = any> {
    * @param indexName The index name to filter
    * @param keyRange  The range value and criteria to apply on the index.
    */
-  getAllByIndex(storeName: string, indexName: string, keyRange: IDBKeyRange): Promise<T[]> {
+  getAllByIndex(storeName: string, indexName: string, keyRange: IDBKeyRange): Observable<T[]> {
     const data: T[] = [];
-    return new Promise<T[]>((resolve, reject) => {
-      this.openCursorByIndex(storeName, indexName, keyRange)
-        .pipe(take(1))
-        .subscribe(
-          (event) => {
-            const cursor: IDBCursorWithValue = (event.target as IDBRequest<IDBCursorWithValue>).result;
-            if (cursor) {
-              data.push(cursor.value);
-              cursor.continue();
-            } else {
-              resolve(data);
-            }
-          },
-          (reason) => reject(reason)
-        );
-    });
+    return from(
+      new Promise<T[]>((resolve, reject) => {
+        this.openCursorByIndex(storeName, indexName, keyRange)
+          .pipe(take(1))
+          .subscribe(
+            (event) => {
+              const cursor: IDBCursorWithValue = (event.target as IDBRequest<IDBCursorWithValue>).result;
+              if (cursor) {
+                data.push(cursor.value);
+                cursor.continue();
+              } else {
+                resolve(data);
+              }
+            },
+            (reason) => reject(reason)
+          );
+      })
+    );
   }
 
   /**
