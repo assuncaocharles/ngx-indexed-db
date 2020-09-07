@@ -6,11 +6,11 @@ export interface Options {
   abort?: any;
 }
 
-export function validateStoreName(db: IDBDatabase, storeName: string) {
+export function validateStoreName(db: IDBDatabase, storeName: string): boolean {
   return db.objectStoreNames.contains(storeName);
 }
 
-export function validateBeforeTransaction(db: IDBDatabase, storeName: string, reject: Function) {
+export function validateBeforeTransaction(db: IDBDatabase, storeName: string, reject: (message: string) => void): void {
   if (!db) {
     reject('You need to use the openDatabase function to create a database before you query it!');
   }
@@ -20,16 +20,16 @@ export function validateBeforeTransaction(db: IDBDatabase, storeName: string, re
 }
 
 export function createTransaction(db: IDBDatabase, options: Options): IDBTransaction {
-  let trans: IDBTransaction = db.transaction(options.storeName, options.dbMode);
+  const trans: IDBTransaction = db.transaction(options.storeName, options.dbMode);
   trans.onerror = options.error;
   trans.oncomplete = options.complete;
   trans.onabort = options.abort;
   return trans;
 }
 
-export function optionsGenerator(type: any, storeName: any, reject: Function, resolve: Function): Options {
+export function optionsGenerator(type: any, storeName: any, reject: (reason?: any) => void, resolve: () => void): Options {
   return {
-    storeName: storeName,
+    storeName,
     dbMode: type,
     error: (e: Event) => {
       reject(e);

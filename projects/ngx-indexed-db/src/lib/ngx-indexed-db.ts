@@ -22,7 +22,12 @@ export interface RequestEvent<T> extends Event {
   target: RequestEventTarget<T>;
 }
 
-export function openDatabase(indexedDB: IDBFactory, dbName: string, version: number, upgradeCallback?: Function) {
+export function openDatabase(
+  indexedDB: IDBFactory,
+  dbName: string,
+  version: number,
+  upgradeCallback?: (a: Event, b: IDBDatabase) => void
+): Promise<IDBDatabase> {
   return new Promise<IDBDatabase>((resolve, reject) => {
     if (!indexedDB) {
       reject('IndexedDB not available');
@@ -50,13 +55,13 @@ export function CreateObjectStore(
   version: number,
   storeSchemas: ObjectStoreMeta[],
   migrationFactory?: () => { [key: number]: (db: IDBDatabase, transaction: IDBTransaction) => void }
-) {
+): void {
   if (!indexedDB) {
     return;
   }
   const request: IDBOpenDBRequest = indexedDB.open(dbName, version);
 
-  request.onupgradeneeded = function(event: IDBVersionChangeEvent) {
+  request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
     const database: IDBDatabase = (event.target as any).result;
 
     storeSchemas.forEach((storeSchema: ObjectStoreMeta) => {
@@ -82,7 +87,7 @@ export function CreateObjectStore(
     database.close();
   };
 
-  request.onsuccess = function(e: any) {
+  request.onsuccess = (e: any) => {
     e.target.result.close();
   };
 }
