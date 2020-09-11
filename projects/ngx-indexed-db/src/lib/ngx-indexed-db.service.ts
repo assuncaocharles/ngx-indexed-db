@@ -310,13 +310,18 @@ export class NgxIndexedDBService<T = any> {
    * @param indexName The index name to filter.
    * @param keyRange The range value and criteria to apply on the index.
    */
-  openCursorByIndex(storeName: string, indexName: string, keyRange: IDBKeyRange): Observable<Event> {
+  openCursorByIndex(
+    storeName: string,
+    indexName: string,
+    keyRange: IDBKeyRange,
+    mode: DBMode = DBMode.readonly
+  ): Observable<Event> {
     return from(
       new Promise<Event>((resolve, reject) => {
         openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
           .then((db) => {
             validateBeforeTransaction(db, storeName, reject);
-            const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, reject, resolve));
+            const transaction = createTransaction(db, optionsGenerator(mode, storeName, reject, resolve));
             const objectStore = transaction.objectStore(storeName);
             const index = objectStore.index(indexName);
             const request = index.openCursor(keyRange);

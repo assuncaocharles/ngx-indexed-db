@@ -13,11 +13,14 @@
     "format": "prettier \"projects/**/*.{ts,json}\" --write"
   },
   "lint-staged": {
-    "*.{ts,tsx,js}": [
+    "*.{ts,js}": [
       "prettier --write"
     ],
     "*.{css}": [
       "prettier --write"
+    ],
+    "projects/ngx-indexed-db/**/*.{tsx,js}": [
+      "hg lint"
     ]
   },
   "private": true,
