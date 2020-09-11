@@ -20,7 +20,7 @@
       "prettier --write"
     ],
     "projects/ngx-indexed-db/**/*.{tsx,js}": [
-      "hg lint"
+      "ng lint"
     ]
   },
   "private": true,
