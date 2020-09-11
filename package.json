@@ -19,7 +19,7 @@
     "*.{css}": [
       "prettier --write"
     ],
-    "projects/ngx-indexed-db/**/*.{tsx,js}": [
+    "./projects/ngx-indexed-db/**/*.{tsx,js}": [
       "ng lint"
     ]
   },
