@@ -1,6 +1,6 @@
 {
   "name": "ngx-indexed-db",
-  "version": "6.0.2",
+  "version": "6.0.3",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -13,11 +13,14 @@
     "format": "prettier \"projects/**/*.{ts,json}\" --write"
   },
   "lint-staged": {
-    "*.{ts,tsx,js}": [
+    "*.{ts,js}": [
       "prettier --write"
     ],
     "*.{css}": [
       "prettier --write"
+    ],
+    "projects/ngx-indexed-db/**/*.{tsx,js}": [
+      "ng lint"
     ]
   },
   "private": true,
