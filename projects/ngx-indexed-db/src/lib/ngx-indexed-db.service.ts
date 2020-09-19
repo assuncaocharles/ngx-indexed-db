@@ -341,26 +341,28 @@ export class NgxIndexedDBService<T = any> {
    * @param indexName The index name to filter
    * @param keyRange  The range value and criteria to apply on the index.
    */
-  getAllByIndex(storeName: string, indexName: string, keyRange: IDBKeyRange): Observable<T[]> {
-    const data: T[] = [];
-    return from(
-      new Promise<T[]>((resolve, reject) => {
-        this.openCursorByIndex(storeName, indexName, keyRange)
-          .pipe(take(1))
-          .subscribe(
-            (event) => {
-              const cursor: IDBCursorWithValue = (event.target as IDBRequest<IDBCursorWithValue>).result;
-              if (cursor) {
-                data.push(cursor.value);
-                cursor.continue();
-              } else {
-                resolve(data);
-              }
-            },
-            (reason) => reject(reason)
-          );
-      })
-    );
+  getAllByIndex(storeName, indexName, keyRange) {
+    const data = [];
+    return from(new Promise((resolve, reject) => {
+      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+      .then((db) => {
+      validateBeforeTransaction(db, storeName, reject);
+      const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, reject, resolve));
+      const objectStore = transaction.objectStore(storeName);
+      const index = objectStore.index(indexName);
+      const request = index.openCursor(keyRange);
+      request.onsuccess = (event) => {
+          const cursor = event.target.result;
+          if(cursor) {
+            data.push(cursor.value);
+            cursor.continue();
+          } else {
+            resolve(data);
+          }
+      };
+    })
+      .catch((reason) => reject(reason));
+    }));
   }
 
   /**
