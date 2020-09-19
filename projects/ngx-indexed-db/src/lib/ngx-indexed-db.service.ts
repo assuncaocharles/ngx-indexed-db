@@ -342,7 +342,7 @@ export class NgxIndexedDBService<T = any> {
    * @param keyRange  The range value and criteria to apply on the index.
    */
   getAllByIndex(storeName: string, indexName: string, keyRange: IDBKeyRange): Observable<T[]> {
-    const data = [];
+    const data: T[] = [];
     return from(new Promise((resolve, reject) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
       .then((db) => {
