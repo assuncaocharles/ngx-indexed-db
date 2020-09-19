@@ -343,7 +343,7 @@ export class NgxIndexedDBService<T = any> {
    */
   getAllByIndex(storeName: string, indexName: string, keyRange: IDBKeyRange): Observable<T[]> {
     const data: T[] = [];
-    return from(new Promise((resolve, reject) => {
+    return from(new Promise<T[]>((resolve, reject) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
       .then((db) => {
       validateBeforeTransaction(db, storeName, reject);
