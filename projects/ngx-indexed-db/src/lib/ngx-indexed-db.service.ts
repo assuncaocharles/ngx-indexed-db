@@ -341,7 +341,7 @@ export class NgxIndexedDBService<T = any> {
    * @param indexName The index name to filter
    * @param keyRange  The range value and criteria to apply on the index.
    */
-  getAllByIndex(storeName, indexName, keyRange) {
+  getAllByIndex(storeName: string, indexName: string, keyRange: IDBKeyRange) {
     const data = [];
     return from(new Promise((resolve, reject) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
@@ -353,7 +353,7 @@ export class NgxIndexedDBService<T = any> {
       const request = index.openCursor(keyRange);
       request.onsuccess = (event) => {
           const cursor = event.target.result;
-          if(cursor) {
+          if (cursor) {
             data.push(cursor.value);
             cursor.continue();
           } else {
