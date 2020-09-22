@@ -1,4 +1,6 @@
 import { NgxIndexedDBService } from './../../../ngx-indexed-db/src/lib/ngx-indexed-db.service';
+import { forkJoin } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { Component } from '@angular/core';
 
 @Component({
@@ -44,5 +46,21 @@ export class AppComponent {
     this.dbService.count('people').subscribe((result) => {
       console.log('result: ', result);
     });
+  }
+
+  addTwoAndGetAllByIndex(): void {
+    // #209 getAllByIndex with multiple result should resolve observable
+    forkJoin([
+      this.dbService.add('people', {
+        name: `desmond`,
+        email: `email number ${Math.random() * 10}`,
+      }),
+      this.dbService.add('people', {
+        name: `desmond`,
+        email: `email number ${Math.random() * 10}`,
+      }),
+    ])
+      .pipe(switchMap(() => this.dbService.getAllByIndex('people', 'name', IDBKeyRange.only('desmond'))))
+      .subscribe((result) => console.log(result));
   }
 }
