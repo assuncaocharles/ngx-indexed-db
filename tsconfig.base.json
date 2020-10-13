@@ -9,17 +9,11 @@
     "experimentalDecorators": true,
     "moduleResolution": "node",
     "importHelpers": true,
-    "target": "es2015",
+    "target": "ES5",
     "module": "es2020",
-    "lib": [
-      "es2018",
-      "dom"
-    ],
+    "lib": ["es2018", "dom"],
     "paths": {
-      "ngx-indexed-db": [
-        "dist/ngx-indexed-db/ngx-indexed-db",
-        "dist/ngx-indexed-db"
-      ]
+      "ngx-indexed-db": ["dist/ngx-indexed-db/ngx-indexed-db", "dist/ngx-indexed-db"]
     }
   }
 }
