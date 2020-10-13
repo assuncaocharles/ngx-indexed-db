@@ -15,7 +15,7 @@ export interface ObjectStoreMeta {
 
 export interface ObjectStoreSchema {
   name: string;
-  keypath: string;
+  keypath: string | string[];
   options: { unique: boolean; [key: string]: any };
 }
 
