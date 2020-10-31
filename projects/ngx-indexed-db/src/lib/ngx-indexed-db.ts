@@ -1,26 +1,4 @@
-export interface ObjectStoreMeta {
-  store: string;
-  storeConfig: { keyPath: string; autoIncrement: boolean; [key: string]: any };
-  storeSchema: ObjectStoreSchema[];
-}
-
-export interface ObjectStoreSchema {
-  name: string;
-  keypath: string | string[];
-  options: { unique: boolean; [key: string]: any };
-}
-export type Key = string | number | Date | ArrayBufferView | ArrayBuffer | IDBArrayKey | IDBKeyRange;
-export interface IndexDetails {
-  indexName: string;
-  order: string;
-}
-export interface RequestEventTarget<T> extends EventTarget {
-  result: T | T[];
-}
-
-export interface RequestEvent<T> extends Event {
-  target: RequestEventTarget<T>;
-}
+import { ObjectStoreMeta, ObjectStoreSchema } from './ngx-indexed-db.meta';
 
 export function openDatabase(
   indexedDB: IDBFactory,
@@ -76,10 +54,10 @@ export function CreateObjectStore(
     const storeMigrations = migrationFactory && migrationFactory();
     if (storeMigrations) {
       Object.keys(storeMigrations)
-        .map(k => parseInt(k, 10))
-        .filter(v => v > event.oldVersion)
+        .map((k) => parseInt(k, 10))
+        .filter((v) => v > event.oldVersion)
         .sort((a, b) => a - b)
-        .forEach(v => {
+        .forEach((v) => {
           storeMigrations[v](database, request.transaction);
         });
     }
@@ -90,9 +68,4 @@ export function CreateObjectStore(
   request.onsuccess = (e: any) => {
     e.target.result.close();
   };
-}
-
-export enum DBMode {
-  readonly = 'readonly',
-  readwrite = 'readwrite'
 }

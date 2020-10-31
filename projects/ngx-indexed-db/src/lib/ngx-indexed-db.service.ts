@@ -1,7 +1,7 @@
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
-import { openDatabase, DBMode, Key, RequestEvent, CreateObjectStore, ObjectStoreMeta } from './ngx-indexed-db';
+import { openDatabase, CreateObjectStore } from './ngx-indexed-db';
 import { createTransaction, optionsGenerator, validateBeforeTransaction } from '../utils';
-import { CONFIG_TOKEN, DBConfig } from './ngx-indexed-db.meta';
+import { CONFIG_TOKEN, DBConfig, Key, RequestEvent, ObjectStoreMeta, DBMode } from './ngx-indexed-db.meta';
 import { isPlatformBrowser } from '@angular/common';
 import { Observable, Observer, from } from 'rxjs';
 import { take } from 'rxjs/operators';
@@ -343,26 +343,28 @@ export class NgxIndexedDBService<T = any> {
    */
   getAllByIndex(storeName: string, indexName: string, keyRange: IDBKeyRange): Observable<T[]> {
     const data: T[] = [];
-    return from(new Promise<T[]>((resolve, reject) => {
-      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
-      .then((db) => {
-      validateBeforeTransaction(db, storeName, reject);
-      const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, reject, resolve));
-      const objectStore = transaction.objectStore(storeName);
-      const index = objectStore.index(indexName);
-      const request = index.openCursor(keyRange);
-      request.onsuccess = (event) => {
-          const cursor: IDBCursorWithValue = (event.target as IDBRequest<IDBCursorWithValue>).result;
-          if (cursor) {
-            data.push(cursor.value);
-            cursor.continue();
-          } else {
-            resolve(data);
-          }
-      };
-    })
-      .catch((reason) => reject(reason));
-    }));
+    return from(
+      new Promise<T[]>((resolve, reject) => {
+        openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+          .then((db) => {
+            validateBeforeTransaction(db, storeName, reject);
+            const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, reject, resolve));
+            const objectStore = transaction.objectStore(storeName);
+            const index = objectStore.index(indexName);
+            const request = index.openCursor(keyRange);
+            request.onsuccess = (event) => {
+              const cursor: IDBCursorWithValue = (event.target as IDBRequest<IDBCursorWithValue>).result;
+              if (cursor) {
+                data.push(cursor.value);
+                cursor.continue();
+              } else {
+                resolve(data);
+              }
+            };
+          })
+          .catch((reason) => reject(reason));
+      })
+    );
   }
 
   /**

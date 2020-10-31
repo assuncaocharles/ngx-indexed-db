@@ -9,7 +9,7 @@ export interface DBConfig {
 
 export interface ObjectStoreMeta {
   store: string;
-  storeConfig: { keyPath: string; autoIncrement: boolean; [key: string]: any };
+  storeConfig: { keyPath: string | string[]; autoIncrement: boolean; [key: string]: any };
   storeSchema: ObjectStoreSchema[];
 }
 
@@ -18,5 +18,25 @@ export interface ObjectStoreSchema {
   keypath: string | string[];
   options: { unique: boolean; [key: string]: any };
 }
+
+export interface IndexDetails {
+  indexName: string;
+  order: string;
+}
+
+export interface RequestEvent<T> extends Event {
+  target: RequestEventTarget<T>;
+}
+
+export interface RequestEventTarget<T> extends EventTarget {
+  result: T | T[];
+}
+
+export enum DBMode {
+  readonly = 'readonly',
+  readwrite = 'readwrite',
+}
+
+export type Key = string | number | Date | ArrayBufferView | ArrayBuffer | IDBArrayKey | IDBKeyRange;
 
 export const CONFIG_TOKEN = new InjectionToken<DBConfig>(null);
