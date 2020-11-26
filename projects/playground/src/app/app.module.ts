@@ -4,6 +4,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 
 import { AppComponent } from './app.component';
+import { FormsModule } from '@angular/forms';
 
 const dbConfig: DBConfig = {
   name: 'MyDb',
@@ -22,7 +23,7 @@ const dbConfig: DBConfig = {
 
 @NgModule({
   declarations: [AppComponent],
-  imports: [BrowserModule, NgxIndexedDBModule.forRoot(dbConfig)],
+  imports: [BrowserModule, NgxIndexedDBModule.forRoot(dbConfig), FormsModule],
   providers: [],
   bootstrap: [AppComponent],
 })
