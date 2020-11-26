@@ -75,5 +75,6 @@
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
       "pre-commit": "lint-staged"
     }
-  }
+  },
+  "types": "dist/ngx-indexed-db/lib/ngx-indexed-db.meta.d.ts"
 }
