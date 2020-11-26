@@ -2,6 +2,7 @@ import { NgxIndexedDBService } from './../../../ngx-indexed-db/src/lib/ngx-index
 import { forkJoin } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { Component } from '@angular/core';
+import { NgModel } from '@angular/forms';
 
 @Component({
   selector: 'app-root',
@@ -10,6 +11,7 @@ import { Component } from '@angular/core';
 })
 export class AppComponent {
   title = 'playground';
+  storeName: string;
 
   constructor(private dbService: NgxIndexedDBService<any>) {}
 
@@ -46,6 +48,20 @@ export class AppComponent {
     this.dbService.count('people').subscribe((result) => {
       console.log('result: ', result);
     });
+  }
+
+  createStote(storeName: string): void {
+    console.log('storeName', storeName);
+    const storeSchema = {
+      store: storeName,
+      storeConfig: { keyPath: 'id', autoIncrement: true },
+      storeSchema: [
+        { name: 'name', keypath: 'name', options: { unique: false } },
+        { name: 'email', keypath: 'email', options: { unique: false } },
+      ],
+    };
+
+    this.dbService.createObjectStore(storeSchema);
   }
 
   addTwoAndGetAllByIndex(): void {

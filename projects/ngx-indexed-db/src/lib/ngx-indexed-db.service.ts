@@ -45,7 +45,7 @@ export class NgxIndexedDBService<T = any> {
     migrationFactory?: () => { [key: number]: (db: IDBDatabase, transaction: IDBTransaction) => void }
   ): void {
     const storeSchemas: ObjectStoreMeta[] = [storeSchema];
-    CreateObjectStore(this.indexedDB, this.dbConfig.name, this.dbConfig.version, storeSchemas, migrationFactory);
+    CreateObjectStore(this.indexedDB, this.dbConfig.name, ++this.dbConfig.version, storeSchemas, migrationFactory);
   }
 
   /**
