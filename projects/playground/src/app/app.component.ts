@@ -13,7 +13,7 @@ export class AppComponent {
   title = 'playground';
   storeName: string;
 
-  constructor(private dbService: NgxIndexedDBService<any>) {}
+  constructor(private dbService: NgxIndexedDBService) {}
 
   add(): void {
     this.dbService

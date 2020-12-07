@@ -7,7 +7,7 @@ import { Observable, Observer, from } from 'rxjs';
 import { take } from 'rxjs/operators';
 
 @Injectable()
-export class NgxIndexedDBService<T = any> {
+export class NgxIndexedDBService {
   private readonly isBrowser: boolean;
   private indexedDB: IDBFactory;
 
@@ -54,7 +54,7 @@ export class NgxIndexedDBService<T = any> {
    * @param value The entry to be added
    * @param key The optional key for the entry
    */
-  add(storeName: string, value: T, key?: any): Observable<number> {
+  add<T>(storeName: string, value: T, key?: any): Observable<number> {
     return from(
       new Promise<number>((resolve, reject) => {
         openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
@@ -80,7 +80,7 @@ export class NgxIndexedDBService<T = any> {
    * @param storeName The name of the store to query
    * @param key The entry key
    */
-  getByKey(storeName: string, key: IDBValidKey): Observable<T> {
+  getByKey<T>(storeName: string, key: IDBValidKey): Observable<T> {
     return from(
       new Promise<T>((resolve, reject) => {
         openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
@@ -105,7 +105,7 @@ export class NgxIndexedDBService<T = any> {
    * @param storeName The name of the store to query
    * @param id The entry id
    */
-  getByID(storeName: string, id: string | number): Observable<T> {
+  getByID<T>(storeName: string, id: string | number): Observable<T> {
     return from(
       new Promise<T>((resolve, reject) => {
         openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
@@ -129,7 +129,7 @@ export class NgxIndexedDBService<T = any> {
    * @param indexName The index name to filter
    * @param key The entry key.
    */
-  getByIndex(storeName: string, indexName: string, key: IDBValidKey): Observable<T> {
+  getByIndex<T>(storeName: string, indexName: string, key: IDBValidKey): Observable<T> {
     return from(
       new Promise<T>((resolve, reject) => {
         openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
@@ -152,7 +152,7 @@ export class NgxIndexedDBService<T = any> {
    * Return all elements from one store
    * @param storeName The name of the store to select the items
    */
-  getAll(storeName: string): Observable<T[]> {
+  getAll<T>(storeName: string): Observable<T[]> {
     return from(
       new Promise<T[]>((resolve, reject) => {
         openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
@@ -182,7 +182,7 @@ export class NgxIndexedDBService<T = any> {
    * @param value The new value for the entry
    * @param key The key of the entry to update if exists
    */
-  update(storeName: string, value: T, key?: any): Observable<T[]> {
+  update<T>(storeName: string, value: T, key?: any): Observable<T[]> {
     return from(
       new Promise<T[]>((resolve, reject) => {
         openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
@@ -195,7 +195,7 @@ export class NgxIndexedDBService<T = any> {
               this.getAll(storeName)
                 .pipe(take(1))
                 .subscribe((newValues) => {
-                  resolve(newValues);
+                  resolve(newValues as T[]);
                 });
             };
 
@@ -211,7 +211,7 @@ export class NgxIndexedDBService<T = any> {
    * @param storeName The name of the store to have the entry deleted
    * @param key The key of the entry to be deleted
    */
-  delete(storeName: string, key: Key): Observable<T[]> {
+  delete<T>(storeName: string, key: Key): Observable<T[]> {
     return from(
       new Promise<T[]>((resolve, reject) => {
         openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
@@ -225,7 +225,7 @@ export class NgxIndexedDBService<T = any> {
               this.getAll(storeName)
                 .pipe(take(1))
                 .subscribe((newValues) => {
-                  resolve(newValues);
+                  resolve(newValues as T[]);
                 });
             };
           })
@@ -341,7 +341,7 @@ export class NgxIndexedDBService<T = any> {
    * @param indexName The index name to filter
    * @param keyRange  The range value and criteria to apply on the index.
    */
-  getAllByIndex(storeName: string, indexName: string, keyRange: IDBKeyRange): Observable<T[]> {
+  getAllByIndex<T>(storeName: string, indexName: string, keyRange: IDBKeyRange): Observable<T[]> {
     const data: T[] = [];
     return from(
       new Promise<T[]>((resolve, reject) => {
