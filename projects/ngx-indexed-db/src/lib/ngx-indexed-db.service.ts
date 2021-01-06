@@ -368,6 +368,38 @@ export class NgxIndexedDBService {
   }
 
   /**
+   * Returns all primary keys by an index.
+   * @param storeName The name of the store to query
+   * @param indexName The index name to filter
+   * @param keyRange  The range value and criteria to apply on the index.
+   */
+  getAllKeysByIndex(storeName: string, indexName: string, keyRange: IDBKeyRange): Observable<{primaryKey: any, key: any}[]> {
+    const data: {primaryKey: any, key: any}[] = [];
+    return from(
+      new Promise<{primaryKey: any, key: any}[]>((resolve, reject) => {
+        openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+          .then((db) => {
+            validateBeforeTransaction(db, storeName, reject);
+            const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, reject, resolve));
+            const objectStore = transaction.objectStore(storeName);
+            const index = objectStore.index(indexName);
+            const request = index.openKeyCursor(keyRange);
+            request.onsuccess = (event) => {
+              const cursor: IDBCursor = (event.target as IDBRequest<IDBCursor>).result;
+              if (cursor) {
+                data.push({primaryKey: cursor.primaryKey, key: cursor.key})
+                cursor.continue();
+              } else {
+                resolve(data);
+              }
+            };
+          })
+          .catch((reason) => reject(reason));
+      })
+    );
+  }
+
+  /**
    * Returns the number of rows in a store.
    * @param storeName The name of the store to query
    * @param keyRange  The range value and criteria to apply.
