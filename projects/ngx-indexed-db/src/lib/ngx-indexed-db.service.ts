@@ -387,7 +387,7 @@ export class NgxIndexedDBService {
             request.onsuccess = (event) => {
               const cursor: IDBCursor = (event.target as IDBRequest<IDBCursor>).result;
               if (cursor) {
-                data.push({primaryKey: cursor.primaryKey, key: cursor.key})
+                data.push({primaryKey: cursor.primaryKey, key: cursor.key});
                 cursor.continue();
               } else {
                 resolve(data);
