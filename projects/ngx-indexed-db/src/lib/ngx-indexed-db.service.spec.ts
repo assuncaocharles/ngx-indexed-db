@@ -21,7 +21,7 @@ const dbConfig = {
 describe('NgxIndexedDBService', () => {
   beforeEach(() =>
     TestBed.configureTestingModule({
-      imports: [NgxIndexedDBModule.forRoot(dbConfig)],
+      imports: [NgxIndexedDBModule.forRoot([dbConfig])],
     })
   );
 

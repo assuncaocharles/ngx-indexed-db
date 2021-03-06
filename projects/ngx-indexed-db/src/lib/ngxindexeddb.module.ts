@@ -8,7 +8,7 @@ import { DBConfig, CONFIG_TOKEN } from './ngx-indexed-db.meta';
   imports: [CommonModule]
 })
 export class NgxIndexedDBModule {
-  static forRoot(dbConfig: DBConfig): ModuleWithProviders<NgxIndexedDBModule> {
+  static forRoot(dbConfig: Array<DBConfig>): ModuleWithProviders<NgxIndexedDBModule> {
     return {
       ngModule: NgxIndexedDBModule,
       providers: [NgxIndexedDBService, { provide: CONFIG_TOKEN, useValue: dbConfig }]

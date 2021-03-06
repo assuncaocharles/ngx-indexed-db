@@ -18,12 +18,12 @@ $ yarn add ngx-indexed-db
 
 ## Usage
 
-Import the `NgxIndexedDBModule` and initiate it:
+Import the `NgxIndexedDBModule` and initiate it (support multiple DB):
 
 ```js
 import { NgxIndexedDBModule } from 'ngx-indexed-db';
 
-const dbConfig: DBConfig  = {
+const dbConfig: DBConfig  = [{
   name: 'MyDb',
   version: 1,
   objectStoresMeta: [{
@@ -34,7 +34,7 @@ const dbConfig: DBConfig  = {
       { name: 'email', keypath: 'email', options: { unique: false } }
     ]
   }]
-};
+}];
 
 @NgModule({
   ...
@@ -67,7 +67,7 @@ export function migrationFactory() {
   };
 }
 
-const dbConfig: DBConfig  = {
+const dbConfig: DBConfig  = [{
   name: 'MyDb',
   version: 3,
   objectStoresMeta: [{
@@ -87,7 +87,7 @@ const dbConfig: DBConfig  = {
   }],
   // provide the migration factory to the DBConfig
   migrationFactory
-};
+}];
 
 @NgModule({
   ...
@@ -121,6 +121,7 @@ We cover several common methods used to work with the IndexedDB
 
 Adds new entry in the store and returns its key
 
+- @param DBOptions The name and version of the database
 - @param storeName The name of the store to add the item
 - @param value The entry to be added
 - @param key The optional key for the entry
@@ -129,7 +130,7 @@ It publishes in the observable the key value of the entry
 
 ```js
 this.dbService
-  .add('people', {
+  .add({name: 'DB_1', version: 1}, 'people', {
     name: `Bruce Wayne`,
     email: `bruce@wayne.com`,
   })
@@ -144,13 +145,14 @@ _In the previous example I'm using undefined as the key because the key is confi
 
 Updates the given value in the objectStore and returns all items from the store after update..
 
+- @param DBOptions The name and version of the database
 - @param storeName The name of the store to update
 - @param value The new value for the entry
 - @param key The key of the entry to update if exists
 
 ```js
 this.dbService
-  .update('people', {
+  .update({name: 'DB_1', version: 1}, 'people', {
     id: 1,
     email: 'luke@skywalker.com',
     name: 'Luke Skywalker',
@@ -164,11 +166,12 @@ this.dbService
 
 Returns entry by key.
 
+- @param DBOptions The name and version of the database
 - @param storeName The name of the store to query
 - @param key The entry key
 
 ```js
-this.dbService.getByKey('people', 1).subscribe((people) => {
+this.dbService.getByKey({name: 'DB_1', version: 1}, 'people', 1).subscribe((people) => {
   console.log(people);
 });
 ```
@@ -177,10 +180,11 @@ this.dbService.getByKey('people', 1).subscribe((people) => {
 
 Return all elements from one store
 
+- @param DBOptions The name and version of the database
 - @param storeName The name of the store to select the items
 
 ```js
-this.dbService.getAll('people').subscribe((peoples) => {
+this.dbService.getAll({name: 'DB_1', version: 1}, 'people').subscribe((peoples) => {
   console.log(peoples);
 });
 ```
@@ -189,12 +193,13 @@ this.dbService.getAll('people').subscribe((peoples) => {
 
 Returns entry by index.
 
+- @param DBOptions The name and version of the database
 - @param storeName The name of the store to query
 - @param indexName The index name to filter
 - @param key The entry key.
 
 ```js
-this.dbService.getByIndex('people', 'name', 'Dave').subscribe((people) => {
+this.dbService.getByIndex({name: 'DB_1', version: 1}, 'people', 'name', 'Dave').subscribe((people) => {
   console.log(people);
 });
 ```
@@ -203,6 +208,7 @@ this.dbService.getByIndex('people', 'name', 'Dave').subscribe((people) => {
 
 Allows to crate a new object store ad-hoc
 
+- @param DBOptions The name and version of the database
 - @param storeName The name of the store to be created
 - @param migrationFactory The migration factory if exists
 
@@ -216,18 +222,19 @@ const storeSchema: ObjectStoreMeta = {
   ],
 };
 
-this.dbService.createObjectStore(storeSchema);
+this.dbService.createObjectStore({name: 'DB_1', version: 1}, storeSchema);
 ```
 
 #### count(storeName, keyRange?)
 
 Returns the number of rows in a store.
 
+- @param DBOptions The name and version of the database
 - @param storeName The name of the store to query
 - @param keyRange The range value and criteria to apply.
 
 ```js
-this.dbService.count('people').subscribe((peopleCount) => {
+this.dbService.count({name: 'DB_1', version: 1}, 'people').subscribe((peopleCount) => {
   console.log(peopleCount);
 });
 ```
@@ -236,11 +243,12 @@ this.dbService.count('people').subscribe((peopleCount) => {
 
 Returns all items from the store after delete.
 
+- @param DBOptions The name and version of the database
 - @param storeName The name of the store to have the entry deleted
 - @param key The key of the entry to be deleted
 
 ```js
-this.dbService.delete('people', 3).subscribe((allPeople) => {
+this.dbService.delete({name: 'DB_1', version: 1}, 'people', 3).subscribe((allPeople) => {
   console.log('all people:', allPeople);
 });
 ```
@@ -249,11 +257,12 @@ this.dbService.delete('people', 3).subscribe((allPeople) => {
 
 Returns the open cursor event
 
+- @param DBOptions The name and version of the database
 - @param storeName The name of the store to have the entries deleted
 - @param keyRange The key range which the cursor should be open on
 
 ```js
-this.dbService.openCursor('people', IDBKeyRange.bound("A", "F")).subscribe((evt) => {
+this.dbService.openCursor({name: 'DB_1', version: 1}, 'people', IDBKeyRange.bound("A", "F")).subscribe((evt) => {
     var cursor = (evt.target as IDBOpenDBRequest).result;
     if(cursor) {
         console.log(cursor.value);
@@ -268,12 +277,13 @@ this.dbService.openCursor('people', IDBKeyRange.bound("A", "F")).subscribe((evt)
 
 Open a cursor by index filter.
 
+- @param DBOptions The name and version of the database
 - @param storeName The name of the store to query.
 - @param indexName The index name to filter.
 - @param keyRange The range value and criteria to apply on the index.
 
 ```js
-this.dbService.openCursorByIndex('people', 'name', IDBKeyRange.only('john')).subscribe((evt) => {
+this.dbService.openCursorByIndex({name: 'DB_1', version: 1},'people', 'name', IDBKeyRange.only('john')).subscribe((evt) => {
     var cursor = (evt.target as IDBOpenDBRequest).result;
     if(cursor) {
         console.log(cursor.value);
@@ -288,12 +298,13 @@ this.dbService.openCursorByIndex('people', 'name', IDBKeyRange.only('john')).sub
 
 Returns all items by an index.
 
+- @param DBOptions The name and version of the database
 - @param storeName The name of the store to query
 - @param indexName The index name to filter
 - @param keyRange The range value and criteria to apply on the index.
 
 ```js
-this.dbService.getAllByIndex('people', 'name', IDBKeyRange.only('john')).subscribe((allPeopleByIndex) => {
+this.dbService.getAllByIndex({name: 'DB_1', version: 1}, 'people', 'name', IDBKeyRange.only('john')).subscribe((allPeopleByIndex) => {
   console.log('All: ', allPeopleByIndex);
 });
 ```
@@ -302,10 +313,11 @@ this.dbService.getAllByIndex('people', 'name', IDBKeyRange.only('john')).subscri
 
 Returns true if successfully delete all entries from the store.
 
+- @param DBOptions The name and version of the database
 - @param storeName The name of the store to have the entries deleted
 
 ```js
-this.dbService.clear('people').subscribe((successDeleted) => {
+this.dbService.clear({name: 'DB_1', version: 1}, 'people').subscribe((successDeleted) => {
   console.log('success? ', successDeleted);
 });
 ```
@@ -314,8 +326,10 @@ this.dbService.clear('people').subscribe((successDeleted) => {
 
 Returns true if successfully delete the DB.
 
+- @param DBOptions The name and version of the database
+
 ```js
-this.dbService.deleteDatabase().subscribe((deleted) => {
+this.dbService.deleteDatabase({name: 'DB_1', version: 1}).subscribe((deleted) => {
   console.log('Database deleted successfully: ', deleted);
 });
 ```
