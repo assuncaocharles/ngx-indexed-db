@@ -3,7 +3,7 @@ import { openDatabase, CreateObjectStore } from './ngx-indexed-db';
 import { createTransaction, optionsGenerator, validateBeforeTransaction } from '../utils';
 import { CONFIG_TOKEN, DBConfig, Key, RequestEvent, ObjectStoreMeta, DBMode } from './ngx-indexed-db.meta';
 import { isPlatformBrowser } from '@angular/common';
-import { Observable, Observer, from } from 'rxjs';
+import { Observable, Observer, from, Subject } from 'rxjs';
 import { take } from 'rxjs/operators';
 
 @Injectable()
@@ -316,23 +316,40 @@ export class NgxIndexedDBService {
     keyRange: IDBKeyRange,
     mode: DBMode = DBMode.readonly
   ): Observable<Event> {
-    return from(
-      new Promise<Event>((resolve, reject) => {
-        openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
-          .then((db) => {
-            validateBeforeTransaction(db, storeName, reject);
-            const transaction = createTransaction(db, optionsGenerator(mode, storeName, reject, resolve));
-            const objectStore = transaction.objectStore(storeName);
-            const index = objectStore.index(indexName);
-            const request = index.openCursor(keyRange);
+    const obs = new Subject<Event>();
+    
+    openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+      .then((db) => {
+        validateBeforeTransaction(
+          db, 
+          storeName, 
+          (reason)=> 
+            {
+              obs.error(reason);
+            });
+        const transaction = createTransaction(
+          db, 
+          optionsGenerator(
+            mode, 
+            storeName, 
+            (reason)=> 
+            {
+              obs.error(reason);
+            },
+            ()=>{
+              obs.next();
+            }));
+        const objectStore = transaction.objectStore(storeName);
+        const index = objectStore.index(indexName);
+        const request = index.openCursor(keyRange);
 
-            request.onsuccess = (event: Event) => {
-              resolve(event);
-            };
-          })
-          .catch((reason) => reject(reason));
+        request.onsuccess = (event: Event) => {
+          obs.next(event);
+        };
       })
-    );
+      .catch((reason) => obs.error(reason));
+    
+      return obs;
   }
 
   /**
