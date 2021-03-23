@@ -317,26 +317,26 @@ export class NgxIndexedDBService {
     mode: DBMode = DBMode.readonly
   ): Observable<Event> {
     const obs = new Subject<Event>();
-    
+
     openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
       .then((db) => {
         validateBeforeTransaction(
           db,
-          storeName, 
-          (reason)=>
+          storeName,
+          (reason) =>
             {
               obs.error(reason);
             });
         const transaction = createTransaction(
-          db, 
+          db,
           optionsGenerator(
-            mode, 
-            storeName, 
-            (reason)=>
+            mode,
+            storeName,
+            (reason) =>
             {
               obs.error(reason);
             },
-            ()=>{
+            () =>{
               obs.next();
             }));
         const objectStore = transaction.objectStore(storeName);
