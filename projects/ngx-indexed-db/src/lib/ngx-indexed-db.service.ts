@@ -336,7 +336,7 @@ export class NgxIndexedDBService {
             {
               obs.error(reason);
             },
-            () =>{
+            () => {
               obs.next();
             }));
         const objectStore = transaction.objectStore(storeName);
