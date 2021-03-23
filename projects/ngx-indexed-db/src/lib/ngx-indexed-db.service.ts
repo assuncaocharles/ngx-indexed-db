@@ -321,9 +321,9 @@ export class NgxIndexedDBService {
     openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
       .then((db) => {
         validateBeforeTransaction(
-          db, 
+          db,
           storeName, 
-          (reason)=> 
+          (reason)=>
             {
               obs.error(reason);
             });
@@ -332,7 +332,7 @@ export class NgxIndexedDBService {
           optionsGenerator(
             mode, 
             storeName, 
-            (reason)=> 
+            (reason)=>
             {
               obs.error(reason);
             },
@@ -348,8 +348,8 @@ export class NgxIndexedDBService {
         };
       })
       .catch((reason) => obs.error(reason));
-    
-      return obs;
+
+    return obs;
   }
 
   /**
