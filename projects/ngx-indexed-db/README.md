@@ -209,7 +209,45 @@ this.dbService.add('people', { name: 'name', email: 'email' }).then(
 );
 ```
 
-_In the previous example I'm using undefined as the key because the key is configured in the objectStore as auto-generated._
+#### addItem(storeName, value, key): value
+
+Adds to the given objectStore the key and value pair.
+The first parameter is the store name to modify, the second parameter is the value and the third parameter is the key (if not auto-generated).
+**addItem** returns a promise that is resolved when the value was added or rejected if an error occurred.
+
+Usage example (add without a key):
+
+```js
+this.dbService.addItem('people', { name: 'name', email: 'email' }).then(
+  (addedItem) => {
+    // Do something with the value that was added
+  },
+  (error) => {
+    console.log(error);
+  }
+);
+```
+
+_In the previous examples I'm using undefined as the key because the key is configured in the objectStore as auto-generated._
+
+#### addItemWithKey(storeName, value, key): value
+
+Adds to the given objectStore the key and value pair.
+The first parameter is the store name to modify, the second parameter is the value and the third parameter is the key (if not auto-generated).
+**addItemWithKey** returns a promise that is resolved when the value was added or rejected if an error occurred.
+
+Usage example:
+
+```js
+this.dbService.addItemWithKey('people', { name: 'name', email: 'email' }, 42).then(
+  (addedItem) => {
+    // Do something with the value that was added
+  },
+  (error) => {
+    console.log(error);
+  }
+);
+```
 
 #### count(storeName, keyRange?)
 
@@ -249,6 +287,25 @@ this.dbService.update('people', { id: 3, name: 'name', email: 'email' }).then(
 );
 ```
 
+#### updateByKey(storeName, value, key): value
+
+Updates the given value in the objectStore.
+The first parameter is the value to update, the second parameter is the key.
+**updateByKey** returns a promise that is resolved when the value was updated or rejected if an error occurred.
+
+Usage example:
+
+```js
+this.dbService.updateByKey('people', { id: 3, name: 'name', email: 'email' }, 42).then(
+  (updatedItem) => {
+    // Do something with the item after update
+  },
+  (error) => {
+    console.log(error);
+  }
+);
+```
+
 #### delete(storeName, key)
 
 Deletes the object that correspond with the key from the objectStore.
@@ -261,6 +318,25 @@ Usage example:
 this.dbService.delete('people', 3).then(
   () => {
     // Do something after delete
+  },
+  (error) => {
+    console.log(error);
+  }
+);
+```
+
+#### deleteByKey(storeName, key): boolean
+
+Deletes the object that correspond with the key from the objectStore.
+The first parameter is the store name to modify and the second parameter is the key to delete.
+**deleteByKey** returns a promise that is resolved when the value was deleted or rejected if an error occurred.
+
+Usage example:
+
+```js
+this.dbService.deleteByKey('people', 3).then(
+  (status) => {
+    // Do something with the status (true if successful) after delete
   },
   (error) => {
     console.log(error);
