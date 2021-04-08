@@ -1,9 +1,18 @@
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { openDatabase, CreateObjectStore } from './ngx-indexed-db';
 import { createTransaction, optionsGenerator, validateBeforeTransaction } from '../utils';
-import { CONFIG_TOKEN, DBConfig, Key, RequestEvent, ObjectStoreMeta, DBMode, DBOptions } from './ngx-indexed-db.meta';
+import {
+  CONFIG_TOKEN,
+  DBConfig,
+  Key,
+  RequestEvent,
+  ObjectStoreMeta,
+  DBMode,
+  DBOptions,
+  IGetAllKeysByIndexReq
+} from './ngx-indexed-db.meta';
 import { isPlatformBrowser } from '@angular/common';
-import { Observable, from } from 'rxjs';
+import { Observable, from, Subject } from 'rxjs';
 import { take } from 'rxjs/operators';
 
 @Injectable()
@@ -78,6 +87,64 @@ export class NgxIndexedDBService {
               const result = (evt.target as IDBOpenDBRequest).result;
               resolve((result as unknown) as number);
             };
+          })
+          .catch((reason) => reject(reason));
+      })
+    );
+  }
+
+  /**
+   * Adds new entry in the store and returns the item that was added
+   * @param dbOptions Name and version of the database
+   * @param storeName The name of the store to add the item
+   * @param value The entry to be added
+   * @param key The optional key for the entry
+   */
+  addItem<T>(dbOptions: DBOptions, storeName: string, value: T, key?: any): Observable<T> {
+    return from(
+      new Promise<T>((resolve, reject) => {
+        openDatabase(this.indexedDB, dbOptions?.name, dbOptions?.version)
+          .then((db: IDBDatabase) => {
+            const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, reject, resolve));
+            const objectStore = transaction.objectStore(storeName);
+            const hasKey = Boolean(key);
+            const request: IDBRequest<IDBValidKey> = hasKey ? objectStore.add(value, key) : objectStore.add(value);
+
+            request.onsuccess = (evt: Event) => {
+              const result = (evt.target as IDBOpenDBRequest).result;
+              const itemKey = hasKey ? key : ((result as unknown) as number);
+              this.getByKey(dbOptions, storeName, itemKey).subscribe((newValue) => {
+                resolve(newValue as T);
+              });
+            };
+          })
+          .catch((reason) => reject(reason));
+      })
+    );
+  }
+
+  /**
+   * Adds new entry in the store and returns the item that was added
+   * @param dbOptions Name and version of the database
+   * @param storeName The name of the store to add the item
+   * @param value The entry to be added
+   * @param key The key for the entry
+   */
+  addItemWithKey<T>(dbOptions: DBOptions, storeName: string, value: T, key: IDBValidKey): Observable<T> {
+    return from(
+      new Promise<T>((resolve, reject) => {
+        openDatabase(this.indexedDB, dbOptions?.name, dbOptions?.version)
+          .then((db: IDBDatabase) => {
+            const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, reject, resolve));
+            const objectStore = transaction.objectStore(storeName);
+
+            transaction.oncomplete = () => {
+              this.getByKey(dbOptions, storeName, key).subscribe((newValue) => {
+                resolve(newValue as T);
+              });
+            };
+
+            objectStore.add(value, key);
           })
           .catch((reason) => reject(reason));
       })
@@ -221,6 +288,35 @@ export class NgxIndexedDBService {
   }
 
   /**
+   * Returns the item you updated from the store after the update.
+   * @param dbOptions Name and version of the database
+   * @param storeName The name of the store to update
+   * @param value The new value for the entry
+   * @param key The key of the entry to update
+   */
+  updateByKey<T>(dbOptions: DBOptions, storeName: string, value: T, key: IDBValidKey): Observable<T> {
+    return from(
+      new Promise<T>((resolve, reject) => {
+        openDatabase(this.indexedDB, dbOptions?.name, dbOptions?.version)
+          .then((db) => {
+            validateBeforeTransaction(db, storeName, reject);
+            const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, reject, resolve));
+            const objectStore = transaction.objectStore(storeName);
+
+            transaction.oncomplete = () => {
+              this.getByKey(dbOptions, storeName, key).subscribe((newValue) => {
+                resolve(newValue as T);
+              });
+            };
+
+            objectStore.put(value, key);
+          })
+          .catch((reason) => reject(reason));
+      })
+    );
+  }
+
+  /**
    * Returns all items from the store after delete.
    * @param dbOptions Name and version of the database
    * @param storeName The name of the store to have the entry deleted
@@ -243,6 +339,32 @@ export class NgxIndexedDBService {
                   resolve(newValues as T[]);
                 });
             };
+          })
+          .catch((reason) => reject(reason));
+      })
+    );
+  }
+
+  /**
+   * Returns true from the store after a successful delete.
+   * @param dbOptions Name and version of the database
+   * @param storeName The name of the store to have the entry deleted
+   * @param key The key of the entry to be deleted
+   */
+  deleteByKey(dbOptions: DBOptions, storeName: string, key: Key): Observable<boolean> {
+    return from(
+      new Promise<boolean>((resolve, reject) => {
+        openDatabase(this.indexedDB, dbOptions?.name, dbOptions?.version)
+          .then((db) => {
+            validateBeforeTransaction(db, storeName, reject);
+            const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, reject, resolve));
+            const objectStore = transaction.objectStore(storeName);
+
+            transaction.oncomplete = () => {
+              resolve(true);
+            };
+
+            objectStore.delete(key);
           })
           .catch((reason) => reject(reason));
       })
@@ -336,23 +458,40 @@ export class NgxIndexedDBService {
     keyRange: IDBKeyRange,
     mode: DBMode = DBMode.readonly
   ): Observable<Event> {
-    return from(
-      new Promise<Event>((resolve, reject) => {
-        openDatabase(this.indexedDB, dbOptions?.name, dbOptions?.version)
-          .then((db) => {
-            validateBeforeTransaction(db, storeName, reject);
-            const transaction = createTransaction(db, optionsGenerator(mode, storeName, reject, resolve));
-            const objectStore = transaction.objectStore(storeName);
-            const index = objectStore.index(indexName);
-            const request = index.openCursor(keyRange);
+    const obs = new Subject<Event>();
 
-            request.onsuccess = (event: Event) => {
-              resolve(event);
-            };
-          })
-          .catch((reason) => reject(reason));
+    openDatabase(this.indexedDB, dbOptions?.name, dbOptions?.version)
+      .then((db) => {
+        validateBeforeTransaction(
+          db,
+          storeName,
+          (reason) =>
+            {
+              obs.error(reason);
+            });
+        const transaction = createTransaction(
+          db,
+          optionsGenerator(
+            mode,
+            storeName,
+            (reason) =>
+            {
+              obs.error(reason);
+            },
+            () => {
+              obs.next();
+            }));
+        const objectStore = transaction.objectStore(storeName);
+        const index = objectStore.index(indexName);
+        const request = index.openCursor(keyRange);
+
+        request.onsuccess = (event: Event) => {
+          obs.next(event);
+        };
       })
-    );
+      .catch((reason) => obs.error(reason));
+
+    return obs;
   }
 
   /**
@@ -390,26 +529,23 @@ export class NgxIndexedDBService {
 
   /**
    * Returns all primary keys by an index.
-   * @param dbOptions Name and version of the database.
-   * @param storeName The name of the store to query
-   * @param indexName The index name to filter
-   * @param keyRange  The range value and criteria to apply on the index.
+   * @param getAllKeysByIndexReq with params dbOptions, storeName, indexName and keyRange
    */
-  getAllKeysByIndex(dbOptions: DBOptions, storeName: string, indexName: string, keyRange: IDBKeyRange): Observable<{primaryKey: any, key: any}[]> {
-    const data: {primaryKey: any, key: any}[] = [];
+  getAllKeysByIndex(getAllKeysByIndexReq: IGetAllKeysByIndexReq): Observable<{primaryKey: any; key: any }[]> {
+    const data: { primaryKey: any; key: any }[] = [];
     return from(
-      new Promise<{primaryKey: any, key: any}[]>((resolve, reject) => {
-        openDatabase(this.indexedDB, dbOptions?.name, dbOptions?.version)
+      new Promise<{ primaryKey: any; key: any }[]>((resolve, reject) => {
+        openDatabase(this.indexedDB, getAllKeysByIndexReq?.dbOptions?.name, getAllKeysByIndexReq?.dbOptions?.version)
           .then((db) => {
-            validateBeforeTransaction(db, storeName, reject);
-            const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, reject, resolve));
-            const objectStore = transaction.objectStore(storeName);
-            const index = objectStore.index(indexName);
-            const request = index.openKeyCursor(keyRange);
+            validateBeforeTransaction(db, getAllKeysByIndexReq?.storeName, reject);
+            const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, getAllKeysByIndexReq?.storeName, reject, resolve));
+            const objectStore = transaction.objectStore(getAllKeysByIndexReq?.storeName);
+            const index = objectStore.index(getAllKeysByIndexReq?.indexName);
+            const request = index.openKeyCursor(getAllKeysByIndexReq?.keyRange);
             request.onsuccess = (event) => {
               const cursor: IDBCursor = (event.target as IDBRequest<IDBCursor>).result;
               if (cursor) {
-                data.push({primaryKey: cursor.primaryKey, key: cursor.key});
+                data.push({ primaryKey: cursor.primaryKey, key: cursor.key });
                 cursor.continue();
               } else {
                 resolve(data);

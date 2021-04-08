@@ -1,8 +1,7 @@
-import { NgxIndexedDBService } from './../../../ngx-indexed-db/src/lib/ngx-indexed-db.service';
+import { NgxIndexedDBService } from '../../../ngx-indexed-db/src/lib/ngx-indexed-db.service';
 import { forkJoin } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { Component } from '@angular/core';
-import { NgModel } from '@angular/forms';
 import { DbDictionary } from '../enums/db-dictionary';
 import { DBOptions } from '../../../ngx-indexed-db/src/lib/ngx-indexed-db.meta';
 
@@ -50,7 +49,7 @@ export class AppComponent {
   }
 
   delete(): void {
-    this.dbService.delete(this.db1Options,'people', 3).subscribe((result) => {
+    this.dbService.delete(this.db1Options, 'people', 3).subscribe((result) => {
       console.log('result: ', result);
     });
     this.dbService.delete(this.db2Options, 'car', 3).subscribe((result) => {
@@ -71,7 +70,7 @@ export class AppComponent {
     this.dbService.count(this.db1Options, 'people').subscribe((result) => {
       console.log('result: ', result);
     });
-    this.dbService.count(this.db2Options,'car').subscribe((result) => {
+    this.dbService.count(this.db2Options, 'car').subscribe((result) => {
       console.log('result: ', result);
     });
   }
@@ -94,11 +93,11 @@ export class AppComponent {
   addTwoAndGetAllByIndex(): void {
     // #209 getAllByIndex with multiple result should resolve observable
     forkJoin([
-      this.dbService.add(this.db1Options,'people', {
+      this.dbService.add(this.db1Options, 'people', {
         name: `desmond`,
         email: `email number ${Math.random() * 10}`,
       }),
-      this.dbService.add(this.db1Options,'people', {
+      this.dbService.add(this.db1Options, 'people', {
         name: `desmond`,
         email: `email number ${Math.random() * 10}`,
       }),

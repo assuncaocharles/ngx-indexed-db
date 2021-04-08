@@ -141,6 +141,50 @@ this.dbService
 
 _In the previous example I'm using undefined as the key because the key is configured in the objectStore as auto-generated._
 
+#### addItem(storeName, value, key?): value
+
+Adds new entry in the store and returns the new item
+
+- @param DBOptions The name and version of the database
+- @param storeName The name of the store to add the item
+- @param value The entry to be added
+- @param key The optional key for the entry
+
+It publishes in the observable the item that was added
+
+```js
+this.dbService
+  .addItem({name: 'DB_1', version: 1}, 'people', {
+    name: `Bruce Wayne`,
+    email: `bruce@wayne.com`,
+  })
+  .subscribe((item) => {
+    console.log('item: ', item);
+  });
+```
+
+#### addItemWithKey(storeName, value, key): value
+
+Adds new entry in the store and returns the new item
+
+- @param DBOptions The name and version of the database
+- @param storeName The name of the store to add the item
+- @param value The entry to be added
+- @param key The key for the entry
+
+It publishes in the observable the item that was added
+
+```js
+this.dbService
+  .addItemWithKey({name: 'DB_1', version: 1}, 'people', {
+    name: `Bruce Wayne`,
+    email: `bruce@wayne.com`,
+  })
+  .subscribe((item) => {
+    console.log('item: ', item);
+  });
+```
+
 #### update(storeName, value, key?)
 
 Updates the given value in the objectStore and returns all items from the store after update..
@@ -159,6 +203,27 @@ this.dbService
   })
   .subscribe((storeData) => {
     console.log('storeData: ', storeData);
+  });
+```
+
+#### updateByKey(storeName, value, key): value
+
+Updates the given value in the objectStore and returns the item from the store after update..
+
+- @param DBOptions The name and version of the database
+- @param storeName The name of the store to update
+- @param value The new value for the entry
+- @param key The key of the entry to update
+
+```js
+this.dbService
+  .updateByKey({name: 'DB_1', version: 1}, 'people', {
+    id: 1,
+    email: 'luke@skywalker.com',
+    name: 'Luke Skywalker',
+  })
+  .subscribe((item) => {
+    console.log('item: ', item);
   });
 ```
 
@@ -250,6 +315,20 @@ Returns all items from the store after delete.
 ```js
 this.dbService.delete({name: 'DB_1', version: 1}, 'people', 3).subscribe((allPeople) => {
   console.log('all people:', allPeople);
+});
+```
+
+#### deleteByKey(storeName, key)
+
+Returns true if the delete completes successfully.
+
+- @param DBOptions The name and version of the database
+- @param storeName The name of the store to have the entry deleted
+- @param key The key of the entry to be deleted
+
+```js
+this.dbService.deleteByKey({name: 'DB_1', version: 1}, 'people', 3).subscribe((status) => {
+  console.log('Deleted?:', status);
 });
 ```
 

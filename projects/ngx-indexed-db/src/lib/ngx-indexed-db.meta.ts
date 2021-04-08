@@ -42,6 +42,13 @@ export interface DBOptions {
   version: number;
 }
 
+export interface IGetAllKeysByIndexReq {
+  dbOptions: DBOptions;
+  storeName: string;
+  indexName: string;
+  keyRange: IDBKeyRange;
+}
+
 export type Key = string | number | Date | ArrayBufferView | ArrayBuffer | IDBArrayKey | IDBKeyRange;
 
 export const CONFIG_TOKEN = new InjectionToken<DBConfig>(null);
