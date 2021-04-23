@@ -27,7 +27,12 @@ export function createTransaction(db: IDBDatabase, options: Options): IDBTransac
   return trans;
 }
 
-export function optionsGenerator(type: any, storeName: any, reject: (reason?: any) => void, resolve: () => void): Options {
+export function optionsGenerator(
+  type: any,
+  storeName: any,
+  reject: (reason?: any) => void,
+  resolve: (e: any) => void
+): Options {
   return {
     storeName,
     dbMode: type,
@@ -35,10 +40,10 @@ export function optionsGenerator(type: any, storeName: any, reject: (reason?: an
       reject(e);
     },
     complete: (e: Event) => {
-      resolve();
+      resolve(e);
     },
     abort: (e: Event) => {
       reject(e);
-    }
+    },
   };
 }
