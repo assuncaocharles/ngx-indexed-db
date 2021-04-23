@@ -1,6 +1,6 @@
 {
   "name": "ngx-indexed-db",
-  "version": "6.1.2",
+  "version": "7.0.0",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
