@@ -6,13 +6,13 @@
 
 ## Installation
 
-```
+```bash
 $ npm install ngx-indexed-db
 ```
 
 OR
 
-```
+```bash
 $ yarn add ngx-indexed-db
 ```
 
