@@ -26,6 +26,17 @@ export class AppComponent {
       });
   }
 
+  bulkAdd(): void {
+    this.dbService
+      .bulkAdd('people', [{
+        name: `charles number ${Math.random() * 10}`,
+        email: `email number ${Math.random() * 10}`,
+      }, {
+        name: `charles number ${Math.random() * 10}`,
+        email: `email number ${Math.random() * 10}`,
+      }]);
+  }
+
   update(): void {
     this.dbService.update('people', { id: 1, email: 'asd', name: 'charles' }).subscribe((result) => {
       console.log('result: ', result);

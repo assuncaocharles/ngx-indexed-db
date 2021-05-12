@@ -550,4 +550,13 @@ export class NgxIndexedDBService {
       })
     );
   }
+
+   /**
+   * Adds new entries in the store
+   * @param storeName The name of the store to query
+   * @param value The entries to be added
+   */
+  bulkAdd(storeName: string, values: Array<T>) {
+    values.forEach((value) => this.add(storeName, value));
+  }
 }
