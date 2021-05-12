@@ -556,7 +556,7 @@ export class NgxIndexedDBService {
    * @param storeName The name of the store to query
    * @param value The entries to be added
    */
-  bulkAdd(storeName: string, values: Array<T>) {
+  bulkAdd<T>(storeName: string, values: Array<T>) {
     values.forEach((value) => this.add(storeName, value));
   }
 }
