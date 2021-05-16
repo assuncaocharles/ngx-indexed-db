@@ -16,6 +16,7 @@ jobs:
           registry-url: https://registry.npmjs.org/
       - run: npm install
       - run: npm pack
-      - run: npm publish
+      - run: cd dist/ngx-indexed-db
+      - run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
