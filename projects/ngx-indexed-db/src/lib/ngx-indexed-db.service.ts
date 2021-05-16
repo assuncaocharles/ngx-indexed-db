@@ -76,6 +76,37 @@ export class NgxIndexedDBService {
   }
 
   /**
+   * Adds new entries in the store and returns its key
+   * @param storeName The name of the store to add the item
+   * @param values The entries to be added containing optional key attribute
+   */
+  bulkAdd<T>(storeName: string, values: T & { key?: any }[]): Observable<number[]> {
+    const promises = values.map((value) => {
+      return new Promise<number>((resolve, reject) => {
+        openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+          .then((db: IDBDatabase) => {
+            const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, reject, resolve));
+            const objectStore = transaction.objectStore(storeName);
+
+            const key = value.key;
+            delete value.key;
+
+            const request: IDBRequest<IDBValidKey> = Boolean(key)
+              ? objectStore.add(value, key)
+              : objectStore.add(value);
+
+            request.onsuccess = (evt: Event) => {
+              const result = (evt.target as IDBOpenDBRequest).result;
+              resolve((result as unknown) as number);
+            };
+          })
+          .catch((reason) => reject(reason));
+      });
+    });
+    return from(Promise.resolve(Promise.all(promises)));
+  }
+
+  /**
    * Adds new entry in the store and returns the item that was added
    * @param storeName The name of the store to add the item
    * @param value The entry to be added
@@ -429,25 +460,22 @@ export class NgxIndexedDBService {
 
     openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
       .then((db) => {
-        validateBeforeTransaction(
-          db,
-          storeName,
-          (reason) =>
-            {
-              obs.error(reason);
-            });
+        validateBeforeTransaction(db, storeName, (reason) => {
+          obs.error(reason);
+        });
         const transaction = createTransaction(
           db,
           optionsGenerator(
             mode,
             storeName,
-            (reason) =>
-            {
+            (reason) => {
               obs.error(reason);
             },
             () => {
               obs.next();
-            }));
+            }
+          )
+        );
         const objectStore = transaction.objectStore(storeName);
         const index = objectStore.index(indexName);
         const request = index.openCursor(keyRange);
