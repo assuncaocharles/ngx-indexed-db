@@ -62,7 +62,6 @@
             "main": "projects/playground/src/main.ts",
             "polyfills": "projects/playground/src/polyfills.ts",
             "tsConfig": "projects/playground/tsconfig.app.json",
-            "aot": true,
             "assets": [
               "projects/playground/src/favicon.ico",
               "projects/playground/src/assets"
@@ -70,7 +69,13 @@
             "styles": [
               "projects/playground/src/styles.scss"
             ],
-            "scripts": []
+            "scripts": [],
+            "vendorChunk": true,
+            "extractLicenses": false,
+            "buildOptimizer": false,
+            "sourceMap": true,
+            "optimization": false,
+            "namedChunks": true
           },
           "configurations": {
             "production": {
