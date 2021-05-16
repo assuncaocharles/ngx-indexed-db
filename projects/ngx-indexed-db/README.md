@@ -2,13 +2,18 @@
 
 [![Greenkeeper badge](https://badges.greenkeeper.io/assuncaocharles/ngx-indexed-db.svg)](https://greenkeeper.io/) [![CodeFactor](https://www.codefactor.io/repository/github/assuncaocharles/ngx-indexed-db/badge/master)](https://www.codefactor.io/repository/github/assuncaocharles/ngx-indexed-db/overview/master) [![Build Status](https://travis-ci.com/assuncaocharles/ngx-indexed-db.svg?branch=master)](https://travis-ci.com/assuncaocharles/ngx-indexed-db) ![CI](https://github.com/assuncaocharles/ngx-indexed-db/workflows/CI/badge.svg)
 
-ngx-indexed-db is a service that wraps IndexedDB database in an Angular service.
-It exposes a very simple service with promises based methods to enable the usage of IndexedDB without most of its plumbing.
+`ngx-indexed-db` is a service that wraps IndexedDB database in an Angular service combined with the power of observables.
 
 ## Installation
 
+```bash
+$ npm install ngx-indexed-db
 ```
-npm install ngx-indexed-db
+
+OR
+
+```bash
+$ yarn add ngx-indexed-db
 ```
 
 ## Usage
@@ -96,7 +101,7 @@ const dbConfig: DBConfig  = {
 
 ### NgxIndexedDB service
 
-First, import the service:
+Import and inject the service:
 
 ```js
 import { NgxIndexedDBService } from 'ngx-indexed-db';
@@ -108,74 +113,160 @@ import { NgxIndexedDBService } from 'ngx-indexed-db';
   }
 ```
 
-### DB Service Methods
+### API
 
-Use the APIs that the NgxIndexedDB service exposes to use indexeddb.
-In the API the following functions:
+We cover several common methods used to work with the IndexedDB
+
+#### add(storeName, value, key?): key
+
+Adds new entry in the store and returns its key
+
+- @param storeName The name of the store to add the item
+- @param value The entry to be added
+- @param key The optional key for the entry
+
+It publishes in the observable the key value of the entry
+
+```js
+this.dbService
+  .add('people', {
+    name: `Bruce Wayne`,
+    email: `bruce@wayne.com`,
+  })
+  .subscribe((key) => {
+    console.log('key: ', key);
+  });
+```
+
+_In the previous example I'm using undefined as the key because the key is configured in the objectStore as auto-generated._
+
+#### addItem(storeName, value, key?): value
+
+Adds new entry in the store and returns the new item
+
+- @param storeName The name of the store to add the item
+- @param value The entry to be added
+- @param key The optional key for the entry
+
+It publishes in the observable the item that was added
+
+```js
+this.dbService
+  .addItem('people', {
+    name: `Bruce Wayne`,
+    email: `bruce@wayne.com`,
+  })
+  .subscribe((item) => {
+    console.log('item: ', item);
+  });
+```
+
+#### addItemWithKey(storeName, value, key): value
+
+Adds new entry in the store and returns the new item
+
+- @param storeName The name of the store to add the item
+- @param value The entry to be added
+- @param key The key for the entry
+
+It publishes in the observable the item that was added
+
+```js
+this.dbService
+  .addItemWithKey('people', {
+    name: `Bruce Wayne`,
+    email: `bruce@wayne.com`,
+  })
+  .subscribe((item) => {
+    console.log('item: ', item);
+  });
+```
+
+#### update(storeName, value, key?)
+
+Updates the given value in the objectStore and returns all items from the store after update..
+
+- @param storeName The name of the store to update
+- @param value The new value for the entry
+- @param key The key of the entry to update if exists
+
+```js
+this.dbService
+  .update('people', {
+    id: 1,
+    email: 'luke@skywalker.com',
+    name: 'Luke Skywalker',
+  })
+  .subscribe((storeData) => {
+    console.log('storeData: ', storeData);
+  });
+```
+
+#### updateByKey(storeName, value, key): value
+
+Updates the given value in the objectStore and returns the item from the store after update..
+
+- @param storeName The name of the store to update
+- @param value The new value for the entry
+- @param key The key of the entry to update
+
+```js
+this.dbService
+  .updateByKey('people', {
+    id: 1,
+    email: 'luke@skywalker.com',
+    name: 'Luke Skywalker',
+  })
+  .subscribe((item) => {
+    console.log('item: ', item);
+  });
+```
 
 #### getByKey(storeName, key)
 
-Returns the object that is stored in the objectStore by its key.
-The first parameter is the store name to query and the second one is the object's key.
-**getByKey** returns a promise that is resolved when we have the object or rejected if an error occurred.
+Returns entry by key.
 
-Usage example:
+- @param storeName The name of the store to query
+- @param key The entry key
 
 ```js
-this.dbService.getByKey('people', 1).then(
-  (person) => {
-    console.log(person);
-  },
-  (error) => {
-    console.log(error);
-  }
-);
+this.dbService.getByKey('people', 1).subscribe((people) => {
+  console.log(people);
+});
 ```
 
 #### getAll(storeName)
 
-Returns an array of all the items in the given objectStore.
-The first parameter is the store name to query.
-**getAll** returns a promise that is resolved when we have the array of items or rejected if an error occurred.
+Return all elements from one store
 
-Usage example:
+- @param storeName The name of the store to select the items
 
 ```js
-this.dbService.getAll('people').then(
-  (people) => {
-    console.log(people);
-  },
-  (error) => {
-    console.log(error);
-  }
-);
+this.dbService.getAll('people').subscribe((peoples) => {
+  console.log(peoples);
+});
 ```
 
 #### getByIndex(storeName, indexName, key)
 
-Returns an stored item using an objectStore's index.
-The first parameter is the store name to query, the second parameter is the index and third parameter is the item to query.
-**getByIndex** returns a promise that is resolved when the item successfully returned or rejected if an error occurred.
+Returns entry by index.
 
-Usage example:
+- @param storeName The name of the store to query
+- @param indexName The index name to filter
+- @param key The entry key.
 
 ```js
-this.dbService.getByIndex('people', 'name', 'Dave').then(
-  (person) => {
-    console.log(person);
-  },
-  (error) => {
-    console.log(error);
-  }
-);
+this.dbService.getByIndex('people', 'name', 'Dave').subscribe((people) => {
+  console.log(people);
+});
 ```
 
 #### createObjectStore(storeSchema, migrationFactory?)
 
-Create object store with given Store Schema and Migration Factory.
-The first parameter is the store schema of type ObjectStoreMeta, the second parameter is the migration factory.
+Allows to crate a new object store ad-hoc
 
-Usage example:
+- @param storeName The name of the store to be created
+- @param migrationFactory The migration factory if exists
 
 ```js
 const storeSchema: ObjectStoreMeta = {
@@ -190,191 +281,75 @@ const storeSchema: ObjectStoreMeta = {
 this.dbService.createObjectStore(storeSchema);
 ```
 
-#### add(storeName, value, key)
-
-Adds to the given objectStore the key and value pair.
-The first parameter is the store name to modify, the second parameter is the value and the third parameter is the key (if not auto-generated).
-**add** returns a promise that is resolved when the value was added or rejected if an error occurred.
-
-Usage example (add without a key):
-
-```js
-this.dbService.add('people', { name: 'name', email: 'email' }).then(
-  () => {
-    // Do something after the value was added
-  },
-  (error) => {
-    console.log(error);
-  }
-);
-```
-
-#### addItem(storeName, value, key): value
-
-Adds to the given objectStore the key and value pair.
-The first parameter is the store name to modify, the second parameter is the value and the third parameter is the key (if not auto-generated).
-**addItem** returns a promise that is resolved when the value was added or rejected if an error occurred.
-
-Usage example (add without a key):
-
-```js
-this.dbService.addItem('people', { name: 'name', email: 'email' }).then(
-  (addedItem) => {
-    // Do something with the value that was added
-  },
-  (error) => {
-    console.log(error);
-  }
-);
-```
-
-_In the previous examples I'm using undefined as the key because the key is configured in the objectStore as auto-generated._
-
-#### addItemWithKey(storeName, value, key): value
-
-Adds to the given objectStore the key and value pair.
-The first parameter is the store name to modify, the second parameter is the value and the third parameter is the key (if not auto-generated).
-**addItemWithKey** returns a promise that is resolved when the value was added or rejected if an error occurred.
-
-Usage example:
-
-```js
-this.dbService.addItemWithKey('people', { name: 'name', email: 'email' }, 42).then(
-  (addedItem) => {
-    // Do something with the value that was added
-  },
-  (error) => {
-    console.log(error);
-  }
-);
-```
-
 #### count(storeName, keyRange?)
 
-Returns number of rows in the object store.
-First parameter is the store name to count rows of.
-Second parameter is an optional IDBKeyRange object or a number value (e.g. to test for the key's existence).
+Returns the number of rows in a store.
 
-Usage example:
-
-```js
-this.dbService.count('people').then(
-  (peopleCount) => {
-    console.log(peopleCount);
-  },
-  (error) => {
-    console.log(error);
-  }
-);
-```
-
-#### update(storeName, value, key?)
-
-Updates the given value in the objectStore.
-The first parameter is the value to update, the second parameter is the key (if there is no key don't provide it).
-**update** returns a promise that is resolved when the value was updated or rejected if an error occurred.
-
-Usage example (update without a key):
+- @param storeName The name of the store to query
+- @param keyRange The range value and criteria to apply.
 
 ```js
-this.dbService.update('people', { id: 3, name: 'name', email: 'email' }).then(
-  () => {
-    // Do something after update
-  },
-  (error) => {
-    console.log(error);
-  }
-);
-```
-
-#### updateByKey(storeName, value, key): value
-
-Updates the given value in the objectStore.
-The first parameter is the value to update, the second parameter is the key.
-**updateByKey** returns a promise that is resolved when the value was updated or rejected if an error occurred.
-
-Usage example:
-
-```js
-this.dbService.updateByKey('people', { id: 3, name: 'name', email: 'email' }, 42).then(
-  (updatedItem) => {
-    // Do something with the item after update
-  },
-  (error) => {
-    console.log(error);
-  }
-);
+this.dbService.count('people').subscribe((peopleCount) => {
+  console.log(peopleCount);
+});
 ```
 
 #### delete(storeName, key)
 
-Deletes the object that correspond with the key from the objectStore.
-The first parameter is the store name to modify and the second parameter is the key to delete.
-**delete** returns a promise that is resolved when the value was deleted or rejected if an error occurred.
+Returns all items from the store after delete.
 
-Usage example:
+- @param storeName The name of the store to have the entry deleted
+- @param key The key of the entry to be deleted
 
 ```js
-this.dbService.delete('people', 3).then(
-  () => {
-    // Do something after delete
-  },
-  (error) => {
-    console.log(error);
-  }
-);
+this.dbService.delete('people', 3).subscribe((allPeople) => {
+  console.log('all people:', allPeople);
+});
 ```
 
-#### deleteByKey(storeName, key): boolean
+#### deleteByKey(storeName, key)
 
-Deletes the object that correspond with the key from the objectStore.
-The first parameter is the store name to modify and the second parameter is the key to delete.
-**deleteByKey** returns a promise that is resolved when the value was deleted or rejected if an error occurred.
+Returns true if the delete completes successfully.
 
-Usage example:
+- @param storeName The name of the store to have the entry deleted
+- @param key The key of the entry to be deleted
 
 ```js
-this.dbService.deleteByKey('people', 3).then(
-  (status) => {
-    // Do something with the status (true if successful) after delete
-  },
-  (error) => {
-    console.log(error);
-  }
-);
+this.dbService.deleteByKey('people', 3).subscribe((status) => {
+  console.log('Deleted?:', status);
+});
 ```
 
-#### openCursor(storeName, cursorCallback, keyRange)
+#### openCursor(storeName, keyRange?)
 
-Opens an objectStore cursor to enable iterating on the objectStore.
-The first parameter is the store name, the second parameter is a callback function to run when the cursor succeeds to be opened and the third parameter is optional IDBKeyRange object.
-**openCursor** returns a promise that is resolved when the cursor finishes running or rejected if an error occurred.
+Returns the open cursor event
 
-Usage example:
+- @param storeName The name of the store to have the entries deleted
+- @param keyRange The key range which the cursor should be open on
 
 ```js
-this.dbService.openCursor('people', (evt) => {
-    var cursor = (<any>evt.target).result;
+this.dbService.openCursor('people', IDBKeyRange.bound("A", "F")).subscribe((evt) => {
+    var cursor = (evt.target as IDBOpenDBRequest).result;
     if(cursor) {
         console.log(cursor.value);
         cursor.continue();
     } else {
         console.log('Entries all displayed.');
     }
-}, IDBKeyRange.bound("A", "F"));
+});
 ```
 
 #### openCursorByIndex(storeName, indexName, keyRange, cursorCallback)
 
-Opens an index cursor to enable iterating on the objectStore.
-The first parameter is the store name, the second parameter is the index on which to filter, the third parameter is an IDBKeyRange object for criteria and the last parameter is a callback function to run when the cursor succeeds to be opened.
-**openCursorByIndex** returns a promise that is resolved when the cursor finishes running or rejected if an error occurred.
+Open a cursor by index filter.
 
-Usage example:
+- @param storeName The name of the store to query.
+- @param indexName The index name to filter.
+- @param keyRange The range value and criteria to apply on the index.
 
 ```js
-this.dbService.openCursorByIndex('people', 'name', IDBKeyRange.only('john'), (evt) => {
-    var cursor = (<any>evt.target).result;
+this.dbService.openCursorByIndex('people', 'name', IDBKeyRange.only('john')).subscribe((evt) => {
+    var cursor = (evt.target as IDBOpenDBRequest).result;
     if(cursor) {
         console.log(cursor.value);
         cursor.continue();
@@ -386,59 +361,38 @@ this.dbService.openCursorByIndex('people', 'name', IDBKeyRange.only('john'), (ev
 
 #### getAllByIndex(storeName, indexName, keyRange)
 
-Returns an array of all the items in the given objectStore matching the key range for the specified index.
-The first parameter is the store name to query.
-The second parameter is an index details which must include index name and an optional order parameter.
-The third parameter is an `IDBKeyRange` object.
-**getAllByIndex** returns a promise that is resolved when we have the array of items or rejected if an error occurred.
+Returns all items by an index.
 
-Usage example:
+- @param storeName The name of the store to query
+- @param indexName The index name to filter
+- @param keyRange The range value and criteria to apply on the index.
 
 ```js
-this.dbService.getAllByIndex('people', 'name', IDBKeyRange.only('john')).then(
-  (array) => {
-    // Do something with the array
-  },
-  (error) => {
-    console.log(error);
-  }
-);
+this.dbService.getAllByIndex('people', 'name', IDBKeyRange.only('john')).subscribe((allPeopleByIndex) => {
+  console.log('All: ', allPeopleByIndex);
+});
 ```
 
 #### clear(storeName)
 
-Clears all the data in an objectStore.
-The first parameter is the store name to clear.
-**clear** returns a promise that is resolved when the objectStore was cleared or rejected if an error occurred.
+Returns true if successfully delete all entries from the store.
 
-Usage example:
+- @param storeName The name of the store to have the entries deleted
 
 ```js
-this.dbService.clear('people').then(
-  () => {
-    // Do something after clear
-  },
-  (error) => {
-    console.log(error);
-  }
-);
+this.dbService.clear('people').subscribe((successDeleted) => {
+  console.log('success? ', successDeleted);
+});
 ```
 
 #### deleteDatabase()
 
-**Deletes the entire database.**
-
-Usage example:
+Returns true if successfully delete the DB.
 
 ```js
-this.dbService.deleteDatabase().then(
-  () => {
-    console.log('Database deleted successfully');
-  },
-  (error) => {
-    console.log(error);
-  }
-);
+this.dbService.deleteDatabase().subscribe((deleted) => {
+  console.log('Database deleted successfully: ', deleted);
+});
 ```
 
 ## License

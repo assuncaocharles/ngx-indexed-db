@@ -1,12 +1,12 @@
 {
   "name": "ngx-indexed-db",
-  "version": "7.0.0",
+  "version": "8.0.0",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
     "start:play": "ng serve --project playground",
     "build": "ng build",
-    "build:lib": "ng build --project ngx-indexed-db --prod",
+    "build:lib": "ng build --project ngx-indexed-db --configuration production",
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e",
