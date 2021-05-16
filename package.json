@@ -24,7 +24,7 @@
       "ng lint"
     ]
   },
-  "private": true,
+  "private": false,
   "dependencies": {
     "@angular/animations": "~12.0.0",
     "@angular/common": "~12.0.0",
