@@ -1,7 +1,9 @@
 {
   "name": "ngx-indexed-db",
   "version": "8.0.2",
-  "files": ["dist/ngx-indexed-db/**/*"],
+  "files": [
+    "dist/ngx-indexed-db/**/*"
+  ],
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
