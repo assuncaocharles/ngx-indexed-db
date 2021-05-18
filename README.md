@@ -1,6 +1,6 @@
 # ngx-indexed-db
 
-[![Greenkeeper badge](https://badges.greenkeeper.io/assuncaocharles/ngx-indexed-db.svg)](https://greenkeeper.io/) [![CodeFactor](https://www.codefactor.io/repository/github/assuncaocharles/ngx-indexed-db/badge/master)](https://www.codefactor.io/repository/github/assuncaocharles/ngx-indexed-db/overview/master) [![build status](https://github.com/assuncaocharles/ngx-indexed-db/workflows/Build/badge.svg)](https://github.com/assuncaocharles/ngx-indexed-db/actions) ![CI](https://github.com/assuncaocharles/ngx-indexed-db/workflows/CI/badge.svg)
+[![Known Vulnerabilities](https://snyk.io/test/github/assuncaocharles/ngx-indexed-db/badge.svg)](https://snyk.io/test/github/assuncaocharles/ngx-indexed-db) [![CodeFactor](https://www.codefactor.io/repository/github/assuncaocharles/ngx-indexed-db/badge/master)](https://www.codefactor.io/repository/github/assuncaocharles/ngx-indexed-db/overview/master) [![build status](https://github.com/assuncaocharles/ngx-indexed-db/workflows/Build/badge.svg)](https://github.com/assuncaocharles/ngx-indexed-db/actions) ![CI](https://github.com/assuncaocharles/ngx-indexed-db/workflows/CI/badge.svg)
 
 `ngx-indexed-db` is a service that wraps IndexedDB database in an Angular service combined with the power of observables.
 
