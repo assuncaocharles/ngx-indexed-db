@@ -40,6 +40,16 @@ export class AppComponent {
       });
   }
 
+  bulkGet(): void {
+    for (let i = 0; i < 3; i++) {
+      this.bulkAdd();
+    }
+    this.dbService.bulkGet('people', [1, 3, 5])
+      .subscribe((result) => {
+        console.log('results: ', result);
+      });
+  }
+
   update(): void {
     this.dbService.update('people', { id: 1, email: 'asd', name: 'charles' }).subscribe((result) => {
       console.log('result: ', result);

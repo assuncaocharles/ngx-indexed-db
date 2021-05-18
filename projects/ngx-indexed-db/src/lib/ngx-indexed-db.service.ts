@@ -3,7 +3,7 @@ import { openDatabase, CreateObjectStore } from './ngx-indexed-db';
 import { createTransaction, optionsGenerator, validateBeforeTransaction } from '../utils';
 import { CONFIG_TOKEN, DBConfig, Key, RequestEvent, ObjectStoreMeta, DBMode } from './ngx-indexed-db.meta';
 import { isPlatformBrowser } from '@angular/common';
-import { Observable, Observer, from, Subject } from 'rxjs';
+import { Observable, from, Subject } from 'rxjs';
 import { take } from 'rxjs/operators';
 
 @Injectable()
@@ -185,6 +185,16 @@ export class NgxIndexedDBService {
           .catch((reason) => reject(reason));
       })
     );
+  }
+
+  /**
+   * Retrieve multiple entries in the store
+   * @param storeName The name of the store to retrieve the items
+   * @param keys The ids entries to be retrieve
+   */
+  bulkGet<T>(storeName: string, keys: Array<IDBValidKey>): Observable<unknown[]> {
+    const promises = keys.map(key => this.getByKey(storeName, key).toPromise());
+    return from(Promise.resolve(Promise.all(promises)));
   }
 
   /**
