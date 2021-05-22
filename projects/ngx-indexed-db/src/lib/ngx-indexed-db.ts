@@ -3,7 +3,7 @@ import { ObjectStoreMeta, ObjectStoreSchema } from './ngx-indexed-db.meta';
 export function openDatabase(
   indexedDB: IDBFactory,
   dbName: string,
-  version: number,
+  version?: number,
   upgradeCallback?: (a: Event, b: IDBDatabase) => void
 ): Promise<IDBDatabase> {
   return new Promise<IDBDatabase>((resolve, reject) => {

@@ -2,7 +2,6 @@ import { NgxIndexedDBService } from './../../../ngx-indexed-db/src/lib/ngx-index
 import { forkJoin } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { Component } from '@angular/core';
-import { NgModel } from '@angular/forms';
 
 @Component({
   selector: 'app-root',
@@ -28,13 +27,16 @@ export class AppComponent {
 
   bulkAdd(): void {
     this.dbService
-      .bulkAdd('people', [{
-        name: `charles number ${Math.random() * 10}`,
-        email: `email number ${Math.random() * 10}`,
-      }, {
-        name: `charles number ${Math.random() * 10}`,
-        email: `email number ${Math.random() * 10}`,
-      }])
+      .bulkAdd('people', [
+        {
+          name: `charles number ${Math.random() * 10}`,
+          email: `email number ${Math.random() * 10}`,
+        },
+        {
+          name: `charles number ${Math.random() * 10}`,
+          email: `email number ${Math.random() * 10}`,
+        },
+      ])
       .subscribe((result) => {
         console.log('result: ', result);
       });
@@ -44,10 +46,9 @@ export class AppComponent {
     for (let i = 0; i < 3; i++) {
       this.bulkAdd();
     }
-    this.dbService.bulkGet('people', [1, 3, 5])
-      .subscribe((result) => {
-        console.log('results: ', result);
-      });
+    this.dbService.bulkGet('people', [1, 3, 5]).subscribe((result) => {
+      console.log('results: ', result);
+    });
   }
 
   update(): void {

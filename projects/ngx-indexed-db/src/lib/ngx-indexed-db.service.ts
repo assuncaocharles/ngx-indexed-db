@@ -25,6 +25,21 @@ export class NgxIndexedDBService {
         (window as any).mozIndexedDB ||
         (window as any).webkitIndexedDB ||
         (window as any).msIndexedDB;
+
+      openDatabase(this.indexedDB, dbConfig.name).then((db) => {
+        if (db.version !== dbConfig.version) {
+          if (process.env.NODE_ENV !== 'production') {
+            console.warn(`
+            Your DB Config doesn't match the most recent version of the DB with name ${this.dbConfig.name}, please update it
+            DB current version: ${db.version};
+            Your configuration: ${dbConfig.version};
+            `);
+            console.warn(`Using latest version ${db.version}`);
+          }
+          this.dbConfig.version = db.version;
+        }
+      });
+
       CreateObjectStore(
         this.indexedDB,
         dbConfig.name,
@@ -193,7 +208,7 @@ export class NgxIndexedDBService {
    * @param keys The ids entries to be retrieve
    */
   bulkGet<T>(storeName: string, keys: Array<IDBValidKey>): Observable<unknown[]> {
-    const promises = keys.map(key => this.getByKey(storeName, key).toPromise());
+    const promises = keys.map((key) => this.getByKey(storeName, key).toPromise());
     return from(Promise.resolve(Promise.all(promises)));
   }
 
