@@ -30,7 +30,7 @@ export class NgxIndexedDBService {
         if (db.version !== dbConfig.version) {
           if (process.env.NODE_ENV !== 'production') {
             console.warn(`
-            Your DB Config doesn't match the most recent version of the DB, please update it
+            Your DB Config doesn't match the most recent version of the DB with name ${this.dbConfig.name}, please update it
             DB current version: ${db.version};
             Your configuration: ${dbConfig.version};
             `);
