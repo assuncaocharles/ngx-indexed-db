@@ -180,8 +180,8 @@ export class NgxIndexedDBService {
    * @param storeName The name of the store to retrieve the items
    * @param keys The ids entries to be retrieve
    */
-  bulkGet<T>(storeName: string, keys: Array<IDBValidKey>): Observable<unknown[]> {
-    const promises = keys.map((key) => this.getByKey(storeName, key).toPromise());
+  bulkGet<T>(storeName: string, keys: Array<IDBValidKey>): Observable<T[]> {
+    const promises = keys.map((key) => this.getByKey<T>(storeName, key).toPromise());
     return from(Promise.resolve(Promise.all(promises)));
   }
 
