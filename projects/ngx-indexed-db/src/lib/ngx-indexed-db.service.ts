@@ -151,33 +151,6 @@ export class NgxIndexedDBService {
   }
 
   /**
-   * Adds new entry in the store and returns the item that was added
-   * @param storeName The name of the store to add the item
-   * @param value The entry to be added
-   * @param key The key for the entry
-   */
-  addItemWithKey<T>(storeName: string, value: T, key: IDBValidKey): Observable<T> {
-    return from(
-      new Promise<T>((resolve, reject) => {
-        openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
-          .then((db: IDBDatabase) => {
-            const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, reject, resolve));
-            const objectStore = transaction.objectStore(storeName);
-
-            transaction.oncomplete = () => {
-              this.getByKey(storeName, key).subscribe((newValue) => {
-                resolve(newValue as T);
-              });
-            };
-
-            objectStore.add(value, key);
-          })
-          .catch((reason) => reject(reason));
-      })
-    );
-  }
-
-  /**
    * Returns entry by key.
    * @param storeName The name of the store to query
    * @param key The entry key

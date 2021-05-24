@@ -1,6 +1,6 @@
 # ngx-indexed-db
 
-[![Known Vulnerabilities](https://snyk.io/test/github/assuncaocharles/ngx-indexed-db/badge.svg)](https://snyk.io/test/github/assuncaocharles/ngx-indexed-db) [![CodeFactor](https://www.codefactor.io/repository/github/assuncaocharles/ngx-indexed-db/badge/master)](https://www.codefactor.io/repository/github/assuncaocharles/ngx-indexed-db/overview/master) [![build status](https://github.com/assuncaocharles/ngx-indexed-db/workflows/Build/badge.svg)](https://github.com/assuncaocharles/ngx-indexed-db/actions) ![CI](https://github.com/assuncaocharles/ngx-indexed-db/workflows/CI/badge.svg)
+[![Known Vulnerabilities](https://snyk.io/test/github/assuncaocharles/ngx-indexed-db/badge.svg)](https://snyk.io/test/github/assuncaocharles/ngx-indexed-db) [![CodeFactor](https://www.codefactor.io/repository/github/assuncaocharles/ngx-indexed-db/badge/master)](https://www.codefactor.io/repository/github/assuncaocharles/ngx-indexed-db/overview/master) [![Build Status](https://travis-ci.com/assuncaocharles/ngx-indexed-db.svg?branch=master)](https://travis-ci.com/assuncaocharles/ngx-indexed-db) ![CI](https://github.com/assuncaocharles/ngx-indexed-db/workflows/CI/badge.svg)
 
 `ngx-indexed-db` is a service that wraps IndexedDB database in an Angular service combined with the power of observables.
 
@@ -117,7 +117,7 @@ import { NgxIndexedDBService } from 'ngx-indexed-db';
 
 We cover several common methods used to work with the IndexedDB
 
-#### add(storeName, value, key?): key
+#### add(storeName, value, key?): Observable<key>
 
 Adds new entry in the store and returns its key
 
@@ -140,7 +140,7 @@ this.dbService
 
 _In the previous example I'm using undefined as the key because the key is configured in the objectStore as auto-generated._
 
-#### addItem(storeName, value, key?): value
+#### addItem(storeName, value, key?): Observable<value>
 
 Adds new entry in the store and returns the new item
 
@@ -161,28 +161,44 @@ this.dbService
   });
 ```
 
-#### addItemWithKey(storeName, value, key): value
+### bulkAdd<T>(storeName: string, values: T & { key?: any }[]): Observable<number[]>
 
-Adds new entry in the store and returns the new item
+Adds new entries in the store and returns its key
 
 - @param storeName The name of the store to add the item
-- @param value The entry to be added
-- @param key The key for the entry
+- @param values The entries to be added containing optional key attribute
 
-It publishes in the observable the item that was added
-
-```js
+```typescript
 this.dbService
-  .addItemWithKey('people', {
-    name: `Bruce Wayne`,
-    email: `bruce@wayne.com`,
-  })
-  .subscribe((item) => {
-    console.log('item: ', item);
+  .bulkAdd('people', [
+    {
+      name: `charles number ${Math.random() * 10}`,
+      email: `email number ${Math.random() * 10}`,
+    },
+    {
+      name: `charles number ${Math.random() * 10}`,
+      email: `email number ${Math.random() * 10}`,
+    },
+  ])
+  .subscribe((result) => {
+    console.log('result: ', result);
   });
 ```
 
-#### update(storeName, value, key?)
+### bulkGet<T>(storeName: string, keys: Array<IDBValidKey>): Observable<unknown[]>
+
+Retrieve multiple entries in the store
+
+- @param storeName The name of the store to retrieve the items
+- @param keys The ids entries to be retrieve
+
+```typescript
+this.dbService.bulkGet('people', [1, 3, 5]).subscribe((result) => {
+    console.log('results: ', result);
+  });
+```
+
+#### update<T>(storeName: string, value: T, key?: IDBValidKey)
 
 Updates the given value in the objectStore and returns all items from the store after update..
 
