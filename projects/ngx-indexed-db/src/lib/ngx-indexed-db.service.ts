@@ -26,6 +26,14 @@ export class NgxIndexedDBService {
         (window as any).webkitIndexedDB ||
         (window as any).msIndexedDB;
 
+      CreateObjectStore(
+        this.indexedDB,
+        dbConfig.name,
+        dbConfig.version,
+        dbConfig.objectStoresMeta,
+        dbConfig.migrationFactory
+      );
+
       openDatabase(this.indexedDB, dbConfig.name).then((db) => {
         if (db.version !== dbConfig.version) {
           if (process.env.NODE_ENV !== 'production') {
@@ -39,14 +47,6 @@ export class NgxIndexedDBService {
           this.dbConfig.version = db.version;
         }
       });
-
-      CreateObjectStore(
-        this.indexedDB,
-        dbConfig.name,
-        dbConfig.version,
-        dbConfig.objectStoresMeta,
-        dbConfig.migrationFactory
-      );
     }
   }
 
