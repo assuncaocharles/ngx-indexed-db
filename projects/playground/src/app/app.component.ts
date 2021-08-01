@@ -25,6 +25,17 @@ export class AppComponent {
       });
   }
 
+  addItem(): void {
+    this.dbService
+      .addItem('people', {
+        name: `charles number ${Math.random() * 10}`,
+        email: `email number ${Math.random() * 10}`,
+      })
+      .subscribe((result) => {
+        console.log('result: ', result);
+      });
+  }
+
   bulkAdd(): void {
     this.dbService
       .bulkAdd('people', [

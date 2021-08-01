@@ -137,12 +137,10 @@ export class NgxIndexedDBService {
             const hasKey = Boolean(key);
             const request: IDBRequest<IDBValidKey> = hasKey ? objectStore.add(value, key) : objectStore.add(value);
 
-            request.onsuccess = (evt: Event) => {
+            request.onsuccess = async (evt: Event) => {
               const result = (evt.target as IDBOpenDBRequest).result;
               const itemKey = hasKey ? key : ((result as unknown) as number);
-              this.getByKey(storeName, itemKey).subscribe((newValue) => {
-                resolve(newValue as T);
-              });
+              resolve(await this.baseGetByKey(objectStore, itemKey));
             };
           })
           .catch((reason) => reject(reason));
@@ -159,16 +157,14 @@ export class NgxIndexedDBService {
     return from(
       new Promise<T>((resolve, reject) => {
         openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
-          .then((db: IDBDatabase) => {
-            const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, reject, resolve));
-            const objectStore = transaction.objectStore(storeName);
-            const request = objectStore.get(key) as IDBRequest<T>;
-            request.onsuccess = (event: Event) => {
-              resolve((event.target as IDBRequest<T>).result);
-            };
-            request.onerror = (event: Event) => {
-              reject(event);
-            };
+          .then(async (db: IDBDatabase) => {
+            try {
+              const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, reject, resolve));
+              const objectStore = transaction.objectStore(storeName);
+              resolve(await this.baseGetByKey(objectStore, key));
+            } catch (error) {
+              reject(error);
+            }
           })
           .catch((reason) => reject(reason));
       })
@@ -306,10 +302,8 @@ export class NgxIndexedDBService {
             const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, reject, resolve));
             const objectStore = transaction.objectStore(storeName);
 
-            transaction.oncomplete = () => {
-              this.getByKey(storeName, key).subscribe((newValue) => {
-                resolve(newValue as T);
-              });
+            transaction.oncomplete = async () => {
+              resolve(await this.baseGetByKey(objectStore, key));
             };
 
             objectStore.put(value, key);
@@ -575,5 +569,17 @@ export class NgxIndexedDBService {
           .catch((reason) => reject(reason));
       })
     );
+  }
+
+  private baseGetByKey<T>(objectStore: IDBObjectStore, key: IDBValidKey): Promise<T> {
+    return new Promise((resolve, reject) => {
+      const request = objectStore.get(key) as IDBRequest<T>;
+      request.onsuccess = (event: Event) => {
+        resolve((event.target as IDBRequest<T>).result);
+      };
+      request.onerror = (event: Event) => {
+        reject(event);
+      };
+    });
   }
 }
