@@ -117,9 +117,9 @@ import { NgxIndexedDBService } from 'ngx-indexed-db';
 
 We cover several common methods used to work with the IndexedDB
 
-#### add<T>(storeName: string, value: T, key?: any): Observable<number>
+#### add<T>(storeName: string, value: T, key?: any): Observable<T>
 
-Adds new entry in the store and returns its key
+Adds new entry in the store and returns item added
 
 - @param storeName The name of the store to add the item
 - @param value The entry to be added
@@ -139,27 +139,6 @@ this.dbService
 ```
 
 _In the previous example I'm using undefined as the key because the key is configured in the objectStore as auto-generated._
-
-#### addItem<T>(storeName: string, value: T, key?: any): Observable<T>
-
-Adds new entry in the store and returns the new item
-
-- @param storeName The name of the store to add the item
-- @param value The entry to be added
-- @param key The optional key for the entry
-
-It publishes in the observable the item that was added
-
-```js
-this.dbService
-  .addItem('people', {
-    name: `Bruce Wayne`,
-    email: `bruce@wayne.com`,
-  })
-  .subscribe((item) => {
-    console.log('item: ', item);
-  });
-```
 
 ### bulkAdd<T>(storeName: string, values: T & { key?: any }[]): Observable<number[]>
 
