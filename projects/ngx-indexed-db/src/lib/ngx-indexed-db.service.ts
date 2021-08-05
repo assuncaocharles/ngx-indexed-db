@@ -81,7 +81,6 @@ export class NgxIndexedDBService {
               : objectStore.add(value);
 
             request.onsuccess = async (evt: Event) => {
-              console.log('evt => ', evt);
               const result: any = (evt.target as IDBOpenDBRequest).result;
               const getRequest: IDBRequest = objectStore.get(result) as IDBRequest<T>;
               getRequest.onsuccess = (event: Event) => {
