@@ -11,8 +11,11 @@ import { Component } from '@angular/core';
 export class AppComponent {
   title = 'playground';
   storeName: string;
+  getAll$;
 
-  constructor(private dbService: NgxIndexedDBService) {}
+  constructor(private dbService: NgxIndexedDBService) {
+    this.getAll$ = this.dbService.getAll('people');
+  }
 
   add(): void {
     this.dbService
@@ -38,7 +41,7 @@ export class AppComponent {
         },
       ])
       .subscribe((result) => {
-        console.log('result: ', result);
+        console.log('result add: ', result);
       });
   }
 
@@ -75,7 +78,7 @@ export class AppComponent {
     });
   }
 
-  createStote(storeName: string): void {
+  createStore(storeName: string): void {
     console.log('storeName', storeName);
     const storeSchema = {
       store: storeName,
@@ -87,6 +90,18 @@ export class AppComponent {
     };
 
     this.dbService.createObjectStore(storeSchema);
+  }
+
+  getAll(): void {
+    this.getAll$.subscribe((d) => {
+      console.log(d);
+    });
+  }
+
+  getByKey(): void {
+    this.dbService.getByKey('people', 1).subscribe((d) => {
+      console.log(d);
+    });
   }
 
   addTwoAndGetAllByIndex(): void {
