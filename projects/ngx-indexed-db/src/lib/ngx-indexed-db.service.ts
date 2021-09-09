@@ -3,7 +3,7 @@ import { openDatabase, CreateObjectStore } from './ngx-indexed-db';
 import { createTransaction, optionsGenerator, validateBeforeTransaction } from '../utils';
 import { CONFIG_TOKEN, DBConfig, Key, RequestEvent, ObjectStoreMeta, DBMode } from './ngx-indexed-db.meta';
 import { isPlatformBrowser } from '@angular/common';
-import { Observable, from, Subject } from 'rxjs';
+import { Observable, Subject, forkJoin, combineLatest } from 'rxjs';
 import { take } from 'rxjs/operators';
 
 @Injectable()
@@ -70,27 +70,24 @@ export class NgxIndexedDBService {
    * @param key The optional key for the entry
    */
   add<T>(storeName: string, value: T, key?: any): Observable<T> {
-    return from(
-      new Promise<T>((resolve, reject) => {
+    return new Observable((obs) => {
         openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
           .then((db: IDBDatabase) => {
-            const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, reject, resolve));
+            const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, obs.error));
             const objectStore = transaction.objectStore(storeName);
-            const request: IDBRequest<IDBValidKey> = Boolean(key)
-              ? objectStore.add(value, key)
-              : objectStore.add(value);
+            const request: IDBRequest<IDBValidKey> = Boolean(key) ? objectStore.add(value, key) : objectStore.add(value);
 
             request.onsuccess = async (evt: Event) => {
               const result: any = (evt.target as IDBOpenDBRequest).result;
               const getRequest: IDBRequest = objectStore.get(result) as IDBRequest<T>;
               getRequest.onsuccess = (event: Event) => {
-                resolve((event.target as IDBRequest<T>).result);
+                obs.next((event.target as IDBRequest<T>).result);
+                obs.complete();
               };
             };
           })
-          .catch((reason) => reject(reason));
-      })
-    );
+          .catch((error) => obs.error(error));
+    });
   }
 
   /**
@@ -121,7 +118,7 @@ export class NgxIndexedDBService {
           .catch((reason) => reject(reason));
       });
     });
-    return from(Promise.resolve(Promise.all(promises)));
+    return forkJoin(promises);
   }
 
   /**
@@ -130,23 +127,22 @@ export class NgxIndexedDBService {
    * @param key The entry key
    */
   getByKey<T>(storeName: string, key: IDBValidKey): Observable<T> {
-    return from(
-      new Promise<T>((resolve, reject) => {
-        openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
-          .then((db: IDBDatabase) => {
-            const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, reject, resolve));
-            const objectStore = transaction.objectStore(storeName);
-            const request = objectStore.get(key) as IDBRequest<T>;
-            request.onsuccess = (event: Event) => {
-              resolve((event.target as IDBRequest<T>).result);
-            };
-            request.onerror = (event: Event) => {
-              reject(event);
-            };
-          })
-          .catch((reason) => reject(reason));
-      })
-    );
+    return new Observable<T>((obs) => {
+      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+        .then((db: IDBDatabase) => {
+          const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error));
+          const objectStore = transaction.objectStore(storeName);
+          const request = objectStore.get(key) as IDBRequest<T>;
+          request.onsuccess = (event: Event) => {
+            obs.next((event.target as IDBRequest<T>).result);
+            obs.complete();
+          };
+          request.onerror = (event: Event) => {
+            obs.error(event);
+          };
+        })
+        .catch((error) => obs.error(error));
+    });
   }
 
   /**
@@ -154,9 +150,15 @@ export class NgxIndexedDBService {
    * @param storeName The name of the store to retrieve the items
    * @param keys The ids entries to be retrieve
    */
-  bulkGet<T>(storeName: string, keys: Array<IDBValidKey>): Observable<T[]> {
-    const promises = keys.map((key) => this.getByKey<T>(storeName, key).toPromise());
-    return from(Promise.resolve(Promise.all(promises)));
+  bulkGet<T>(storeName: string, keys: Array<IDBValidKey>): any {
+    const observables = keys.map((key) => this.getByKey(storeName, key));
+
+    return new Observable((obs) => {
+      combineLatest(observables).subscribe((values) => {
+        obs.next(values);
+        obs.complete();
+      });
+    });
   }
 
   /**
@@ -165,21 +167,19 @@ export class NgxIndexedDBService {
    * @param id The entry id
    */
   getByID<T>(storeName: string, id: string | number): Observable<T> {
-    return from(
-      new Promise<T>((resolve, reject) => {
-        openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
-          .then((db: IDBDatabase) => {
-            validateBeforeTransaction(db, storeName, reject);
-            const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, reject, resolve));
-            const objectStore = transaction.objectStore(storeName);
-            const request: IDBRequest = objectStore.get(id) as IDBRequest<T>;
-            request.onsuccess = (event: Event) => {
-              resolve((event.target as IDBRequest<T>).result);
-            };
-          })
-          .catch((reason) => reject(reason));
-      })
-    );
+    return new Observable((obs) => {
+      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+        .then((db: IDBDatabase) => {
+          validateBeforeTransaction(db, storeName, obs.error);
+          const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error, obs.next));
+          const objectStore = transaction.objectStore(storeName);
+          const request: IDBRequest = objectStore.get(id) as IDBRequest<T>;
+          request.onsuccess = (event: Event) => {
+            obs.next((event.target as IDBRequest<T>).result);
+          };
+        })
+        .catch((error) => obs.error(error));
+    });
   }
 
   /**
@@ -189,22 +189,21 @@ export class NgxIndexedDBService {
    * @param key The entry key.
    */
   getByIndex<T>(storeName: string, indexName: string, key: IDBValidKey): Observable<T> {
-    return from(
-      new Promise<T>((resolve, reject) => {
-        openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
-          .then((db) => {
-            validateBeforeTransaction(db, storeName, reject);
-            const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, reject, resolve));
-            const objectStore = transaction.objectStore(storeName);
-            const index = objectStore.index(indexName);
-            const request = index.get(key) as IDBRequest<T>;
-            request.onsuccess = (event: Event) => {
-              resolve((event.target as IDBRequest<T>).result);
-            };
-          })
-          .catch((reason) => reject(reason));
-      })
-    );
+    return new Observable((obs) => {
+      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+        .then((db) => {
+          validateBeforeTransaction(db, storeName, obs.error);
+          const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error));
+          const objectStore = transaction.objectStore(storeName);
+          const index = objectStore.index(indexName);
+          const request = index.get(key) as IDBRequest<T>;
+          request.onsuccess = (event: Event) => {
+            obs.next((event.target as IDBRequest<T>).result);
+            obs.complete();
+          };
+        })
+        .catch((reason) => obs.error(reason));
+    });
   }
 
   /**
@@ -212,27 +211,26 @@ export class NgxIndexedDBService {
    * @param storeName The name of the store to select the items
    */
   getAll<T>(storeName: string): Observable<T[]> {
-    return from(
-      new Promise<T[]>((resolve, reject) => {
-        openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
-          .then((db) => {
-            validateBeforeTransaction(db, storeName, reject);
-            const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, reject, resolve));
-            const objectStore = transaction.objectStore(storeName);
+    return new Observable((obs) => {
+      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+        .then((db) => {
+          validateBeforeTransaction(db, storeName, obs.error);
+          const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error, obs.next));
+          const objectStore = transaction.objectStore(storeName);
 
-            const request: IDBRequest = objectStore.getAll();
+          const request: IDBRequest = objectStore.getAll();
 
-            request.onerror = (evt: Event) => {
-              reject(evt);
-            };
+          request.onerror = (evt: Event) => {
+            obs.error(evt);
+          };
 
-            request.onsuccess = ({ target: { result: ResultAll } }: RequestEvent<T>) => {
-              resolve(ResultAll as T[]);
-            };
-          })
-          .catch((reason) => reject(reason));
-      })
-    );
+          request.onsuccess = ({ target: { result: ResultAll } }: RequestEvent<T>) => {
+            obs.next(ResultAll as T[]);
+            obs.complete();
+          };
+        })
+        .catch((error) => obs.error(error));
+    });
   }
 
   /**
@@ -242,27 +240,26 @@ export class NgxIndexedDBService {
    * @param key The key of the entry to update if exists
    */
   update<T>(storeName: string, value: T, key?: any): Observable<T[]> {
-    return from(
-      new Promise<T[]>((resolve, reject) => {
-        openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
-          .then((db) => {
-            validateBeforeTransaction(db, storeName, reject);
-            const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, reject, resolve));
-            const objectStore = transaction.objectStore(storeName);
+    return new Observable((obs) => {
+      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+        .then((db) => {
+          validateBeforeTransaction(db, storeName, obs.error);
+          const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, obs.error));
+          const objectStore = transaction.objectStore(storeName);
 
-            transaction.oncomplete = () => {
-              this.getAll(storeName)
-                .pipe(take(1))
-                .subscribe((newValues) => {
-                  resolve(newValues as T[]);
-                });
-            };
+          transaction.oncomplete = () => {
+            this.getAll(storeName)
+              .pipe(take(1))
+              .subscribe((newValues) => {
+                obs.next(newValues as T[]);
+                obs.complete();
+              });
+          };
 
-            key ? objectStore.put(value, key) : objectStore.put(value);
-          })
-          .catch((reason) => reject(reason));
-      })
-    );
+          key ? objectStore.put(value, key) : objectStore.put(value);
+        })
+        .catch((reason) => obs.error(reason));
+    });
   }
 
   /**
@@ -272,29 +269,27 @@ export class NgxIndexedDBService {
    * @param key The key of the entry to update
    */
   updateByKey<T>(storeName: string, value: T, key: IDBValidKey): Observable<T> {
-    return from(
-      new Promise<T>((resolve, reject) => {
+    return new Observable<T>((obs) => {
         openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
           .then((db) => {
-            validateBeforeTransaction(db, storeName, reject);
-            const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, reject, resolve));
+            validateBeforeTransaction(db, storeName, obs.error);
+            const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, obs.error));
             const objectStore = transaction.objectStore(storeName);
 
             transaction.oncomplete = () => {
               const request = objectStore.get(key) as IDBRequest<T>;
               request.onsuccess = (event: Event) => {
-                resolve((event.target as IDBRequest<T>).result);
+                obs.next((event.target as IDBRequest<T>).result);
               };
               request.onerror = (event: Event) => {
-                reject(event);
+                obs.error(event);
               };
             };
 
             objectStore.put(value, key);
           })
-          .catch((reason) => reject(reason));
-      })
-    );
+          .catch((reason) => obs.error(reason));
+      });
   }
 
   /**
@@ -303,26 +298,25 @@ export class NgxIndexedDBService {
    * @param key The key of the entry to be deleted
    */
   delete<T>(storeName: string, key: Key): Observable<T[]> {
-    return from(
-      new Promise<T[]>((resolve, reject) => {
-        openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
-          .then((db) => {
-            validateBeforeTransaction(db, storeName, reject);
-            const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, reject, resolve));
-            const objectStore = transaction.objectStore(storeName);
-            objectStore.delete(key);
+    return new Observable((obs) => {
+      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+        .then((db) => {
+          validateBeforeTransaction(db, storeName, obs.error);
+          const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, obs.error));
+          const objectStore = transaction.objectStore(storeName);
+          objectStore.delete(key);
 
-            transaction.oncomplete = () => {
-              this.getAll(storeName)
-                .pipe(take(1))
-                .subscribe((newValues) => {
-                  resolve(newValues as T[]);
-                });
-            };
-          })
-          .catch((reason) => reject(reason));
-      })
-    );
+          transaction.oncomplete = () => {
+            this.getAll(storeName)
+              .pipe(take(1))
+              .subscribe((newValues) => {
+                obs.next(newValues as T[]);
+                obs.complete();
+              });
+          };
+        })
+        .catch((reason) => obs.error(reason));
+    });
   }
 
   /**
@@ -331,23 +325,22 @@ export class NgxIndexedDBService {
    * @param key The key of the entry to be deleted
    */
   deleteByKey(storeName: string, key: Key): Observable<boolean> {
-    return from(
-      new Promise<boolean>((resolve, reject) => {
-        openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
-          .then((db) => {
-            validateBeforeTransaction(db, storeName, reject);
-            const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, reject, resolve));
-            const objectStore = transaction.objectStore(storeName);
+    return new Observable((obs) => {
+      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+        .then((db) => {
+          validateBeforeTransaction(db, storeName, obs.error);
+          const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, obs.error));
+          const objectStore = transaction.objectStore(storeName);
 
-            transaction.oncomplete = () => {
-              resolve(true);
-            };
+          transaction.oncomplete = () => {
+            obs.next(true);
+            obs.complete();
+          };
 
-            objectStore.delete(key);
-          })
-          .catch((reason) => reject(reason));
-      })
-    );
+          objectStore.delete(key);
+        })
+        .catch((reason) => obs.error(reason));
+    });
   }
 
   /**
@@ -355,45 +348,42 @@ export class NgxIndexedDBService {
    * @param storeName The name of the store to have the entries deleted
    */
   clear(storeName: string): Observable<boolean> {
-    return from(
-      new Promise<boolean>((resolve, reject) => {
-        openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
-          .then((db) => {
-            validateBeforeTransaction(db, storeName, reject);
-            const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, reject, resolve));
-            const objectStore = transaction.objectStore(storeName);
-            objectStore.clear();
-            transaction.oncomplete = () => {
-              resolve(true);
-            };
-          })
-          .catch((reason) => reject(reason));
-      })
-    );
+    return new Observable((obs) => {
+      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+        .then((db) => {
+          validateBeforeTransaction(db, storeName, obs.error);
+          const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, obs.error));
+          const objectStore = transaction.objectStore(storeName);
+          objectStore.clear();
+          transaction.oncomplete = () => {
+            obs.next(true);
+            obs.complete();
+          };
+        })
+        .catch((reason) => obs.error(reason));
+    });
   }
 
   /**
    * Returns true if successfully delete the DB.
    */
   deleteDatabase(): Observable<boolean> {
-    return from(
-      new Promise<boolean>(async (resolve, reject) => {
-        try {
-          const db = await openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version);
+    return new Observable((obs) => {
+      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+        .then(async (db) => {
           await db.close();
           const deleteDBRequest = this.indexedDB.deleteDatabase(this.dbConfig.name);
           deleteDBRequest.onsuccess = () => {
-            resolve(true);
+            obs.next(true);
+            obs.complete();
           };
-          deleteDBRequest.onerror = reject;
+          deleteDBRequest.onerror = (error) => obs.error(error);
           deleteDBRequest.onblocked = () => {
             throw new Error(`Unable to delete database because it's blocked`);
           };
-        } catch (evt) {
-          reject(evt);
-        }
-      })
-    );
+        })
+        .catch((error) => obs.error(error));
+    });
   }
 
   /**
@@ -402,22 +392,21 @@ export class NgxIndexedDBService {
    * @param keyRange The key range which the cursor should be open on
    */
   openCursor(storeName: string, keyRange?: IDBKeyRange): Observable<Event> {
-    return from(
-      new Promise<Event>((resolve, reject) => {
-        openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
-          .then((db) => {
-            validateBeforeTransaction(db, storeName, reject);
-            const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, reject, resolve));
-            const objectStore = transaction.objectStore(storeName);
-            const request = keyRange === undefined ? objectStore.openCursor() : objectStore.openCursor(keyRange);
+    return new Observable((obs) => {
+      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+        .then((db) => {
+          validateBeforeTransaction(db, storeName, obs.error);
+          const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error));
+          const objectStore = transaction.objectStore(storeName);
+          const request = keyRange === undefined ? objectStore.openCursor() : objectStore.openCursor(keyRange);
 
-            request.onsuccess = (event: Event) => {
-              resolve(event);
-            };
-          })
-          .catch((reason) => reject(reason));
-      })
-    );
+          request.onsuccess = (event: Event) => {
+            obs.next(event);
+            obs.complete();
+          };
+        })
+        .catch((reason) => obs.error(reason));
+    });
   }
 
   /**
@@ -473,28 +462,27 @@ export class NgxIndexedDBService {
    */
   getAllByIndex<T>(storeName: string, indexName: string, keyRange: IDBKeyRange): Observable<T[]> {
     const data: T[] = [];
-    return from(
-      new Promise<T[]>((resolve, reject) => {
-        openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
-          .then((db) => {
-            validateBeforeTransaction(db, storeName, reject);
-            const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, reject, resolve));
-            const objectStore = transaction.objectStore(storeName);
-            const index = objectStore.index(indexName);
-            const request = index.openCursor(keyRange);
-            request.onsuccess = (event) => {
-              const cursor: IDBCursorWithValue = (event.target as IDBRequest<IDBCursorWithValue>).result;
-              if (cursor) {
-                data.push(cursor.value);
-                cursor.continue();
-              } else {
-                resolve(data);
-              }
-            };
-          })
-          .catch((reason) => reject(reason));
-      })
-    );
+    return new Observable((obs) => {
+      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+        .then((db) => {
+          validateBeforeTransaction(db, storeName, obs.error);
+          const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error));
+          const objectStore = transaction.objectStore(storeName);
+          const index = objectStore.index(indexName);
+          const request = index.openCursor(keyRange);
+          request.onsuccess = (event) => {
+            const cursor: IDBCursorWithValue = (event.target as IDBRequest<IDBCursorWithValue>).result;
+            if (cursor) {
+              data.push(cursor.value);
+              cursor.continue();
+            } else {
+              obs.next(data);
+              obs.complete();
+            }
+          };
+        })
+        .catch((reason) => obs.error(reason));
+    });
   }
 
   /**
@@ -509,28 +497,27 @@ export class NgxIndexedDBService {
     keyRange: IDBKeyRange
   ): Observable<{ primaryKey: any; key: any }[]> {
     const data: { primaryKey: any; key: any }[] = [];
-    return from(
-      new Promise<{ primaryKey: any; key: any }[]>((resolve, reject) => {
-        openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
-          .then((db) => {
-            validateBeforeTransaction(db, storeName, reject);
-            const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, reject, resolve));
-            const objectStore = transaction.objectStore(storeName);
-            const index = objectStore.index(indexName);
-            const request = index.openKeyCursor(keyRange);
-            request.onsuccess = (event) => {
-              const cursor: IDBCursor = (event.target as IDBRequest<IDBCursor>).result;
-              if (cursor) {
-                data.push({ primaryKey: cursor.primaryKey, key: cursor.key });
-                cursor.continue();
-              } else {
-                resolve(data);
-              }
-            };
-          })
-          .catch((reason) => reject(reason));
-      })
-    );
+    return new Observable((obs) => {
+      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+        .then((db) => {
+          validateBeforeTransaction(db, storeName, obs.error);
+          const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error));
+          const objectStore = transaction.objectStore(storeName);
+          const index = objectStore.index(indexName);
+          const request = index.openKeyCursor(keyRange);
+          request.onsuccess = (event) => {
+            const cursor: IDBCursor = (event.target as IDBRequest<IDBCursor>).result;
+            if (cursor) {
+              data.push({ primaryKey: cursor.primaryKey, key: cursor.key });
+              cursor.continue();
+            } else {
+              obs.next(data);
+              obs.complete();
+            }
+          };
+        })
+        .catch((reason) => obs.error(reason));
+    });
   }
 
   /**
@@ -539,19 +526,20 @@ export class NgxIndexedDBService {
    * @param keyRange  The range value and criteria to apply.
    */
   count(storeName: string, keyRange?: IDBValidKey | IDBKeyRange): Observable<number> {
-    return from(
-      new Promise<number>((resolve, reject) => {
-        openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
-          .then((db) => {
-            validateBeforeTransaction(db, storeName, reject);
-            const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, reject, resolve));
-            const objectStore = transaction.objectStore(storeName);
-            const request: IDBRequest = objectStore.count(keyRange);
-            request.onerror = (e) => reject(e);
-            request.onsuccess = (e) => resolve(((e.target as IDBOpenDBRequest).result as unknown) as number);
-          })
-          .catch((reason) => reject(reason));
-      })
-    );
+    return new Observable((obs) => {
+      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+        .then((db) => {
+          validateBeforeTransaction(db, storeName, obs.error);
+          const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error));
+          const objectStore = transaction.objectStore(storeName);
+          const request: IDBRequest = objectStore.count(keyRange);
+          request.onerror = (e) => obs.error(e);
+          request.onsuccess = (e) => {
+            obs.next(((e.target as IDBOpenDBRequest).result as unknown) as number);
+            obs.complete();
+          };
+        })
+        .catch((reason) => obs.error(reason));
+    });
   }
 }
