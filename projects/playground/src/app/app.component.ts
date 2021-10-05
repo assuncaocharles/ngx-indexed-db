@@ -78,6 +78,12 @@ export class AppComponent {
     });
   }
 
+  bulkDelete(): void {
+    this.dbService.bulkDelete('people', [5, 6]).subscribe((result) => {
+      console.log('result: ', result);
+    });
+  }
+
   createStore(storeName: string): void {
     console.log('storeName', storeName);
     const storeSchema = {
