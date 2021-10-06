@@ -69,3 +69,23 @@ export function CreateObjectStore(
     e.target.result.close();
   };
 }
+
+export function DeleteObjectStore(dbName: string, version: number, storeName: string): void {
+  if (!dbName || !version || !storeName) {
+    throw Error('Params: "dbName", "version", "storeName" are mandatory.');
+  }
+
+  const newVersion = version + 1;
+  const request: IDBOpenDBRequest = indexedDB.open(dbName, newVersion);
+
+  request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
+    const database: IDBDatabase = (event.target as any).result;
+
+    database.deleteObjectStore(storeName);
+    database.close();
+  };
+
+  request.onsuccess = (e: any) => {
+    e.target.result.close();
+  };
+}

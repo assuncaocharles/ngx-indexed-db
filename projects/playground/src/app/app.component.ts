@@ -11,6 +11,7 @@ import { Component } from '@angular/core';
 export class AppComponent {
   title = 'playground';
   storeName: string;
+  storneNameToDelete: string;
   getAll$;
 
   constructor(private dbService: NgxIndexedDBService) {
@@ -82,6 +83,10 @@ export class AppComponent {
     this.dbService.bulkDelete('people', [5, 6]).subscribe((result) => {
       console.log('result: ', result);
     });
+  }
+
+  deleteStore(): void {
+    this.dbService.deleteObjectStore(this.storneNameToDelete);
   }
 
   createStore(storeName: string): void {
