@@ -164,6 +164,19 @@ this.dbService
   });
 ```
 
+### bulkDelete(storeName: string, keys: Key[]): Observable<number[]>
+
+Delete multiple items in the store
+
+- @param storeName The name of the store to delete the items
+- @param keys The entries keys to be deleted
+
+```typescript
+  this.dbService.bulkDelete('people', [5, 6]).subscribe((result) => {
+    console.log('result: ', result);
+  });
+```
+
 ### bulkGet<T>(storeName: string, keys: Array<IDBValidKey>): Observable<T[]>
 
 Retrieve multiple entries in the store
