@@ -575,7 +575,7 @@ export class NgxIndexedDBService {
    * Delete the store by name.
    * @param storeName The name of the store to query
    */
-  deleteObjectStore(storeName: string): void {
-    DeleteObjectStore(this.dbConfig.name, ++this.dbConfig.version, storeName);
+  deleteObjectStore(storeName: string): Observable<boolean> {
+      return DeleteObjectStore(this.dbConfig.name, ++this.dbConfig.version, storeName);
   }
 }

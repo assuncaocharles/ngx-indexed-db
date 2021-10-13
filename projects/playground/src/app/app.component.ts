@@ -86,7 +86,9 @@ export class AppComponent {
   }
 
   deleteStore(): void {
-    this.dbService.deleteObjectStore(this.storneNameToDelete);
+    this.dbService.deleteObjectStore(this.storneNameToDelete).subscribe((result) => {
+      console.log('result: ', result);
+    });
   }
 
   createStore(storeName: string): void {

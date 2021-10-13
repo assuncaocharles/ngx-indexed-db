@@ -291,7 +291,7 @@ this.dbService.count('people').subscribe((peopleCount) => {
 
 #### deleteObjectStore(storeName: string): void
 
-Delete the store by name.
+Delete the store by name, return true or false. 
 
 - @param storeName The name of the store to query
 
