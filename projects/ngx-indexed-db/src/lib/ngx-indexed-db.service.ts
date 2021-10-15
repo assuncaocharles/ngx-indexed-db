@@ -1,5 +1,5 @@
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
-import { openDatabase, CreateObjectStore } from './ngx-indexed-db';
+import { openDatabase, CreateObjectStore, DeleteObjectStore } from './ngx-indexed-db';
 import { createTransaction, optionsGenerator, validateBeforeTransaction } from '../utils';
 import { CONFIG_TOKEN, DBConfig, Key, RequestEvent, ObjectStoreMeta, DBMode } from './ngx-indexed-db.meta';
 import { isPlatformBrowser } from '@angular/common';
@@ -569,5 +569,13 @@ export class NgxIndexedDBService {
         })
         .catch((reason) => obs.error(reason));
     });
+  }
+
+  /**
+   * Delete the store by name.
+   * @param storeName The name of the store to query
+   */
+  deleteObjectStore(storeName: string): Observable<boolean> {
+      return DeleteObjectStore(this.dbConfig.name, ++this.dbConfig.version, storeName);
   }
 }

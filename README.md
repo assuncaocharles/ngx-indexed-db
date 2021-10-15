@@ -302,6 +302,16 @@ this.dbService.count('people').subscribe((peopleCount) => {
 });
 ```
 
+### deleteObjectStore(storeName: string): Observable<boolean>
+
+Delete the store by name, return true or false. 
+
+- @param storeName The name of the store to query
+
+```js
+this.dbService.deleteObjectStore(this.storneNameToDelete);
+```
+                               
 ### delete<T>(storeName: string, key: Key): Observable<T[]>
 
 Returns all items from the store after delete.

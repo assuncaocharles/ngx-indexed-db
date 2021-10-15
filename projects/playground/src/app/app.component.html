@@ -9,7 +9,13 @@
 <button (click)="getAll()">getAll</button>
 <button (click)="getByKey()">getByKey</button>
 <button (click)="bulkDelete()">bulkDelete</button>
+<hr>
 <div>
   <input type="text" [(ngModel)]="storeName" name="store" #store />
   <button (click)="createStore(storeName)">Create Store</button>
+</div>
+<hr>
+<div>
+  <input type="text" [(ngModel)]="storneNameToDelete" name="store" #store />
+  <button (click)="deleteStore()">Delete store</button>
 </div>
