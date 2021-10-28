@@ -305,13 +305,12 @@ export class NgxIndexedDBService {
           const objectStore = transaction.objectStore(storeName);
 
           transaction.oncomplete = () => {
-            const request = objectStore.get(key) as IDBRequest<T>;
-            request.onsuccess = (event: Event) => {
-              obs.next((event.target as IDBRequest<T>).result);
-            };
-            request.onerror = (event: Event) => {
-              obs.error(event);
-            };
+            this.getByKey(storeName, key)
+              .pipe(take(1))
+              .subscribe((newValue) => {
+                obs.next(newValue as T);
+                obs.complete();
+              });
           };
 
           objectStore.put(value, key);
