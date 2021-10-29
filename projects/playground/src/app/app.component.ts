@@ -18,6 +18,26 @@ export class AppComponent {
     this.getAll$ = this.dbService.getAll('people');
   }
 
+  testUpdate(): void {
+    console.log('test bulk add...');
+    const randomData: Array<any> = [];
+    for (let i = 0; i < 200000; i++) {
+      console.log('sono qui => ', i);
+      randomData.push({
+        name: `charles number ${Math.random() * 10}`,
+        email: `email number ${Math.random() * 10}`
+      });
+    }
+    console.log('foreach terminato...');
+    this.dbService.bulkAdd('people', randomData).subscribe(
+      results => {
+        console.log('success', results);
+      }, error => {
+        console.error('errore => ', error);
+      }
+    );
+  }
+
   add(): void {
     this.dbService
       .add('people', {

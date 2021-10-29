@@ -96,29 +96,34 @@ export class NgxIndexedDBService {
    * @param values The entries to be added containing optional key attribute
    */
   bulkAdd<T>(storeName: string, values: T & { key?: any }[]): Observable<number[]> {
-    const promises = values.map((value) => {
-      return new Promise<number>((resolve, reject) => {
-        openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
-          .then((db: IDBDatabase) => {
-            const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, reject, resolve));
-            const objectStore = transaction.objectStore(storeName);
+    const promises = new Promise<number>((resolve, reject) => {
+      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+        .then((db: IDBDatabase) => {
+          const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, resolve, reject));
+          const objectStore = transaction.objectStore(storeName);
 
-            const key = value.key;
-            delete value.key;
+          const results = values.map((value) => {
+            return new Promise<number>((resolve1, reject1) => {
+              const key = value.key;
+              delete value.key;
 
-            const request: IDBRequest<IDBValidKey> = Boolean(key)
-              ? objectStore.add(value, key)
-              : objectStore.add(value);
+              const request: IDBRequest<IDBValidKey> = Boolean(key)
+                ? objectStore.add(value, key)
+                : objectStore.add(value);
 
-            request.onsuccess = (evt: Event) => {
-              const result = (evt.target as IDBOpenDBRequest).result;
-              resolve((result as unknown) as number);
-            };
-          })
-          .catch((reason) => reject(reason));
-      });
+              request.onsuccess = (evt: Event) => {
+                const result = (evt.target as IDBOpenDBRequest).result;
+                resolve1((result as unknown) as number);
+              };
+            });
+          });
+
+          resolve(results);
+
+        }).catch((reason) => reject(reason));
     });
-    return forkJoin(promises);
+
+    return from(promises);
   }
 
   /**
