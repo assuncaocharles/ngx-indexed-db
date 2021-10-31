@@ -117,7 +117,7 @@ import { NgxIndexedDBService } from 'ngx-indexed-db';
 
 We cover several common methods used to work with the IndexedDB
 
-#### add<T>(storeName: string, value: T, key?: any): Observable<T>
+### add<T>(storeName: string, value: T, key?: any): Observable<T>
 
 Adds new entry in the store and returns item added
 
@@ -164,6 +164,19 @@ this.dbService
   });
 ```
 
+### bulkDelete(storeName: string, keys: Key[]): Observable<number[]>
+
+Delete multiple items in the store
+
+- @param storeName The name of the store to delete the items
+- @param keys The entries keys to be deleted
+
+```typescript
+  this.dbService.bulkDelete('people', [5, 6]).subscribe((result) => {
+    console.log('result: ', result);
+  });
+```
+
 ### bulkGet<T>(storeName: string, keys: Array<IDBValidKey>): Observable<T[]>
 
 Retrieve multiple entries in the store
@@ -177,7 +190,7 @@ this.dbService.bulkGet('people', [1, 3, 5]).subscribe((result) => {
   });
 ```
 
-#### update<T>(storeName: string, value: T, key?: any): Observable<T[]>
+### update<T>(storeName: string, value: T, key?: any): Observable<T[]>
 
 Updates the given value in the objectStore and returns all items from the store after update..
 
@@ -197,7 +210,7 @@ this.dbService
   });
 ```
 
-#### updateByKey<T>(storeName: string, value: T, key: IDBValidKey): Observable<T>
+### updateByKey<T>(storeName: string, value: T, key: IDBValidKey): Observable<T>
 
 Updates the given value in the objectStore and returns the item from the store after update..
 
@@ -217,7 +230,7 @@ this.dbService
   });
 ```
 
-#### getByKey<T>(storeName: string, key: IDBValidKey): Observable<T>
+### getByKey<T>(storeName: string, key: IDBValidKey): Observable<T>
 
 Returns entry by key.
 
@@ -230,7 +243,7 @@ this.dbService.getByKey('people', 1).subscribe((people) => {
 });
 ```
 
-#### getAll<T>(storeName: string): Observable<T[]>
+### getAll<T>(storeName: string): Observable<T[]>
 
 Return all elements from one store
 
@@ -242,7 +255,7 @@ this.dbService.getAll('people').subscribe((peoples) => {
 });
 ```
 
-#### getByIndex<T>(storeName: string, indexName: string, key: IDBValidKey): Observable<T>
+### getByIndex<T>(storeName: string, indexName: string, key: IDBValidKey): Observable<T>
 
 Returns entry by index.
 
@@ -256,7 +269,7 @@ this.dbService.getByIndex('people', 'name', 'Dave').subscribe((people) => {
 });
 ```
 
-#### createObjectStore(storeSchema: ObjectStoreMeta, migrationFactory?: () => { [key: number]: (db: IDBDatabase, transaction: IDBTransaction) => void }): void
+### createObjectStore(storeSchema: ObjectStoreMeta, migrationFactory?: () => { [key: number]: (db: IDBDatabase, transaction: IDBTransaction) => void }): void
 
 Allows to crate a new object store ad-hoc
 
@@ -276,7 +289,7 @@ const storeSchema: ObjectStoreMeta = {
 this.dbService.createObjectStore(storeSchema);
 ```
 
-#### count(storeName: string, keyRange?: IDBValidKey | IDBKeyRange): Observable<number>
+### count(storeName: string, keyRange?: IDBValidKey | IDBKeyRange): Observable<number>
 
 Returns the number of rows in a store.
 
@@ -289,17 +302,17 @@ this.dbService.count('people').subscribe((peopleCount) => {
 });
 ```
 
-#### deleteObjectStore(storeName: string): void
+### deleteObjectStore(storeName: string): Observable<boolean>
 
-Delete the store by name.
+Delete the store by name, return true or false. 
 
 - @param storeName The name of the store to query
 
 ```js
 this.dbService.deleteObjectStore(this.storneNameToDelete);
 ```
-
-#### delete<T>(storeName: string, key: Key): Observable<T[]>
+                               
+### delete<T>(storeName: string, key: Key): Observable<T[]>
 
 Returns all items from the store after delete.
 
@@ -312,7 +325,7 @@ this.dbService.delete('people', 3).subscribe((allPeople) => {
 });
 ```
 
-#### deleteByKey(storeName: string, key: Key): Observable<boolean>
+### deleteByKey(storeName: string, key: Key): Observable<boolean>
 
 Returns true if the delete completes successfully.
 
@@ -325,7 +338,7 @@ this.dbService.deleteByKey('people', 3).subscribe((status) => {
 });
 ```
 
-#### openCursor(storeName: string, keyRange?: IDBKeyRange): Observable<Event>
+### openCursor(storeName: string, keyRange?: IDBKeyRange): Observable<Event>
 
 Returns the open cursor event
 
@@ -344,7 +357,7 @@ this.dbService.openCursor('people', IDBKeyRange.bound("A", "F")).subscribe((evt)
 });
 ```
 
-#### openCursorByIndex(storeName: string, indexName: string, keyRange: IDBKeyRange, mode?: DBMode): Observable<Event>
+### openCursorByIndex(storeName: string, indexName: string, keyRange: IDBKeyRange, mode?: DBMode): Observable<Event>
 
 Open a cursor by index filter.
 
@@ -365,7 +378,7 @@ this.dbService.openCursorByIndex('people', 'name', IDBKeyRange.only('john')).sub
 });
 ```
 
-#### getAllByIndex<T>(storeName: string, indexName: string, keyRange: IDBKeyRange): Observable<T[]>
+### getAllByIndex<T>(storeName: string, indexName: string, keyRange: IDBKeyRange): Observable<T[]>
 
 Returns all items by an index.
 
@@ -379,7 +392,7 @@ this.dbService.getAllByIndex('people', 'name', IDBKeyRange.only('john')).subscri
 });
 ```
 
-#### clear(storeName: string): Observable<boolean>
+### clear(storeName: string): Observable<boolean>
 
 Returns true if successfully delete all entries from the store.
 
@@ -391,7 +404,7 @@ this.dbService.clear('people').subscribe((successDeleted) => {
 });
 ```
 
-#### deleteDatabase(): Observable<boolean> 
+### deleteDatabase(): Observable<boolean> 
 
 Returns true if successfully delete the DB.
 
