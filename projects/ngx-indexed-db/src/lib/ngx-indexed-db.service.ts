@@ -96,7 +96,7 @@ export class NgxIndexedDBService {
    * @param values The entries to be added containing optional key attribute
    */
   bulkAdd<T>(storeName: string, values: T & { key?: any }[]): Observable<number[]> {
-    const promises = new Promise<number>((resolve, reject) => {
+    const promises = new Promise<number[]>((resolve, reject) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db: IDBDatabase) => {
           const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, resolve, reject));
@@ -118,7 +118,7 @@ export class NgxIndexedDBService {
             });
           });
 
-          resolve(results);
+          resolve(Promise.all(results));
 
         }).catch((reason) => reject(reason));
     });
