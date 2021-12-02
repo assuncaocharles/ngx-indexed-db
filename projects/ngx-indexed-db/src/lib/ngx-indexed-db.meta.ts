@@ -37,6 +37,6 @@ export enum DBMode {
   readwrite = 'readwrite',
 }
 
-export type Key = string | number | Date | ArrayBufferView | ArrayBuffer | IDBArrayKey | IDBKeyRange;
+export type Key = string | number | Date | ArrayBufferView | ArrayBuffer | IDBValidKey | IDBKeyRange;
 
 export const CONFIG_TOKEN = new InjectionToken<DBConfig>(null);
