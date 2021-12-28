@@ -1,9 +1,9 @@
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { openDatabase, CreateObjectStore, DeleteObjectStore } from './ngx-indexed-db';
 import { createTransaction, optionsGenerator, validateBeforeTransaction } from '../utils';
-import { CONFIG_TOKEN, DBConfig, Key, RequestEvent, ObjectStoreMeta, DBMode } from './ngx-indexed-db.meta';
+import { CONFIG_TOKEN, DBConfig, Key, RequestEvent, ObjectStoreMeta, DBMode, WithID } from './ngx-indexed-db.meta';
 import { isPlatformBrowser } from '@angular/common';
-import { Observable, Subject, forkJoin, combineLatest, from } from 'rxjs';
+import { Observable, Subject, combineLatest, from } from 'rxjs';
 import { take } from 'rxjs/operators';
 
 @Injectable()
@@ -69,7 +69,7 @@ export class NgxIndexedDBService {
    * @param value The entry to be added
    * @param key The optional key for the entry
    */
-  add<T>(storeName: string, value: T, key?: any): Observable<T & {id: any}> {
+  add<T>(storeName: string, value: T, key?: any): Observable<T & WithID> {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db: IDBDatabase) => {
@@ -81,7 +81,7 @@ export class NgxIndexedDBService {
             const result: any = (evt.target as IDBOpenDBRequest).result;
             const getRequest: IDBRequest = objectStore.get(result) as IDBRequest<T>;
             getRequest.onsuccess = (event: Event) => {
-              obs.next((event.target as IDBRequest<T & {id: any}>).result);
+              obs.next((event.target as IDBRequest<T & WithID>).result);
               obs.complete();
             };
           };
