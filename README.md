@@ -117,7 +117,7 @@ import { NgxIndexedDBService } from 'ngx-indexed-db';
 
 We cover several common methods used to work with the IndexedDB
 
-### add<T>(storeName: string, value: T, key?: any): Observable<T>
+### add<T>(storeName: string, value: T, key?: any): Observable<T & {id: any}>
 
 Adds new entry in the store and returns item added
 

@@ -69,7 +69,7 @@ export class NgxIndexedDBService {
    * @param value The entry to be added
    * @param key The optional key for the entry
    */
-  add<T>(storeName: string, value: T, key?: any): Observable<T> {
+  add<T>(storeName: string, value: T, key?: any): Observable<T & {id: any}> {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db: IDBDatabase) => {
@@ -81,7 +81,7 @@ export class NgxIndexedDBService {
             const result: any = (evt.target as IDBOpenDBRequest).result;
             const getRequest: IDBRequest = objectStore.get(result) as IDBRequest<T>;
             getRequest.onsuccess = (event: Event) => {
-              obs.next((event.target as IDBRequest<T>).result);
+              obs.next((event.target as IDBRequest<T & {id: any}>).result);
               obs.complete();
             };
           };
