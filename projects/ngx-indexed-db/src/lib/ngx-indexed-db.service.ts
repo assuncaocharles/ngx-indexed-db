@@ -95,7 +95,7 @@ export class NgxIndexedDBService {
    * @param storeName The name of the store to add the item
    * @param values The entries to be added containing optional key attribute
    */
-  bulkAdd<T>(storeName: string, values: T & { key?: any }[]): Observable<number[]> {
+  bulkAdd<T>(storeName: string, values: Array<T & { key?: any }>): Observable<number[]> {
     const promises = new Promise<number[]>((resolve, reject) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db: IDBDatabase) => {

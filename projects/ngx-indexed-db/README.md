@@ -140,7 +140,7 @@ this.dbService
 
 _In the previous example I'm using undefined as the key because the key is configured in the objectStore as auto-generated._
 
-### bulkAdd<T>(storeName: string, values: T & { key?: any }[]): Observable<number[]>
+### bulkAdd<T>(storeName: string, values: Array<T & { key?: any }>): Observable<number[]>
 
 Adds new entries in the store and returns its key
 
