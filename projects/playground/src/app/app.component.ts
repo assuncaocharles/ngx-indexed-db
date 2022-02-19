@@ -20,11 +20,11 @@ export class AppComponent {
 
   add(): void {
     //prepare random person data with or without email for count by index
-    let randomPerson: any = {
+    let randomPerson = {
       name: `charles number ${Math.random() * 10}`,
     }
     if (Math.random().toFixed(0) === '1') {
-      randomPerson.email = `email number ${Math.random() * 10}`;
+      randomPerson['email'] = `email number ${Math.random() * 10}`;
     }
 
     this.dbService
