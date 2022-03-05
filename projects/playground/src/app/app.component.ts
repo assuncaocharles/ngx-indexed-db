@@ -132,4 +132,13 @@ export class AppComponent {
       .pipe(switchMap(() => this.dbService.getAllByIndex('people', 'name', IDBKeyRange.only('desmond'))))
       .subscribe((result) => console.log(result));
   }
+
+  updateByKey(): void {
+    this.dbService.updateByKey('people', {
+      name: `Charles Updated ${Math.random() * 10}`,
+      email: `Email Updated ${Math.random() * 10}`,
+      id: 1
+    }, 1).subscribe(response => console.log(response),
+      error => console.error(error));
+  }
 }

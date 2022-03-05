@@ -267,12 +267,11 @@ export class NgxIndexedDBService {
   }
 
   /**
-   * Returns all items from the store after update.
+   * Adds or updates a record in store with the given value and key. Return all items present in the store
    * @param storeName The name of the store to update
    * @param value The new value for the entry
-   * @param key The key of the entry to update if exists
    */
-  update<T>(storeName: string, value: T, key?: any): Observable<T[]> {
+  update<T>(storeName: string, value: T): Observable<T[]> {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
@@ -289,17 +288,16 @@ export class NgxIndexedDBService {
               });
           };
 
-          key ? objectStore.put(value, key) : objectStore.put(value);
+          objectStore.put(value);
         })
         .catch((reason) => obs.error(reason));
     });
   }
 
   /**
-   * Returns the item you updated from the store after the update.
+   * Adds or updates a record in store with the given value and key. Returns the item you updated from the store.
    * @param storeName The name of the store to update
    * @param value The new value for the entry
-   * @param key The key of the entry to update
    */
   updateByKey<T>(storeName: string, value: T, key: IDBValidKey): Observable<T> {
     return new Observable<T>((obs) => {
@@ -318,7 +316,7 @@ export class NgxIndexedDBService {
               });
           };
 
-          objectStore.put(value, key);
+          objectStore.put(value);
         })
         .catch((reason) => obs.error(reason));
     });
