@@ -271,7 +271,7 @@ export class NgxIndexedDBService {
    * @param storeName The name of the store to update
    * @param value The new value for the entry
    */
-  update<T>(storeName: string, value: T): Observable<T[]> {
+  update<T>(storeName: string, value: T): Observable<T> {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
@@ -279,44 +279,17 @@ export class NgxIndexedDBService {
           const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, obs.error));
           const objectStore = transaction.objectStore(storeName);
 
-          transaction.oncomplete = () => {
-            this.getAll(storeName)
-              .pipe(take(1))
-              .subscribe((newValues) => {
-                obs.next(newValues as T[]);
-                obs.complete();
-              });
+          const request: IDBRequest<IDBValidKey> = objectStore.put(value);
+
+          request.onsuccess = async (evt: Event) => {
+            const result: any = (evt.target as IDBOpenDBRequest).result;
+            console.log('result )> ', result);
+            const getRequest: IDBRequest = objectStore.get(result) as IDBRequest<T>;
+            getRequest.onsuccess = (event: Event) => {
+              obs.next((event.target as IDBRequest<T & WithID>).result);
+              obs.complete();
+            };
           };
-
-          objectStore.put(value);
-        })
-        .catch((reason) => obs.error(reason));
-    });
-  }
-
-  /**
-   * Adds or updates a record in store with the given value and key. Returns the item you updated from the store.
-   * @param storeName The name of the store to update
-   * @param value The new value for the entry
-   */
-  updateByKey<T>(storeName: string, value: T, key: IDBValidKey): Observable<T> {
-    return new Observable<T>((obs) => {
-      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
-        .then((db) => {
-          validateBeforeTransaction(db, storeName, obs.error);
-          const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, obs.error));
-          const objectStore = transaction.objectStore(storeName);
-
-          transaction.oncomplete = () => {
-            this.getByKey(storeName, key)
-              .pipe(take(1))
-              .subscribe((newValue) => {
-                obs.next(newValue as T);
-                obs.complete();
-              });
-          };
-
-          objectStore.put(value);
         })
         .catch((reason) => obs.error(reason));
     });
