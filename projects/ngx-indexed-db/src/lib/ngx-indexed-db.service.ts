@@ -267,12 +267,11 @@ export class NgxIndexedDBService {
   }
 
   /**
-   * Returns all items from the store after update.
+   * Adds or updates a record in store with the given value and key. Return all items present in the store
    * @param storeName The name of the store to update
    * @param value The new value for the entry
-   * @param key The key of the entry to update if exists
    */
-  update<T>(storeName: string, value: T, key?: any): Observable<T[]> {
+  update<T>(storeName: string, value: T): Observable<T> {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
@@ -280,45 +279,17 @@ export class NgxIndexedDBService {
           const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, obs.error));
           const objectStore = transaction.objectStore(storeName);
 
-          transaction.oncomplete = () => {
-            this.getAll(storeName)
-              .pipe(take(1))
-              .subscribe((newValues) => {
-                obs.next(newValues as T[]);
-                obs.complete();
-              });
+          const request: IDBRequest<IDBValidKey> = objectStore.put(value);
+
+          request.onsuccess = async (evt: Event) => {
+            const result: any = (evt.target as IDBOpenDBRequest).result;
+            console.log('result )> ', result);
+            const getRequest: IDBRequest = objectStore.get(result) as IDBRequest<T>;
+            getRequest.onsuccess = (event: Event) => {
+              obs.next((event.target as IDBRequest<T & WithID>).result);
+              obs.complete();
+            };
           };
-
-          key ? objectStore.put(value, key) : objectStore.put(value);
-        })
-        .catch((reason) => obs.error(reason));
-    });
-  }
-
-  /**
-   * Returns the item you updated from the store after the update.
-   * @param storeName The name of the store to update
-   * @param value The new value for the entry
-   * @param key The key of the entry to update
-   */
-  updateByKey<T>(storeName: string, value: T, key: IDBValidKey): Observable<T> {
-    return new Observable<T>((obs) => {
-      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
-        .then((db) => {
-          validateBeforeTransaction(db, storeName, obs.error);
-          const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, obs.error));
-          const objectStore = transaction.objectStore(storeName);
-
-          transaction.oncomplete = () => {
-            this.getByKey(storeName, key)
-              .pipe(take(1))
-              .subscribe((newValue) => {
-                obs.next(newValue as T);
-                obs.complete();
-              });
-          };
-
-          objectStore.put(value, key);
         })
         .catch((reason) => obs.error(reason));
     });
