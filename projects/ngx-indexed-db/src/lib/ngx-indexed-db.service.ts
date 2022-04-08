@@ -547,10 +547,34 @@ export class NgxIndexedDBService {
   }
 
   /**
+   * Returns the number of rows in a store.
+   * @param storeName The name of the store to query
+   * @param keyRange  The range value and criteria to apply.
+   */
+  countByIndex(storeName: string, indexName: string, keyRange?: IDBValidKey | IDBKeyRange): Observable<number> {
+    return new Observable((obs) => {
+      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+        .then((db) => {
+          validateBeforeTransaction(db, storeName, obs.error);
+          const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error));
+          const objectStore = transaction.objectStore(storeName);
+          const index = objectStore.index(indexName);
+          const request: IDBRequest = index.count(keyRange);
+          request.onerror = (e) => obs.error(e);
+          request.onsuccess = (e) => {
+            obs.next(((e.target as IDBOpenDBRequest).result as unknown) as number);
+            obs.complete();
+          };
+        })
+        .catch((reason) => obs.error(reason));
+    });
+  }
+
+  /**
    * Delete the store by name.
    * @param storeName The name of the store to query
    */
   deleteObjectStore(storeName: string): Observable<boolean> {
-      return DeleteObjectStore(this.dbConfig.name, ++this.dbConfig.version, storeName);
+    return DeleteObjectStore(this.dbConfig.name, ++this.dbConfig.version, storeName);
   }
 }
