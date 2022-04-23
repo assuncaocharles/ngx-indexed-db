@@ -1,10 +1,10 @@
-import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
-import { openDatabase, CreateObjectStore, DeleteObjectStore } from './ngx-indexed-db';
-import { createTransaction, optionsGenerator, validateBeforeTransaction } from '../utils';
-import { CONFIG_TOKEN, DBConfig, Key, RequestEvent, ObjectStoreMeta, DBMode, WithID } from './ngx-indexed-db.meta';
-import { isPlatformBrowser } from '@angular/common';
-import { Observable, Subject, combineLatest, from } from 'rxjs';
-import { take } from 'rxjs/operators';
+import {Injectable, Inject, PLATFORM_ID} from '@angular/core';
+import {openDatabase, CreateObjectStore, DeleteObjectStore} from './ngx-indexed-db';
+import {createTransaction, optionsGenerator, validateBeforeTransaction} from '../utils';
+import {CONFIG_TOKEN, DBConfig, Key, RequestEvent, ObjectStoreMeta, DBMode, WithID} from './ngx-indexed-db.meta';
+import {isPlatformBrowser} from '@angular/common';
+import {Observable, Subject, combineLatest, from} from 'rxjs';
+import {take} from 'rxjs/operators';
 
 @Injectable()
 export class NgxIndexedDBService {
@@ -52,7 +52,7 @@ export class NgxIndexedDBService {
 
   /**
    * Allows to crate a new object store ad-hoc
-   * @param storeName The name of the store to be created
+   * @param storeSchema The schema of the store
    * @param migrationFactory The migration factory if exists
    */
   createObjectStore(
@@ -257,7 +257,7 @@ export class NgxIndexedDBService {
             obs.error(evt);
           };
 
-          request.onsuccess = ({ target: { result: ResultAll } }: RequestEvent<T>) => {
+          request.onsuccess = ({target: {result: ResultAll}}: RequestEvent<T>) => {
             obs.next(ResultAll as T[]);
             obs.complete();
           };
@@ -511,7 +511,7 @@ export class NgxIndexedDBService {
           request.onsuccess = (event) => {
             const cursor: IDBCursor = (event.target as IDBRequest<IDBCursor>).result;
             if (cursor) {
-              data.push({ primaryKey: cursor.primaryKey, key: cursor.key });
+              data.push({primaryKey: cursor.primaryKey, key: cursor.key});
               cursor.continue();
             } else {
               obs.next(data);
@@ -551,6 +551,6 @@ export class NgxIndexedDBService {
    * @param storeName The name of the store to query
    */
   deleteObjectStore(storeName: string): Observable<boolean> {
-      return DeleteObjectStore(this.dbConfig.name, ++this.dbConfig.version, storeName);
+    return DeleteObjectStore(this.dbConfig.name, ++this.dbConfig.version, storeName);
   }
 }

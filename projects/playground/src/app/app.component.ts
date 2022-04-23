@@ -1,6 +1,6 @@
-import { NgxIndexedDBService } from './../../../ngx-indexed-db/src/lib/ngx-indexed-db.service';
-import { forkJoin } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { NgxIndexedDBService } from '../../../ngx-indexed-db/src/lib/ngx-indexed-db.service';
+import {forkJoin} from 'rxjs';
+import {switchMap, tap} from 'rxjs/operators';
 import { Component } from '@angular/core';
 
 @Component({
@@ -11,11 +11,32 @@ import { Component } from '@angular/core';
 export class AppComponent {
   title = 'playground';
   storeName: string;
-  storneNameToDelete: string;
+  storeNameToDelete: string;
+  databaseName = 'Animals';
   getAll$;
+
+  animalsDB: NgxIndexedDBService;
 
   constructor(private dbService: NgxIndexedDBService) {
     this.getAll$ = this.dbService.getAll('people');
+    this.createDB();
+  }
+
+  createDB(): void {
+    this.animalsDB = new NgxIndexedDBService({
+      name: this.databaseName,
+      version: 1,
+      objectStoresMeta: [
+        {
+          store: 'dogs',
+          storeConfig: { keyPath: 'id', autoIncrement: true },
+          storeSchema: [
+            { name: 'name', keypath: 'name', options: { unique: false } },
+            { name: 'type', keypath: 'type', options: { unique: false } }
+          ]
+        }
+      ]
+    }, 'browser');
   }
 
   add(): void {
@@ -23,6 +44,17 @@ export class AppComponent {
       .add('people', {
         name: `charles number ${Math.random() * 10}`,
         email: `email number ${Math.random() * 10}`,
+      })
+      .subscribe((result) => {
+        console.log('result: ', result);
+      });
+  }
+
+  addItemInAnimalsDB(): void {
+      this.animalsDB
+      .add('dogs', {
+        name: `Charlie ${Math.random() * 10}`,
+        type: `bulldog number ${Math.random() * 10}`
       })
       .subscribe((result) => {
         console.log('result: ', result);
@@ -86,7 +118,7 @@ export class AppComponent {
   }
 
   deleteStore(): void {
-    this.dbService.deleteObjectStore(this.storneNameToDelete).subscribe((result) => {
+    this.dbService.deleteObjectStore(this.storeNameToDelete).subscribe((result) => {
       console.log('result: ', result);
     });
   }

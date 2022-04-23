@@ -9,6 +9,7 @@
 <button (click)="getAll()">getAll</button>
 <button (click)="getByKey()">getByKey</button>
 <button (click)="bulkDelete()">bulkDelete</button>
+<button (click)="addItemInAnimalsDB()">Populate Animals DB</button>
 <hr>
 <div>
   <input type="text" [(ngModel)]="storeName" name="store" #store />
@@ -16,6 +17,6 @@
 </div>
 <hr>
 <div>
-  <input type="text" [(ngModel)]="storneNameToDelete" name="store" #store />
+  <input type="text" [(ngModel)]="storeNameToDelete" name="store" #store />
   <button (click)="deleteStore()">Delete store</button>
 </div>
