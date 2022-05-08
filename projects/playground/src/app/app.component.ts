@@ -19,11 +19,16 @@ export class AppComponent {
   }
 
   add(): void {
+    //prepare random person data with or without email for count by index
+    let randomPerson = {
+      name: `charles number ${Math.random() * 10}`,
+    }
+    if (Math.random().toFixed(0) === '1') {
+      randomPerson['email'] = `email number ${Math.random() * 10}`;
+    }
+
     this.dbService
-      .add('people', {
-        name: `charles number ${Math.random() * 10}`,
-        email: `email number ${Math.random() * 10}`,
-      })
+      .add('people', randomPerson)
       .subscribe((result) => {
         console.log('result: ', result);
       });
@@ -75,6 +80,12 @@ export class AppComponent {
 
   count(): void {
     this.dbService.count('people').subscribe((result) => {
+      console.log('result: ', result);
+    });
+  }
+
+  countByIndex(): void {
+    this.dbService.countByIndex('people', 'email').subscribe((result) => {
       console.log('result: ', result);
     });
   }
