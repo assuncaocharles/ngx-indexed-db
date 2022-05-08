@@ -190,13 +190,12 @@ this.dbService.bulkGet('people', [1, 3, 5]).subscribe((result) => {
   });
 ```
 
-### update<T>(storeName: string, value: T, key?: any): Observable<T[]>
+### update<T>(storeName: string, value: T): Observable<T[]>
 
-Updates the given value in the objectStore and returns all items from the store after update..
+Adds or updates a record in store with the given value and key. Return item updated
 
 - @param storeName The name of the store to update
 - @param value The new value for the entry
-- @param key The key of the entry to update if exists
 
 ```js
 this.dbService
@@ -207,26 +206,6 @@ this.dbService
   })
   .subscribe((storeData) => {
     console.log('storeData: ', storeData);
-  });
-```
-
-### updateByKey<T>(storeName: string, value: T, key: IDBValidKey): Observable<T>
-
-Updates the given value in the objectStore and returns the item from the store after update..
-
-- @param storeName The name of the store to update
-- @param value The new value for the entry
-- @param key The key of the entry to update
-
-```js
-this.dbService
-  .updateByKey('people', {
-    id: 1,
-    email: 'luke@skywalker.com',
-    name: 'Luke Skywalker',
-  })
-  .subscribe((item) => {
-    console.log('item: ', item);
   });
 ```
 
