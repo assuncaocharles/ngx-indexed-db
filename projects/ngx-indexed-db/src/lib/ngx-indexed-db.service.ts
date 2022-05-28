@@ -283,7 +283,7 @@ export class NgxIndexedDBService {
 
           request.onsuccess = async (evt: Event) => {
             const result: any = (evt.target as IDBOpenDBRequest).result;
-            console.log('result )> ', result);
+
             const getRequest: IDBRequest = objectStore.get(result) as IDBRequest<T>;
             getRequest.onsuccess = (event: Event) => {
               obs.next((event.target as IDBRequest<T & WithID>).result);
