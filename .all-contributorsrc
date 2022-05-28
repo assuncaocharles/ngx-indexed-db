@@ -1,0 +1,35 @@
+{
+  "files": [
+    "README.md"
+  ],
+  "imageSize": 100,
+  "commit": false,
+  "contributors": [
+    {
+      "login": "aparzi",
+      "name": "Angelo Parziale",
+      "avatar_url": "https://avatars.githubusercontent.com/u/16490359?v=4",
+      "profile": "http://www.angeloparziale.it",
+      "contributions": [
+        "maintenance"
+      ]
+    },
+    {
+      "login": "assuncaocharles",
+      "name": "Charles Assunção",
+      "avatar_url": "https://avatars.githubusercontent.com/u/8545105?v=4",
+      "profile": "https://charlesassuncao.tech/",
+      "contributions": [
+        "code",
+        "doc",
+        "maintenance"
+      ]
+    }
+  ],
+  "contributorsPerLine": 7,
+  "projectName": "ngx-indexed-db",
+  "projectOwner": "assuncaocharles",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "skipCi": true
+}
