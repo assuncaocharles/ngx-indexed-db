@@ -73,7 +73,7 @@ export class NgxIndexedDBService {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db: IDBDatabase) => {
-          const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, obs.error));
+          const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, (e) => obs.error(e)));
           const objectStore = transaction.objectStore(storeName);
           const request: IDBRequest<IDBValidKey> = Boolean(key) ? objectStore.add(value, key) : objectStore.add(value);
 
@@ -203,7 +203,7 @@ export class NgxIndexedDBService {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db: IDBDatabase) => {
-          validateBeforeTransaction(db, storeName, obs.error);
+          validateBeforeTransaction(db, storeName, e => obs.error(e));
           const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error, obs.next));
           const objectStore = transaction.objectStore(storeName);
           const request: IDBRequest = objectStore.get(id) as IDBRequest<T>;
@@ -225,7 +225,7 @@ export class NgxIndexedDBService {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
-          validateBeforeTransaction(db, storeName, obs.error);
+          validateBeforeTransaction(db, storeName, e => obs.error(e));
           const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error));
           const objectStore = transaction.objectStore(storeName);
           const index = objectStore.index(indexName);
@@ -247,7 +247,7 @@ export class NgxIndexedDBService {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
-          validateBeforeTransaction(db, storeName, obs.error);
+          validateBeforeTransaction(db, storeName, e => obs.error(e));
           const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error, obs.next));
           const objectStore = transaction.objectStore(storeName);
 
@@ -275,8 +275,8 @@ export class NgxIndexedDBService {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
-          validateBeforeTransaction(db, storeName, obs.error);
-          const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, obs.error));
+          validateBeforeTransaction(db, storeName, e => obs.error(e));
+          const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, (e) => obs.error(e)));
           const objectStore = transaction.objectStore(storeName);
 
           const request: IDBRequest<IDBValidKey> = objectStore.put(value);
@@ -304,8 +304,8 @@ export class NgxIndexedDBService {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
-          validateBeforeTransaction(db, storeName, obs.error);
-          const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, obs.error));
+          validateBeforeTransaction(db, storeName, e => obs.error(e));
+          const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, (e) => obs.error(e)));
           const objectStore = transaction.objectStore(storeName);
           objectStore.delete(key);
 
@@ -331,8 +331,8 @@ export class NgxIndexedDBService {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
-          validateBeforeTransaction(db, storeName, obs.error);
-          const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, obs.error));
+          validateBeforeTransaction(db, storeName, e => obs.error(e));
+          const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, (e) => obs.error(e)));
           const objectStore = transaction.objectStore(storeName);
 
           transaction.oncomplete = () => {
@@ -354,8 +354,8 @@ export class NgxIndexedDBService {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
-          validateBeforeTransaction(db, storeName, obs.error);
-          const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, obs.error));
+          validateBeforeTransaction(db, storeName, e => obs.error(e));
+          const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, (e) => obs.error(e)));
           const objectStore = transaction.objectStore(storeName);
           objectStore.clear();
           transaction.oncomplete = () => {
@@ -398,7 +398,7 @@ export class NgxIndexedDBService {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
-          validateBeforeTransaction(db, storeName, obs.error);
+          validateBeforeTransaction(db, storeName, e => obs.error(e));
           const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error));
           const objectStore = transaction.objectStore(storeName);
           const request = keyRange === undefined ? objectStore.openCursor() : objectStore.openCursor(keyRange);
@@ -468,7 +468,7 @@ export class NgxIndexedDBService {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
-          validateBeforeTransaction(db, storeName, obs.error);
+          validateBeforeTransaction(db, storeName, e => obs.error(e));
           const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error));
           const objectStore = transaction.objectStore(storeName);
           const index = objectStore.index(indexName);
@@ -503,7 +503,7 @@ export class NgxIndexedDBService {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
-          validateBeforeTransaction(db, storeName, obs.error);
+          validateBeforeTransaction(db, storeName, e => obs.error(e));
           const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error));
           const objectStore = transaction.objectStore(storeName);
           const index = objectStore.index(indexName);
@@ -532,7 +532,7 @@ export class NgxIndexedDBService {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
-          validateBeforeTransaction(db, storeName, obs.error);
+          validateBeforeTransaction(db, storeName, e => obs.error(e));
           const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error));
           const objectStore = transaction.objectStore(storeName);
           const request: IDBRequest = objectStore.count(keyRange);
@@ -555,7 +555,7 @@ export class NgxIndexedDBService {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
-          validateBeforeTransaction(db, storeName, obs.error);
+          validateBeforeTransaction(db, storeName, e => obs.error(e));
           const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error));
           const objectStore = transaction.objectStore(storeName);
           const index = objectStore.index(indexName);
