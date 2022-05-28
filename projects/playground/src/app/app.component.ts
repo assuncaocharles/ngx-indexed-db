@@ -1,6 +1,6 @@
 import { NgxIndexedDBService } from './../../../ngx-indexed-db/src/lib/ngx-indexed-db.service';
-import { forkJoin } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { forkJoin, of } from 'rxjs';
+import { catchError, switchMap } from 'rxjs/operators';
 import { Component } from '@angular/core';
 
 @Component({
@@ -33,6 +33,7 @@ export class AppComponent {
         console.log('result: ', result);
       });
   }
+  
 
   bulkAdd(): void {
     const randomData: Array<any> = [];
@@ -49,6 +50,22 @@ export class AppComponent {
         console.error('error bulk add => ', error);
       }
     );
+  }
+
+  addToTest(): void {
+    this.dbService
+      .add('test', {
+        name: `charles number`,
+      })
+      .pipe(
+        catchError((x) => {
+          console.log('in catchError', x);
+          return of(x);
+        })
+      )
+      .subscribe((result) => {
+        console.log('result: ', result);
+      });
   }
 
   bulkGet(): void {

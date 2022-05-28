@@ -1,4 +1,5 @@
 <button (click)="add()">Add new entry</button>
+<button (click)="addToTest()">Add to test entry</button>
 <button (click)="update()">Update entry</button>
 <button (click)="delete()">Delete entry</button>
 <button (click)="clean()">Clean</button>
@@ -10,12 +11,12 @@
 <button (click)="getAll()">getAll</button>
 <button (click)="getByKey()">getByKey</button>
 <button (click)="bulkDelete()">bulkDelete</button>
-<hr>
+<hr />
 <div>
   <input type="text" [(ngModel)]="storeName" name="store" #store />
   <button (click)="createStore(storeName)">Create Store</button>
 </div>
-<hr>
+<hr />
 <div>
   <input type="text" [(ngModel)]="storneNameToDelete" name="store" #store />
   <button (click)="deleteStore()">Delete store</button>
