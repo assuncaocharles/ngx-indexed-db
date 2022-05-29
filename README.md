@@ -409,7 +409,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 <!-- markdownlint-disable -->
 <table>
   <tr>
-    <td align="center"><a href="http://www.angeloparziale.it"><img src="https://avatars.githubusercontent.com/u/16490359?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Angelo Parziale</b></sub></a><br /><a href="#maintenance-aparzi" title="Maintenance">🚧</a></td>
+    <td align="center"><a href="http://www.angeloparziale.it"><img src="https://avatars.githubusercontent.com/u/16490359?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Angelo Parziale</b></sub></a><br /><a href="#maintenance-aparzi" title="Maintenance">🚧</a> <a href="https://github.com/assuncaocharles/ngx-indexed-db/commits?author=aparzi" title="Code">💻</a></td>
     <td align="center"><a href="https://charlesassuncao.tech/"><img src="https://avatars.githubusercontent.com/u/8545105?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Charles Assunção</b></sub></a><br /><a href="https://github.com/assuncaocharles/ngx-indexed-db/commits?author=assuncaocharles" title="Code">💻</a> <a href="https://github.com/assuncaocharles/ngx-indexed-db/commits?author=assuncaocharles" title="Documentation">📖</a> <a href="#maintenance-assuncaocharles" title="Maintenance">🚧</a></td>
     <td align="center"><a href="https://github.com/coolweb"><img src="https://avatars.githubusercontent.com/u/3740250?v=4?s=100" width="100px;" alt=""/><br /><sub><b>coolweb</b></sub></a><br /><a href="#maintenance-coolweb" title="Maintenance">🚧</a></td>
   </tr>
