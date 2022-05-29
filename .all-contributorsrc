@@ -24,6 +24,15 @@
         "doc",
         "maintenance"
       ]
+    },
+    {
+      "login": "coolweb",
+      "name": "coolweb",
+      "avatar_url": "https://avatars.githubusercontent.com/u/3740250?v=4",
+      "profile": "https://github.com/coolweb",
+      "contributions": [
+        "maintenance"
+      ]
     }
   ],
   "contributorsPerLine": 7,
