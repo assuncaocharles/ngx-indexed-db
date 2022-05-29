@@ -9,8 +9,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: npm-otp-publish
-        uses: mmarchini-oss/npm-otp-publish@v0
       - uses: actions/checkout@v1
       - uses: actions/setup-node@v1
         with:
@@ -20,6 +18,9 @@ jobs:
       - run: yarn install
       - run: yarn pack
       - run: yarn run build:lib
+      - uses: mmarchini-oss/npm-otp-publish@v0
+        with:
+          npm_token: ${{ secrets.NPM_TOKEN }}
       - name: Publish
         working-directory: ./dist/ngx-indexed-db
         run: npm publish --access public
