@@ -21,7 +21,7 @@ $ yarn add ngx-indexed-db
 
 ## Usage
 
-Import the `NgxIndexedDBModule` and initiate it:
+Import the `NgxIndexedDBModule` and set up it:
 
 ```js
 import { NgxIndexedDBModule, DBConfig } from 'ngx-indexed-db';
