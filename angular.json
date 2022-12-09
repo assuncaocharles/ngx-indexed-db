@@ -170,6 +170,5 @@
     }},
   "cli": {
     "analytics": false
-  },
-  "defaultProject": "ngx-indexed-db"
+  }
 }
