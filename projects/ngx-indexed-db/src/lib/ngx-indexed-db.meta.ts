@@ -5,6 +5,7 @@ export interface DBConfig {
   version: number;
   objectStoresMeta: ObjectStoreMeta[];
   migrationFactory?: () => { [key: number]: (db: IDBDatabase, transaction: IDBTransaction) => void };
+  isDefault?: boolean;
 }
 
 export interface ObjectStoreMeta {
