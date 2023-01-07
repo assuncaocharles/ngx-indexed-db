@@ -124,6 +124,14 @@ export class NgxIndexedDBService {
               obs.next((event.target as IDBRequest<T & WithID>).result);
               obs.complete();
             };
+
+            getRequest.onerror = (event: Event) => {
+              obs.error(event);
+            };
+          };
+
+          request.onerror = (event: Event) => {
+            obs.error(event);
           };
         })
         .catch((error) => obs.error(error));
