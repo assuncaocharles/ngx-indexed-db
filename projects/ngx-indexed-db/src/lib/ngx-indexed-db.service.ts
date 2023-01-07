@@ -312,7 +312,7 @@ export class NgxIndexedDBService {
    *
    * @error If the call to bulkPut fails the transaction will be aborted and previously inserted entities will be deleted
    */
-  public bulkPut<T>(storeName: string, items: Array<T>): Observable<any> {
+  public bulkPut<T>(storeName: string, items: Array<T>): Observable<Key> {
     let transaction: IDBTransaction;
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
@@ -325,9 +325,9 @@ export class NgxIndexedDBService {
             const request: IDBRequest<IDBValidKey> = objectStore.put(item);
 
             if (index === items.length - 1) {
-              request.onsuccess = (evt: any) => {
+              request.onsuccess = (evt: Event) => {
                 transaction.commit();
-                obs.next(evt.target?.result);
+                obs.next((evt.target as IDBRequest<Key>).result);
                 obs.complete();
               };
             }
