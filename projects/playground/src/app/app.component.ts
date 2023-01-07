@@ -33,7 +33,7 @@ export class AppComponent {
         console.log('result: ', result);
       });
   }
-  
+
 
   bulkAdd(): void {
     const randomData: Array<any> = [];
@@ -74,6 +74,16 @@ export class AppComponent {
     }
     this.dbService.bulkGet('people', [1, 3, 5]).subscribe((result) => {
       console.log('results: ', result);
+    });
+  }
+
+  bulkPut(): void {
+    const people = [];
+    for (let i = 0; i < 100_000; ++i) {
+      people.push({name: `charles number ${Math.random() * 10}`, email: `email number ${Math.random() * 10}`});
+    }
+    this.dbService.bulkPut('people', people).subscribe((result) => {
+      console.log('result: ', result);
     });
   }
 
