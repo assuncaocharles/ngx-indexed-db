@@ -11,6 +11,7 @@ export class NgxIndexedDBService {
   private readonly isBrowser: boolean;
   private indexedDB: IDBFactory;
   private defaultDatabaseName?: string = null;
+  private selectedDb: string;
 
   constructor(
     @Inject(CONFIG_TOKEN) private dbConfigs: Record<string, DBConfig>,
@@ -45,6 +46,7 @@ export class NgxIndexedDBService {
     }
     if (((dbConfig.isDefault ?? false) && !this.defaultDatabaseName) || isOnlyConfig) {
       this.defaultDatabaseName = dbConfig.name;
+      this.selectedDb = dbConfig.name;
     }
     CreateObjectStore(
       this.indexedDB,
@@ -69,7 +71,15 @@ export class NgxIndexedDBService {
     });
   }
 
-  private getDbConfig(databaseName?: string): DBConfig {
+  private get dbConfig(): DBConfig {
+    return this.dbConfigs[this.selectedDb];
+  }
+
+  /**
+   * Selects a database for the current context.
+   * @param {string} [databaseName=undefined] Database name to select.
+   */
+  public selectDb(databaseName?: string): void {
     databaseName = databaseName ?? this.defaultDatabaseName;
     if (!databaseName) {
       // Name is still null, it means that there is no default database set
@@ -79,23 +89,21 @@ export class NgxIndexedDBService {
     if (!Object.keys(this.dbConfigs).includes(databaseName)) {
       throw new Error(`NgxIndexedDB: Database ${databaseName} is not initialized.`);
     }
-    return this.dbConfigs[databaseName];
+
+    this.selectedDb = databaseName;
   }
 
   /**
    * Allows to crate a new object store ad-hoc
    * @param storeName The name of the store to be created
    * @param migrationFactory The migration factory if exists
-   * @param {string} [databaseName=undefined] The name of the database to create a store on
    */
   createObjectStore(
     storeSchema: ObjectStoreMeta,
     migrationFactory?: () => { [key: number]: (db: IDBDatabase, transaction: IDBTransaction) => void },
-    databaseName?: string,
   ): void {
-    const dbConfig = this.getDbConfig(databaseName);
     const storeSchemas: ObjectStoreMeta[] = [storeSchema];
-    CreateObjectStore(this.indexedDB, dbConfig.name, ++dbConfig.version, storeSchemas, migrationFactory);
+    CreateObjectStore(this.indexedDB, this.dbConfig.name, ++this.dbConfig.version, storeSchemas, migrationFactory);
   }
 
   /**
@@ -103,12 +111,10 @@ export class NgxIndexedDBService {
    * @param storeName The name of the store to add the item
    * @param value The entry to be added
    * @param key The optional key for the entry
-   * @param {string} [databaseName=undefined] Optional database to store the item into
    */
-  add<T>(storeName: string, value: T, key?: any, databaseName?: string): Observable<T & WithID> {
-    const dbConfig = this.getDbConfig(databaseName);
+  add<T>(storeName: string, value: T, key?: any): Observable<T & WithID> {
     return new Observable((obs) => {
-      openDatabase(this.indexedDB, dbConfig.name, dbConfig.version)
+      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db: IDBDatabase) => {
           const transaction = createTransaction(
             db,
@@ -134,12 +140,10 @@ export class NgxIndexedDBService {
    * Adds new entries in the store and returns its key
    * @param storeName The name of the store to add the item
    * @param values The entries to be added containing optional key attribute
-   * @param {string} [databaseName=undefined] The name of the database to add items on
    */
-  bulkAdd<T>(storeName: string, values: Array<T & { key?: any }>, databaseName?: string): Observable<number[]> {
-    const dbConfig = this.getDbConfig(databaseName);
+  bulkAdd<T>(storeName: string, values: Array<T & { key?: any }>): Observable<number[]> {
     const promises = new Promise<number[]>((resolve, reject) => {
-      openDatabase(this.indexedDB, dbConfig.name, dbConfig.version)
+      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db: IDBDatabase) => {
           const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, resolve, reject));
           const objectStore = transaction.objectStore(storeName);
@@ -172,13 +176,11 @@ export class NgxIndexedDBService {
    * Delete entries in the store and returns current entries in the store
    * @param storeName The name of the store to add the item
    * @param keys The keys to be deleted
-   * @param {string} [databaseName=undefined] The name of the database to delete items of
    */
-  bulkDelete(storeName: string, keys: Key[], databaseName?: string): Observable<number[]> {
-    const dbConfig = this.getDbConfig(databaseName);
+  bulkDelete(storeName: string, keys: Key[]): Observable<number[]> {
     const promises = keys.map((key) => {
       return new Promise<number>((resolve, reject) => {
-        openDatabase(this.indexedDB, dbConfig.name, dbConfig.version)
+        openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
           .then((db: IDBDatabase) => {
             const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, reject, resolve));
             const objectStore = transaction.objectStore(storeName);
@@ -202,12 +204,10 @@ export class NgxIndexedDBService {
    * Returns entry by key.
    * @param storeName The name of the store to query
    * @param key The entry key
-   * @param {string} [databaseName=undefined] The name of the database to get items of
    */
-  getByKey<T>(storeName: string, key: IDBValidKey, databaseName?: string): Observable<T> {
-    const dbConfig = this.getDbConfig(databaseName);
+  getByKey<T>(storeName: string, key: IDBValidKey): Observable<T> {
     return new Observable<T>((obs) => {
-      openDatabase(this.indexedDB, dbConfig.name, dbConfig.version)
+      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db: IDBDatabase) => {
           const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error));
           const objectStore = transaction.objectStore(storeName);
@@ -228,10 +228,9 @@ export class NgxIndexedDBService {
    * Retrieve multiple entries in the store
    * @param storeName The name of the store to retrieve the items
    * @param keys The ids entries to be retrieve
-   * @param {string} [databaseName=undefined] The name of the database to get items of
    */
-  bulkGet<T>(storeName: string, keys: Array<IDBValidKey>, databaseName?: string): any {
-    const observables = keys.map((key) => this.getByKey(storeName, key, databaseName));
+  bulkGet<T>(storeName: string, keys: Array<IDBValidKey>): any {
+    const observables = keys.map((key) => this.getByKey(storeName, key));
 
     return new Observable((obs) => {
       combineLatest(observables).subscribe((values) => {
@@ -245,12 +244,10 @@ export class NgxIndexedDBService {
    * Returns entry by id.
    * @param storeName The name of the store to query
    * @param id The entry id
-   * @param {string} [databaseName=undefined] The name of the database to get items of
    */
-  getByID<T>(storeName: string, id: string | number, databaseName?: string): Observable<T> {
-    const dbConfig = this.getDbConfig(databaseName);
+  getByID<T>(storeName: string, id: string | number): Observable<T> {
     return new Observable((obs) => {
-      openDatabase(this.indexedDB, dbConfig.name, dbConfig.version)
+      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db: IDBDatabase) => {
           validateBeforeTransaction(db, storeName, (e) => obs.error(e));
           const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error, obs.next));
@@ -269,12 +266,10 @@ export class NgxIndexedDBService {
    * @param storeName The name of the store to query
    * @param indexName The index name to filter
    * @param key The entry key.
-   * @param {string} [databaseName=undefined] The name of the database to get items of
    */
-  getByIndex<T>(storeName: string, indexName: string, key: IDBValidKey, databaseName?: string): Observable<T> {
-    const dbConfig = this.getDbConfig(databaseName);
+  getByIndex<T>(storeName: string, indexName: string, key: IDBValidKey): Observable<T> {
     return new Observable((obs) => {
-      openDatabase(this.indexedDB, dbConfig.name, dbConfig.version)
+      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
           validateBeforeTransaction(db, storeName, (e) => obs.error(e));
           const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error));
@@ -293,12 +288,10 @@ export class NgxIndexedDBService {
   /**
    * Return all elements from one store
    * @param storeName The name of the store to select the items
-   * @param {string} [databaseName=undefined] The name of the database to get items of
    */
-  getAll<T>(storeName: string, databaseName?: string): Observable<T[]> {
-    const dbConfig = this.getDbConfig(databaseName);
+  getAll<T>(storeName: string): Observable<T[]> {
     return new Observable((obs) => {
-      openDatabase(this.indexedDB, dbConfig.name, dbConfig.version)
+      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
           validateBeforeTransaction(db, storeName, (e) => obs.error(e));
           const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error, obs.next));
@@ -323,12 +316,10 @@ export class NgxIndexedDBService {
    * Adds or updates a record in store with the given value and key. Return all items present in the store
    * @param storeName The name of the store to update
    * @param value The new value for the entry
-   * @param {string} [databaseName=undefined] The name of the database to update the items of
    */
-  update<T>(storeName: string, value: T, databaseName?: string): Observable<T> {
-    const dbConfig = this.getDbConfig(databaseName);
+  update<T>(storeName: string, value: T): Observable<T> {
     return new Observable((obs) => {
-      openDatabase(this.indexedDB, dbConfig.name, dbConfig.version)
+      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
           validateBeforeTransaction(db, storeName, (e) => obs.error(e));
           const transaction = createTransaction(
@@ -357,12 +348,10 @@ export class NgxIndexedDBService {
    * Returns all items from the store after delete.
    * @param storeName The name of the store to have the entry deleted
    * @param key The key of the entry to be deleted
-   * @param {string} [databaseName=undefined] The name of the database to delete items of
    */
-  delete<T>(storeName: string, key: Key, databaseName?: string): Observable<T[]> {
-    const dbConfig = this.getDbConfig(databaseName);
+  delete<T>(storeName: string, key: Key): Observable<T[]> {
     return new Observable((obs) => {
-      openDatabase(this.indexedDB, dbConfig.name, dbConfig.version)
+      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
           validateBeforeTransaction(db, storeName, (e) => obs.error(e));
           const transaction = createTransaction(
@@ -389,12 +378,10 @@ export class NgxIndexedDBService {
    * Returns true from the store after a successful delete.
    * @param storeName The name of the store to have the entry deleted
    * @param key The key of the entry to be deleted
-   * @param {string} [databaseName=undefined] The name of the database to delete items of
    */
-  deleteByKey(storeName: string, key: Key, databaseName?: string): Observable<boolean> {
-    const dbConfig = this.getDbConfig(databaseName);
+  deleteByKey(storeName: string, key: Key): Observable<boolean> {
     return new Observable((obs) => {
-      openDatabase(this.indexedDB, dbConfig.name, dbConfig.version)
+      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
           validateBeforeTransaction(db, storeName, (e) => obs.error(e));
           const transaction = createTransaction(
@@ -417,12 +404,10 @@ export class NgxIndexedDBService {
   /**
    * Returns true if successfully delete all entries from the store.
    * @param storeName The name of the store to have the entries deleted
-   * @param {string} [databaseName=undefined] The name of the database to clear
    */
-  clear(storeName: string, databaseName?: string): Observable<boolean> {
-    const dbConfig = this.getDbConfig(databaseName);
+  clear(storeName: string): Observable<boolean> {
     return new Observable((obs) => {
-      openDatabase(this.indexedDB, dbConfig.name, dbConfig.version)
+      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
           validateBeforeTransaction(db, storeName, (e) => obs.error(e));
           const transaction = createTransaction(
@@ -442,16 +427,13 @@ export class NgxIndexedDBService {
 
   /**
    * Returns true if successfully delete the DB.
-   *
-   * @param {string} databaseName The name of the database to delete
    */
-  deleteDatabase(databaseName?: string): Observable<boolean> {
-    const dbConfig = this.getDbConfig(databaseName);
+  deleteDatabase(): Observable<boolean> {
     return new Observable((obs) => {
-      openDatabase(this.indexedDB, dbConfig.name, dbConfig.version)
+      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then(async (db) => {
           await db.close();
-          const deleteDBRequest = this.indexedDB.deleteDatabase(dbConfig.name);
+          const deleteDBRequest = this.indexedDB.deleteDatabase(this.dbConfig.name);
           deleteDBRequest.onsuccess = () => {
             obs.next(true);
             obs.complete();
@@ -469,12 +451,10 @@ export class NgxIndexedDBService {
    * Returns the open cursor event
    * @param storeName The name of the store to have the entries deleted
    * @param keyRange The key range which the cursor should be open on
-   * @param {string} [databaseName=undefined] The name of the database to open the cursor on
    */
-  openCursor(storeName: string, keyRange?: IDBKeyRange, databaseName?: string): Observable<Event> {
-    const dbConfig = this.getDbConfig(databaseName);
+  openCursor(storeName: string, keyRange?: IDBKeyRange): Observable<Event> {
     return new Observable((obs) => {
-      openDatabase(this.indexedDB, dbConfig.name, dbConfig.version)
+      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
           validateBeforeTransaction(db, storeName, (e) => obs.error(e));
           const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error));
@@ -495,19 +475,16 @@ export class NgxIndexedDBService {
    * @param storeName The name of the store to query.
    * @param indexName The index name to filter.
    * @param keyRange The range value and criteria to apply on the index.
-   * @param {string} [databaseName=undefined] The name of the database to open the cursor on
    */
   openCursorByIndex(
     storeName: string,
     indexName: string,
     keyRange: IDBKeyRange,
     mode: DBMode = DBMode.readonly,
-    databaseName?: string,
   ): Observable<Event> {
     const obs = new Subject<Event>();
-    const dbConfig = this.getDbConfig(databaseName);
 
-    openDatabase(this.indexedDB, dbConfig.name, dbConfig.version)
+    openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
       .then((db) => {
         validateBeforeTransaction(db, storeName, (reason) => {
           obs.error(reason);
@@ -543,13 +520,11 @@ export class NgxIndexedDBService {
    * @param storeName The name of the store to query
    * @param indexName The index name to filter
    * @param keyRange  The range value and criteria to apply on the index.
-   * @param {string} [databaseName=undefined] The name of the database to get items of
    */
-  getAllByIndex<T>(storeName: string, indexName: string, keyRange: IDBKeyRange, databaseName?: string): Observable<T[]> {
+  getAllByIndex<T>(storeName: string, indexName: string, keyRange: IDBKeyRange): Observable<T[]> {
     const data: T[] = [];
-    const dbConfig = this.getDbConfig(databaseName);
     return new Observable((obs) => {
-      openDatabase(this.indexedDB, dbConfig.name, dbConfig.version)
+      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
           validateBeforeTransaction(db, storeName, (e) => obs.error(e));
           const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error));
@@ -576,18 +551,15 @@ export class NgxIndexedDBService {
    * @param storeName The name of the store to query
    * @param indexName The index name to filter
    * @param keyRange  The range value and criteria to apply on the index.
-   * @param {string} [databaseName=undefined] The name of the database to get keys of
    */
   getAllKeysByIndex(
     storeName: string,
     indexName: string,
     keyRange: IDBKeyRange,
-    databaseName?: string,
   ): Observable<{ primaryKey: any; key: any }[]> {
     const data: { primaryKey: any; key: any }[] = [];
-    const dbConfig = this.getDbConfig(databaseName);
     return new Observable((obs) => {
-      openDatabase(this.indexedDB, dbConfig.name, dbConfig.version)
+      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
           validateBeforeTransaction(db, storeName, (e) => obs.error(e));
           const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error));
@@ -613,12 +585,10 @@ export class NgxIndexedDBService {
    * Returns the number of rows in a store.
    * @param storeName The name of the store to query
    * @param keyRange  The range value and criteria to apply.
-   * @param {string} [databaseName=undefined] The name of the database to count the items of
    */
-  count(storeName: string, keyRange?: IDBValidKey | IDBKeyRange, databaseName?: string): Observable<number> {
-    const dbConfig = this.getDbConfig(databaseName);
+  count(storeName: string, keyRange?: IDBValidKey | IDBKeyRange): Observable<number> {
     return new Observable((obs) => {
-      openDatabase(this.indexedDB, dbConfig.name, dbConfig.version)
+      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
           validateBeforeTransaction(db, storeName, (e) => obs.error(e));
           const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error));
@@ -638,12 +608,10 @@ export class NgxIndexedDBService {
    * Returns the number of rows in a store.
    * @param storeName The name of the store to query
    * @param keyRange  The range value and criteria to apply.
-   * @param {string} [databaseName=undefined] The name of the database to count the items of
    */
-  countByIndex(storeName: string, indexName: string, keyRange?: IDBValidKey | IDBKeyRange, databaseName?: string): Observable<number> {
-    const dbConfig = this.getDbConfig(databaseName);
+  countByIndex(storeName: string, indexName: string, keyRange?: IDBValidKey | IDBKeyRange): Observable<number> {
     return new Observable((obs) => {
-      openDatabase(this.indexedDB, dbConfig.name, dbConfig.version)
+      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
           validateBeforeTransaction(db, storeName, (e) => obs.error(e));
           const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error));
@@ -663,10 +631,8 @@ export class NgxIndexedDBService {
   /**
    * Delete the store by name.
    * @param storeName The name of the store to query
-   * @param {string} [databaseName=undefined] The name of the database to delete the store of
    */
-  deleteObjectStore(storeName: string, databaseName?: string): Observable<boolean> {
-    const dbConfig = this.getDbConfig(databaseName);
-    return DeleteObjectStore(dbConfig.name, ++dbConfig.version, storeName);
+  deleteObjectStore(storeName: string): Observable<boolean> {
+    return DeleteObjectStore(this.dbConfig.name, ++this.dbConfig.version, storeName);
   }
 }
