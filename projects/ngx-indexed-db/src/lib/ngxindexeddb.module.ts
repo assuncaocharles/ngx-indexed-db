@@ -8,10 +8,14 @@ import { DBConfig, CONFIG_TOKEN } from './ngx-indexed-db.meta';
   imports: [CommonModule]
 })
 export class NgxIndexedDBModule {
-  static forRoot(dbConfig: DBConfig): ModuleWithProviders<NgxIndexedDBModule> {
+  static forRoot(...dbConfigs: DBConfig[]): ModuleWithProviders<NgxIndexedDBModule> {
+    const value = {};
+    for (const dbConfig of dbConfigs) {
+      Object.assign(value, {[dbConfig.name]: dbConfig});
+    }
     return {
       ngModule: NgxIndexedDBModule,
-      providers: [NgxIndexedDBService, { provide: CONFIG_TOKEN, useValue: dbConfig }]
+      providers: [NgxIndexedDBService, { provide: CONFIG_TOKEN, useValue: value }]
     };
   }
 }
