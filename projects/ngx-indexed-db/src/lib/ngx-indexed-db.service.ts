@@ -10,14 +10,13 @@ import { take } from 'rxjs/operators';
 export class NgxIndexedDBService {
   private readonly isBrowser: boolean;
   private indexedDB: IDBFactory;
+  private defaultDatabaseName?: string = null;
+  private selectedDb: string;
 
-  constructor(@Inject(CONFIG_TOKEN) private dbConfig: DBConfig, @Inject(PLATFORM_ID) private platformId: any) {
-    if (!dbConfig.name) {
-      throw new Error('NgxIndexedDB: Please, provide the dbName in the configuration');
-    }
-    if (!dbConfig.version) {
-      throw new Error('NgxIndexedDB: Please, provide the db version in the configuration');
-    }
+  constructor(
+    @Inject(CONFIG_TOKEN) private dbConfigs: Record<string, DBConfig>,
+    @Inject(PLATFORM_ID) private platformId: any
+  ) {
     this.isBrowser = isPlatformBrowser(this.platformId);
     if (this.isBrowser) {
       this.indexedDB =
@@ -26,28 +25,72 @@ export class NgxIndexedDBService {
         (window as any).webkitIndexedDB ||
         (window as any).msIndexedDB;
 
-      CreateObjectStore(
-        this.indexedDB,
-        dbConfig.name,
-        dbConfig.version,
-        dbConfig.objectStoresMeta,
-        dbConfig.migrationFactory
-      );
+      const dbConfigs = Object.values(this.dbConfigs);
+      const isOnlyConfig = dbConfigs.length === 1
+      for (const dbConfig of dbConfigs) {
+        this.instanciateConfig(dbConfig, isOnlyConfig);
+      }
+    }
+  }
 
-      openDatabase(this.indexedDB, dbConfig.name).then((db) => {
-        if (db.version !== dbConfig.version) {
-          if (process.env.NODE_ENV !== 'production') {
-            console.warn(`
-            Your DB Config doesn't match the most recent version of the DB with name ${this.dbConfig.name}, please update it
+  private instanciateConfig(dbConfig: DBConfig, isOnlyConfig: boolean): void {
+    if (!dbConfig.name) {
+      throw new Error('NgxIndexedDB: Please, provide the dbName in the configuration');
+    }
+    if (!dbConfig.version) {
+      throw new Error('NgxIndexedDB: Please, provide the db version in the configuration');
+    }
+    if ((dbConfig.isDefault ?? false) && this.defaultDatabaseName) {
+      // A default DB is already configured, throw an error
+      throw new Error('NgxIndexedDB: Only one database can be set as default')
+    }
+    if (((dbConfig.isDefault ?? false) && !this.defaultDatabaseName) || isOnlyConfig) {
+      this.defaultDatabaseName = dbConfig.name;
+      this.selectedDb = dbConfig.name;
+    }
+    CreateObjectStore(
+      this.indexedDB,
+      dbConfig.name,
+      dbConfig.version,
+      dbConfig.objectStoresMeta,
+      dbConfig.migrationFactory
+    );
+
+    openDatabase(this.indexedDB, dbConfig.name).then((db) => {
+      if (db.version !== dbConfig.version) {
+        if (process.env.NODE_ENV !== 'production') {
+          console.warn(`
+            Your DB Config doesn't match the most recent version of the DB with name ${dbConfig.name}, please update it
             DB current version: ${db.version};
             Your configuration: ${dbConfig.version};
             `);
-            console.warn(`Using latest version ${db.version}`);
-          }
-          this.dbConfig.version = db.version;
+          console.warn(`Using latest version ${db.version}`);
         }
-      });
+        this.dbConfigs[dbConfig.name].version = db.version;
+      }
+    });
+  }
+
+  private get dbConfig(): DBConfig {
+    return this.dbConfigs[this.selectedDb];
+  }
+
+  /**
+   * Selects a database for the current context.
+   * @param {string} [databaseName=undefined] Database name to select.
+   */
+  public selectDb(databaseName?: string): void {
+    databaseName = databaseName ?? this.defaultDatabaseName;
+    if (!databaseName) {
+      // Name is still null, it means that there is no default database set
+      // and the database name was not specified while calling a method
+      throw new Error(`No database name specified and no default database set.`);
     }
+    if (!Object.keys(this.dbConfigs).includes(databaseName)) {
+      throw new Error(`NgxIndexedDB: Database ${databaseName} is not initialized.`);
+    }
+
+    this.selectedDb = databaseName;
   }
 
   /**
@@ -57,7 +100,7 @@ export class NgxIndexedDBService {
    */
   createObjectStore(
     storeSchema: ObjectStoreMeta,
-    migrationFactory?: () => { [key: number]: (db: IDBDatabase, transaction: IDBTransaction) => void }
+    migrationFactory?: () => { [key: number]: (db: IDBDatabase, transaction: IDBTransaction) => void },
   ): void {
     const storeSchemas: ObjectStoreMeta[] = [storeSchema];
     CreateObjectStore(this.indexedDB, this.dbConfig.name, ++this.dbConfig.version, storeSchemas, migrationFactory);
@@ -73,7 +116,10 @@ export class NgxIndexedDBService {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db: IDBDatabase) => {
-          const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, (e) => obs.error(e)));
+          const transaction = createTransaction(
+            db,
+            optionsGenerator(DBMode.readwrite, storeName, (e) => obs.error(e))
+          );
           const objectStore = transaction.objectStore(storeName);
           const request: IDBRequest<IDBValidKey> = Boolean(key) ? objectStore.add(value, key) : objectStore.add(value);
 
@@ -127,8 +173,8 @@ export class NgxIndexedDBService {
           });
 
           resolve(Promise.all(results));
-
-        }).catch((reason) => reject(reason));
+        })
+        .catch((reason) => reject(reason));
     });
 
     return from(promises);
@@ -211,7 +257,7 @@ export class NgxIndexedDBService {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db: IDBDatabase) => {
-          validateBeforeTransaction(db, storeName, e => obs.error(e));
+          validateBeforeTransaction(db, storeName, (e) => obs.error(e));
           const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error, obs.next));
           const objectStore = transaction.objectStore(storeName);
           const request: IDBRequest = objectStore.get(id) as IDBRequest<T>;
@@ -233,7 +279,7 @@ export class NgxIndexedDBService {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
-          validateBeforeTransaction(db, storeName, e => obs.error(e));
+          validateBeforeTransaction(db, storeName, (e) => obs.error(e));
           const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error));
           const objectStore = transaction.objectStore(storeName);
           const index = objectStore.index(indexName);
@@ -255,7 +301,7 @@ export class NgxIndexedDBService {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
-          validateBeforeTransaction(db, storeName, e => obs.error(e));
+          validateBeforeTransaction(db, storeName, (e) => obs.error(e));
           const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error, obs.next));
           const objectStore = transaction.objectStore(storeName);
 
@@ -283,8 +329,11 @@ export class NgxIndexedDBService {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
-          validateBeforeTransaction(db, storeName, e => obs.error(e));
-          const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, (e) => obs.error(e)));
+          validateBeforeTransaction(db, storeName, (e) => obs.error(e));
+          const transaction = createTransaction(
+            db,
+            optionsGenerator(DBMode.readwrite, storeName, (e) => obs.error(e))
+          );
           const objectStore = transaction.objectStore(storeName);
 
           const request: IDBRequest<IDBValidKey> = objectStore.put(value);
@@ -355,8 +404,11 @@ export class NgxIndexedDBService {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
-          validateBeforeTransaction(db, storeName, e => obs.error(e));
-          const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, (e) => obs.error(e)));
+          validateBeforeTransaction(db, storeName, (e) => obs.error(e));
+          const transaction = createTransaction(
+            db,
+            optionsGenerator(DBMode.readwrite, storeName, (e) => obs.error(e))
+          );
           const objectStore = transaction.objectStore(storeName);
           objectStore.delete(key);
 
@@ -382,8 +434,11 @@ export class NgxIndexedDBService {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
-          validateBeforeTransaction(db, storeName, e => obs.error(e));
-          const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, (e) => obs.error(e)));
+          validateBeforeTransaction(db, storeName, (e) => obs.error(e));
+          const transaction = createTransaction(
+            db,
+            optionsGenerator(DBMode.readwrite, storeName, (e) => obs.error(e))
+          );
           const objectStore = transaction.objectStore(storeName);
 
           transaction.oncomplete = () => {
@@ -405,8 +460,11 @@ export class NgxIndexedDBService {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
-          validateBeforeTransaction(db, storeName, e => obs.error(e));
-          const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, (e) => obs.error(e)));
+          validateBeforeTransaction(db, storeName, (e) => obs.error(e));
+          const transaction = createTransaction(
+            db,
+            optionsGenerator(DBMode.readwrite, storeName, (e) => obs.error(e))
+          );
           const objectStore = transaction.objectStore(storeName);
           objectStore.clear();
           transaction.oncomplete = () => {
@@ -449,7 +507,7 @@ export class NgxIndexedDBService {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
-          validateBeforeTransaction(db, storeName, e => obs.error(e));
+          validateBeforeTransaction(db, storeName, (e) => obs.error(e));
           const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error));
           const objectStore = transaction.objectStore(storeName);
           const request = keyRange === undefined ? objectStore.openCursor() : objectStore.openCursor(keyRange);
@@ -473,7 +531,7 @@ export class NgxIndexedDBService {
     storeName: string,
     indexName: string,
     keyRange: IDBKeyRange,
-    mode: DBMode = DBMode.readonly
+    mode: DBMode = DBMode.readonly,
   ): Observable<Event> {
     const obs = new Subject<Event>();
 
@@ -519,7 +577,7 @@ export class NgxIndexedDBService {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
-          validateBeforeTransaction(db, storeName, e => obs.error(e));
+          validateBeforeTransaction(db, storeName, (e) => obs.error(e));
           const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error));
           const objectStore = transaction.objectStore(storeName);
           const index = objectStore.index(indexName);
@@ -548,13 +606,13 @@ export class NgxIndexedDBService {
   getAllKeysByIndex(
     storeName: string,
     indexName: string,
-    keyRange: IDBKeyRange
+    keyRange: IDBKeyRange,
   ): Observable<{ primaryKey: any; key: any }[]> {
     const data: { primaryKey: any; key: any }[] = [];
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
-          validateBeforeTransaction(db, storeName, e => obs.error(e));
+          validateBeforeTransaction(db, storeName, (e) => obs.error(e));
           const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error));
           const objectStore = transaction.objectStore(storeName);
           const index = objectStore.index(indexName);
@@ -583,7 +641,7 @@ export class NgxIndexedDBService {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
-          validateBeforeTransaction(db, storeName, e => obs.error(e));
+          validateBeforeTransaction(db, storeName, (e) => obs.error(e));
           const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error));
           const objectStore = transaction.objectStore(storeName);
           const request: IDBRequest = objectStore.count(keyRange);
@@ -606,7 +664,7 @@ export class NgxIndexedDBService {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
-          validateBeforeTransaction(db, storeName, e => obs.error(e));
+          validateBeforeTransaction(db, storeName, (e) => obs.error(e));
           const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error));
           const objectStore = transaction.objectStore(storeName);
           const index = objectStore.index(indexName);
