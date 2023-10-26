@@ -69,10 +69,10 @@ export class AppComponent {
   }
 
   bulkGet(): void {
-    for (let i = 0; i < 3; i++) {
-      this.bulkAdd();
-    }
-    this.dbService.bulkGet('people', [1, 3, 5]).subscribe((result) => {
+    // for (let i = 0; i < 3; i++) {
+    //   this.bulkAdd();
+    // }
+    this.dbService.bulkGet('people', [1, 2]).subscribe((result) => {
       console.log('results: ', result);
     });
   }
