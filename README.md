@@ -326,6 +326,7 @@ Returns the open cursor event
 
 - @param storeName The name of the store to have the entries deleted
 - @param keyRange The key range which the cursor should be open on
+- @param direction IDB Cursor Direction to work with, default to `next`
 
 ```js
 this.dbService.openCursor('people', IDBKeyRange.bound("A", "F")).subscribe((evt) => {
