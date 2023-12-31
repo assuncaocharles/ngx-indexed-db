@@ -320,7 +320,7 @@ this.dbService.deleteByKey('people', 3).subscribe((status) => {
 });
 ```
 
-### openCursor(storeName: string, keyRange?: IDBKeyRange): Observable<Event>
+### openCursor(storeName: string, keyRange?: IDBKeyRange, direction?: IDBCursorDirection): Observable<Event>
 
 Returns the open cursor event
 
