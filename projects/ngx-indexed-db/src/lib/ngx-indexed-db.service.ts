@@ -531,6 +531,7 @@ export class NgxIndexedDBService {
     storeName: string,
     indexName: string,
     keyRange: IDBKeyRange,
+    direction: IDBCursorDirection = 'next',
     mode: DBMode = DBMode.readonly,
   ): Observable<Event> {
     const obs = new Subject<Event>();
@@ -555,7 +556,7 @@ export class NgxIndexedDBService {
         );
         const objectStore = transaction.objectStore(storeName);
         const index = objectStore.index(indexName);
-        const request = index.openCursor(keyRange);
+        const request = index.openCursor(keyRange, direction);
 
         request.onsuccess = (event: Event) => {
           obs.next(event);

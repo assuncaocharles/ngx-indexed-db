@@ -339,13 +339,14 @@ this.dbService.openCursor('people', IDBKeyRange.bound("A", "F")).subscribe((evt)
 });
 ```
 
-### openCursorByIndex(storeName: string, indexName: string, keyRange: IDBKeyRange, mode?: DBMode): Observable<Event>
+### openCursorByIndex(storeName: string, indexName: string, keyRange: IDBKeyRange, direction?: IDBCursorDirection, mode?: DBMode): Observable<Event>
 
 Open a cursor by index filter.
 
 - @param storeName The name of the store to query.
 - @param indexName The index name to filter.
 - @param keyRange The range value and criteria to apply on the index.
+- @param direction IDB Cursor Direction to work with, default to `next`
 - @param mode DB Mode to work with, default to `readonly`
 
 ```js
