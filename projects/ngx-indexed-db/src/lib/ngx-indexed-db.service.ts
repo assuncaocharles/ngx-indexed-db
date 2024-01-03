@@ -512,14 +512,14 @@ export class NgxIndexedDBService {
    * @param storeName The name of the store to have the entries deleted
    * @param keyRange The key range which the cursor should be open on
    */
-  openCursor(storeName: string, keyRange?: IDBKeyRange): Observable<Event> {
+  openCursor(storeName: string, keyRange?: IDBKeyRange, direction: IDBCursorDirection = 'next'): Observable<Event> {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
           validateBeforeTransaction(db, storeName, (e) => obs.error(e));
           const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error));
           const objectStore = transaction.objectStore(storeName);
-          const request = keyRange === undefined ? objectStore.openCursor() : objectStore.openCursor(keyRange);
+          const request = keyRange === undefined ? objectStore.openCursor() : objectStore.openCursor(keyRange, direction);
 
           request.onsuccess = (event: Event) => {
             obs.next(event);
@@ -540,7 +540,8 @@ export class NgxIndexedDBService {
     storeName: string,
     indexName: string,
     keyRange: IDBKeyRange,
-    mode: DBMode = DBMode.readonly
+    direction: IDBCursorDirection = 'next',
+    mode: DBMode = DBMode.readonly,
   ): Observable<Event> {
     const obs = new Subject<Event>();
 
@@ -564,7 +565,7 @@ export class NgxIndexedDBService {
         );
         const objectStore = transaction.objectStore(storeName);
         const index = objectStore.index(indexName);
-        const request = index.openCursor(keyRange);
+        const request = index.openCursor(keyRange, direction);
 
         request.onsuccess = (event: Event) => {
           obs.next(event);
