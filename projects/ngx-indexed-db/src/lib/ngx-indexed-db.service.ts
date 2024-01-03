@@ -26,14 +26,14 @@ export class NgxIndexedDBService {
         (window as any).msIndexedDB;
 
       const dbConfigs = Object.values(this.dbConfigs);
-      const isOnlyConfig = dbConfigs.length === 1
+      const isOnlyConfig = dbConfigs.length === 1;
       for (const dbConfig of dbConfigs) {
         this.instanciateConfig(dbConfig, isOnlyConfig);
       }
     }
   }
 
-  private instanciateConfig(dbConfig: DBConfig, isOnlyConfig: boolean): void {
+  private async instanciateConfig(dbConfig: DBConfig, isOnlyConfig: boolean): Promise<void> {
     if (!dbConfig.name) {
       throw new Error('NgxIndexedDB: Please, provide the dbName in the configuration');
     }
@@ -42,13 +42,14 @@ export class NgxIndexedDBService {
     }
     if ((dbConfig.isDefault ?? false) && this.defaultDatabaseName) {
       // A default DB is already configured, throw an error
-      throw new Error('NgxIndexedDB: Only one database can be set as default')
+      throw new Error('NgxIndexedDB: Only one database can be set as default');
     }
     if (((dbConfig.isDefault ?? false) && !this.defaultDatabaseName) || isOnlyConfig) {
       this.defaultDatabaseName = dbConfig.name;
       this.selectedDb = dbConfig.name;
     }
-    CreateObjectStore(
+
+    await CreateObjectStore(
       this.indexedDB,
       dbConfig.name,
       dbConfig.version,
@@ -94,16 +95,22 @@ export class NgxIndexedDBService {
   }
 
   /**
-   * Allows to crate a new object store ad-hoc
+   * Allows to create a new object store ad-hoc
    * @param storeName The name of the store to be created
    * @param migrationFactory The migration factory if exists
    */
-  createObjectStore(
+  async createObjectStore(
     storeSchema: ObjectStoreMeta,
-    migrationFactory?: () => { [key: number]: (db: IDBDatabase, transaction: IDBTransaction) => void },
-  ): void {
+    migrationFactory?: () => { [key: number]: (db: IDBDatabase, transaction: IDBTransaction) => void }
+  ): Promise<void> {
     const storeSchemas: ObjectStoreMeta[] = [storeSchema];
-    CreateObjectStore(this.indexedDB, this.dbConfig.name, ++this.dbConfig.version, storeSchemas, migrationFactory);
+    await CreateObjectStore(
+      this.indexedDB,
+      this.dbConfig.name,
+      ++this.dbConfig.version,
+      storeSchemas,
+      migrationFactory
+    );
   }
 
   /**
@@ -366,8 +373,11 @@ export class NgxIndexedDBService {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
-          validateBeforeTransaction(db, storeName, e => obs.error(e));
-          transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, (e) => obs.error(e)));
+          validateBeforeTransaction(db, storeName, (e) => obs.error(e));
+          transaction = createTransaction(
+            db,
+            optionsGenerator(DBMode.readwrite, storeName, (e) => obs.error(e))
+          );
           const objectStore = transaction.objectStore(storeName);
 
           items.forEach((item, index: number) => {
@@ -386,7 +396,6 @@ export class NgxIndexedDBService {
               obs.error(evt);
             };
           });
-
         })
         .catch((reason) => {
           transaction?.abort();
@@ -607,7 +616,7 @@ export class NgxIndexedDBService {
   getAllKeysByIndex(
     storeName: string,
     indexName: string,
-    keyRange: IDBKeyRange,
+    keyRange: IDBKeyRange
   ): Observable<{ primaryKey: any; key: any }[]> {
     const data: { primaryKey: any; key: any }[] = [];
     return new Observable((obs) => {

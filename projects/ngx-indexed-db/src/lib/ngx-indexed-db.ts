@@ -1,4 +1,4 @@
-import { ObjectStoreMeta, ObjectStoreSchema } from './ngx-indexed-db.meta';
+import { ObjectStoreMeta } from './ngx-indexed-db.meta';
 import { Observable, Subscriber } from 'rxjs';
 
 export function openDatabase(
@@ -28,47 +28,57 @@ export function openDatabase(
   });
 }
 
-export function CreateObjectStore(
+export async function CreateObjectStore(
   indexedDB: IDBFactory,
   dbName: string,
   version: number,
   storeSchemas: ObjectStoreMeta[],
   migrationFactory?: () => { [key: number]: (db: IDBDatabase, transaction: IDBTransaction) => void }
-): void {
-  if (!indexedDB) {
-    return;
-  }
-  const request: IDBOpenDBRequest = indexedDB.open(dbName, version);
-
-  request.onupgradeneeded = (event: IDBVersionChangeEvent) => {
-    const database: IDBDatabase = (event.target as any).result;
-
-    storeSchemas.forEach((storeSchema: ObjectStoreMeta) => {
-      if (!database.objectStoreNames.contains(storeSchema.store)) {
-        const objectStore = database.createObjectStore(storeSchema.store, storeSchema.storeConfig);
-        storeSchema.storeSchema.forEach((schema: ObjectStoreSchema) => {
-          objectStore.createIndex(schema.name, schema.keypath, schema.options);
-        });
-      }
-    });
-
-    const storeMigrations = migrationFactory && migrationFactory();
-    if (storeMigrations) {
-      Object.keys(storeMigrations)
-        .map((k) => parseInt(k, 10))
-        .filter((v) => v > event.oldVersion)
-        .sort((a, b) => a - b)
-        .forEach((v) => {
-          storeMigrations[v](database, request.transaction);
-        });
+): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    if (!indexedDB) {
+      return;
     }
+    const request: IDBOpenDBRequest = indexedDB.open(dbName, version);
+    request.onupgradeneeded = async (event: IDBVersionChangeEvent) => {
+      const database: IDBDatabase = (event.target as any).result;
 
-    database.close();
-  };
+      const storeCreationPromises = storeSchemas.map(async (storeSchema) => {
+        if (!database.objectStoreNames.contains(storeSchema.store)) {
+          const objectStore = database.createObjectStore(storeSchema.store, storeSchema.storeConfig);
+          for (const schema of storeSchema.storeSchema) {
+            objectStore.createIndex(schema.name, schema.keypath, schema.options);
+          }
+        }
+      });
 
-  request.onsuccess = (e: any) => {
-    e.target.result.close();
-  };
+      await Promise.all(storeCreationPromises);
+
+      const storeMigrations = migrationFactory && migrationFactory();
+      if (storeMigrations) {
+        const migrationKeys = Object.keys(storeMigrations)
+          .map((k) => parseInt(k, 10))
+          .filter((v) => v > event.oldVersion)
+          .sort((a, b) => a - b);
+
+        for (const v of migrationKeys) {
+          storeMigrations[v](database, request.transaction);
+        }
+      }
+
+      database.close();
+      resolve();
+    };
+
+    request.onsuccess = (e: any) => {
+      e.target.result.close();
+      resolve();
+    };
+
+    request.onerror = (error: Event) => {
+      reject(error);
+    };
+  });
 }
 
 export function DeleteObjectStore(dbName: string, version: number, storeName: string): Observable<boolean> {
@@ -95,6 +105,4 @@ export function DeleteObjectStore(dbName: string, version: number, storeName: st
       obs.error(error);
     }
   });
-
-
 }
