@@ -191,6 +191,23 @@ this.dbService.bulkGet('people', [1, 3, 5]).subscribe((result) => {
   });
 ```
 
+### bulkPut<T>(storeName: string, values: Array<T & { key?: any }>): Observable<number[]>
+
+Adds or updates a record in store with the given value and key. Return all items present in the store
+
+- @param storeName The name of the store to update
+- @param items The values to update in the DB
+
+@Return The return value is an Observable with the primary key of the object that was last in given array
+
+@error If the call to bulkPut fails the transaction will be aborted and previously inserted entities will be deleted
+
+```typescript
+this.dbService.bulkPut('people', people).subscribe((result) => {
+  console.log('result: ', result);
+});
+```
+
 ### update<T>(storeName: string, value: T): Observable<T[]>
 
 Adds or updates a record in store with the given value and key. Return item updated
