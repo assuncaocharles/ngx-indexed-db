@@ -362,7 +362,7 @@ export class NgxIndexedDBService {
   /**
    * Adds or updates a record in store with the given value and key. Return all items present in the store
    * @param storeName The name of the store to update
-   * @param items The values to insert in the DB
+   * @param items The values to update in the DB
    *
    * @Return The return value is an Observable with the primary key of the object that was last in given array
    *
