@@ -1,8 +1,7 @@
 import { NgxIndexedDBService } from './../../../ngx-indexed-db/src/lib/ngx-indexed-db.service';
-import { forkJoin, of } from 'rxjs';
-import { catchError, switchMap } from 'rxjs/operators';
+import { forkJoin, of, throwError } from 'rxjs';
+import { catchError, switchMap, tap, throttle } from 'rxjs/operators';
 import { Component } from '@angular/core';
-
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
@@ -169,5 +168,15 @@ export class AppComponent {
     ])
       .pipe(switchMap(() => this.dbService.getAllByIndex('people', 'name', IDBKeyRange.only('desmond'))))
       .subscribe((result) => console.log(result));
+  }
+
+  public async versionDatabase(): Promise<void> {
+    this.dbService.getDatabaseVersion().pipe(
+      tap(response => console.log('Versione database => ', response)),
+      catchError(err => {
+        console.error('Error recover version => ', err);
+        return throwError(err);
+      })
+    ).subscribe();
   }
 }

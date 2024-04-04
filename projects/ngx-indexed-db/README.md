@@ -392,6 +392,20 @@ this.dbService.getAllByIndex('people', 'name', IDBKeyRange.only('john')).subscri
 });
 ```
 
+### getDatabaseVersion(): Observable<number>
+
+Returns the current database version.
+
+```js
+this.dbService.getDatabaseVersion().pipe(
+  tap(response => console.log('Versione database => ', response)),
+  catchError(err => {
+    console.error('Error recover version => ', err);
+    return throwError(err);
+  })
+).subscribe();
+```
+
 ### clear(storeName: string): Observable<boolean>
 
 Returns true if successfully delete all entries from the store.
