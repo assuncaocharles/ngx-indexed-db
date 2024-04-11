@@ -77,6 +77,22 @@ export class NgxIndexedDBService {
   }
 
   /**
+   * The function return the current version of database
+   *
+   * @Return the current version of database as number
+   */
+  getDatabaseVersion(): Observable<number | string> {
+    return new Observable(obs => {
+      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+        .then((db: IDBDatabase) => {
+          obs.next(db.version);
+          obs.complete();
+        })
+        .catch(err => obs.error(`error during get version of database => ${err} `));
+    });
+  }
+
+  /**
    * Selects a database for the current context.
    * @param {string} [databaseName=undefined] Database name to select.
    */
@@ -541,7 +557,7 @@ export class NgxIndexedDBService {
     indexName: string,
     keyRange: IDBKeyRange,
     direction: IDBCursorDirection = 'next',
-    mode: DBMode = DBMode.readonly,
+    mode: DBMode = DBMode.readonly
   ): Observable<Event> {
     const obs = new Subject<Event>();
 
