@@ -37,7 +37,7 @@
     "@angular/router": "^16.2.11",
     "rxjs": "~6.5.5",
     "tslib": "^2.0.0",
-    "zone.js": "~0.13.3"
+    "zone.js": "~0.14.0"
   },
   "devDependencies": {
     "@angular-devkit/build-angular": "^16.2.8",
