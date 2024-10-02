@@ -173,7 +173,7 @@ export class AppComponent {
 
   testUpdateCursor() {
     this.dbService.openCursor('people', undefined, 'prev').subscribe((evt) => {
-      const cursor = (evt.target as IDBOpenDBRequest).result as any as IDBCursorWithValue;
+      const cursor = (evt.target as IDBOpenDBRequest).result as unknown as IDBCursorWithValue;
 
       if (cursor) {
         const item = cursor.value;
