@@ -533,7 +533,7 @@ export class NgxIndexedDBService {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
           validateBeforeTransaction(db, storeName, (e) => obs.error(e));
-          const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error));
+          const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, obs.error));
           const objectStore = transaction.objectStore(storeName);
           const request = keyRange === undefined ? objectStore.openCursor() : objectStore.openCursor(keyRange, direction);
 
