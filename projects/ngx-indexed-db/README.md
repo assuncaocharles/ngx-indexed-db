@@ -426,6 +426,16 @@ Returns true if successfully delete the DB.
 this.dbService.deleteDatabase().subscribe((deleted) => {
   console.log('Database deleted successfully: ', deleted);
 });
+
+```
+### getAllObjectStoreNames(): Observable<string[]>
+
+Returns all object store names.
+
+```js
+this.dbService.getAllObjectStoreNames().subscribe((storeNames) => {
+  console.log('storeNames: ', storeNames);
+});
 ```
 
 ## License
