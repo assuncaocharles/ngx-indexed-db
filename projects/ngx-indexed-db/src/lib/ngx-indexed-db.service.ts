@@ -260,8 +260,8 @@ export class NgxIndexedDBService {
    * @param storeName The name of the store to retrieve the items
    * @param keys The ids entries to be retrieve
    */
-  bulkGet<T>(storeName: string, keys: Array<IDBValidKey>): any {
-    const observables = keys.map((key) => this.getByKey(storeName, key));
+  bulkGet<T>(storeName: string, keys: Array<IDBValidKey>): Observable<T[]> {
+    const observables = keys.map((key) => this.getByKey<T>(storeName, key));
 
     return new Observable((obs) => {
       combineLatest(observables).subscribe((values) => {
@@ -533,7 +533,7 @@ export class NgxIndexedDBService {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
           validateBeforeTransaction(db, storeName, (e) => obs.error(e));
-          const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error));
+          const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, obs.error));
           const objectStore = transaction.objectStore(storeName);
           const request = keyRange === undefined ? objectStore.openCursor() : objectStore.openCursor(keyRange, direction);
 
