@@ -3,7 +3,7 @@ import { openDatabase, CreateObjectStore, DeleteObjectStore } from './ngx-indexe
 import { createTransaction, optionsGenerator, validateBeforeTransaction } from '../utils';
 import { CONFIG_TOKEN, DBConfig, Key, RequestEvent, ObjectStoreMeta, DBMode, WithID } from './ngx-indexed-db.meta';
 import { isPlatformBrowser } from '@angular/common';
-import { Observable, Subject, combineLatest, from } from 'rxjs';
+import { Observable, Subject, Subscriber, combineLatest, from } from 'rxjs';
 import { take } from 'rxjs/operators';
 
 @Injectable()
@@ -711,5 +711,19 @@ export class NgxIndexedDBService {
    */
   deleteObjectStore(storeName: string): Observable<boolean> {
     return DeleteObjectStore(this.dbConfig.name, ++this.dbConfig.version, storeName);
+  }
+
+   /**
+   * Get all object store names.
+   */
+   getAllObjectStoreNames(): Observable<string[]> {
+    return new Observable((obs: Subscriber<string[]>): void => {
+      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+        .then((db: IDBDatabase): void => {
+          obs.next([...(db.objectStoreNames as unknown as Iterable<string>)]);
+          obs.complete();
+        })
+        .catch((reason: unknown): void => obs.error(reason));
+    });
   }
 }

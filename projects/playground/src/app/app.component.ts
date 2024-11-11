@@ -155,6 +155,12 @@ export class AppComponent {
     });
   }
 
+  getAllObjectStoreNames(): void {
+    this.dbService.getAllObjectStoreNames().subscribe((storeNames: string[]): void => {
+      console.log(storeNames);
+    });
+  }
+
   addTwoAndGetAllByIndex(): void {
     // #209 getAllByIndex with multiple result should resolve observable
     forkJoin([

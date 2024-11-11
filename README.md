@@ -430,6 +430,16 @@ this.dbService.deleteDatabase().subscribe((deleted) => {
 });
 ```
 
+### getAllObjectStoreNames(): Observable<string[]>
+
+Returns all object store names.
+
+```js
+this.dbService.getAllObjectStoreNames().subscribe((storeNames) => {
+  console.log('storeNames: ', storeNames);
+});
+```
+
 ## License
 
 Released under the terms of the [MIT License](LICENSE).
