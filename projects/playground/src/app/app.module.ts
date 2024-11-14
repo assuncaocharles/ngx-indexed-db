@@ -1,5 +1,4 @@
-import { NgxIndexedDBModule } from './../../../ngx-indexed-db/src/lib/ngxindexeddb.module';
-import { DBConfig } from './../../../ngx-indexed-db/src/lib/ngx-indexed-db.meta';
+import { DBConfig, provideIndexedDb } from 'ngx-indexed-db';
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 
@@ -28,8 +27,8 @@ const dbConfig: DBConfig = {
 
 @NgModule({
   declarations: [AppComponent],
-  imports: [BrowserModule, NgxIndexedDBModule.forRoot(dbConfig), FormsModule],
-  providers: [],
+  imports: [BrowserModule, FormsModule],
+  providers: [provideIndexedDb(dbConfig)],
   bootstrap: [AppComponent],
 })
 export class AppModule {}
