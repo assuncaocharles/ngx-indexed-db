@@ -1,5 +1,4 @@
-import { NgxIndexedDBModule } from './../../../ngx-indexed-db/src/lib/ngxindexeddb.module';
-import { DBConfig } from './../../../ngx-indexed-db/src/lib/ngx-indexed-db.meta';
+import { NgxIndexedDBModule, DBConfig } from 'ngx-indexed-db';
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
 

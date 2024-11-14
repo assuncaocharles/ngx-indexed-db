@@ -7,9 +7,9 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
-    "start:play": "ng serve --project playground",
-    "build": "ng build --project ngx-indexed-db --configuration production",
-    "build:lib": "ng build --project ngx-indexed-db --configuration production",
+    "start:playground": "ng serve --project playground",
+    "build:lib": "ng build --project ngx-indexed-db -c production",
+    "watch:lib": "ng build --project ngx-indexed-db -c development",
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e",
