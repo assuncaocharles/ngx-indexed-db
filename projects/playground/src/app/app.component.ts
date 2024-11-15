@@ -1,12 +1,12 @@
-import { NgxIndexedDBService } from './../../../ngx-indexed-db/src/lib/ngx-indexed-db.service';
+import { NgxIndexedDBService } from 'ngx-indexed-db';
 import { forkJoin, of, throwError } from 'rxjs';
-import { catchError, switchMap, tap, throttle } from 'rxjs/operators';
+import { catchError, switchMap, tap } from 'rxjs/operators';
 import { Component } from '@angular/core';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  styleUrls: ['./app.component.scss']
+  styleUrls: ['./app.component.scss'],
 })
 export class AppComponent {
   title = 'playground';
@@ -21,32 +21,30 @@ export class AppComponent {
   add(): void {
     //prepare random person data with or without email for count by index
     let randomPerson = {
-      name: `charles number ${Math.random() * 10}`
+      name: `charles number ${Math.random() * 10}`,
     };
     if (Math.random().toFixed(0) === '1') {
       randomPerson['email'] = `email number ${Math.random() * 10}`;
     }
 
-    this.dbService
-      .add('people', randomPerson)
-      .subscribe((result) => {
-        console.log('result: ', result);
-      });
+    this.dbService.add('people', randomPerson).subscribe((result) => {
+      console.log('result: ', result);
+    });
   }
-
 
   bulkAdd(): void {
     const randomData: Array<any> = [];
     for (let i = 0; i < 200000; i++) {
       randomData.push({
         name: `charles number ${Math.random() * 10}`,
-        email: `email number ${Math.random() * 10}`
+        email: `email number ${Math.random() * 10}`,
       });
     }
     this.dbService.bulkAdd('people', randomData).subscribe(
-      results => {
+      (results) => {
         console.log('result bulk add => ', results);
-      }, error => {
+      },
+      (error) => {
         console.error('error bulk add => ', error);
       }
     );
@@ -55,7 +53,7 @@ export class AppComponent {
   addToTest(): void {
     this.dbService
       .add('test', {
-        name: `charles number`
+        name: `charles number`,
       })
       .pipe(
         catchError((x) => {
@@ -136,8 +134,8 @@ export class AppComponent {
       storeConfig: { keyPath: 'id', autoIncrement: true },
       storeSchema: [
         { name: 'name', keypath: 'name', options: { unique: false } },
-        { name: 'email', keypath: 'email', options: { unique: false } }
-      ]
+        { name: 'email', keypath: 'email', options: { unique: false } },
+      ],
     };
 
     this.dbService.createObjectStore(storeSchema);
@@ -166,12 +164,12 @@ export class AppComponent {
     forkJoin([
       this.dbService.add('people', {
         name: `desmond`,
-        email: `email number ${Math.random() * 10}`
+        email: `email number ${Math.random() * 10}`,
       }),
       this.dbService.add('people', {
         name: `desmond`,
-        email: `email number ${Math.random() * 10}`
-      })
+        email: `email number ${Math.random() * 10}`,
+      }),
     ])
       .pipe(switchMap(() => this.dbService.getAllByIndex('people', 'name', IDBKeyRange.only('desmond'))))
       .subscribe((result) => console.log(result));
@@ -179,7 +177,7 @@ export class AppComponent {
 
   testUpdateCursor() {
     this.dbService.openCursor('people', undefined, 'prev').subscribe((evt) => {
-      const cursor = (evt.target as IDBOpenDBRequest).result as unknown as IDBCursorWithValue;
+      const cursor = ((evt.target as IDBOpenDBRequest).result as unknown) as IDBCursorWithValue;
 
       if (cursor) {
         const item = cursor.value;
@@ -195,12 +193,15 @@ export class AppComponent {
   }
 
   public async versionDatabase(): Promise<void> {
-    this.dbService.getDatabaseVersion().pipe(
-      tap(response => console.log('Versione database => ', response)),
-      catchError(err => {
-        console.error('Error recover version => ', err);
-        return throwError(err);
-      })
-    ).subscribe();
+    this.dbService
+      .getDatabaseVersion()
+      .pipe(
+        tap((response) => console.log('Versione database => ', response)),
+        catchError((err) => {
+          console.error('Error recover version => ', err);
+          return throwError(err);
+        })
+      )
+      .subscribe();
   }
 }
