@@ -43,3 +43,5 @@ export type Key = string | number | Date | ArrayBufferView | ArrayBuffer | IDBVa
 export type WithID = { id: number };
 
 export const CONFIG_TOKEN = new InjectionToken<Record<string, DBConfig>>(null);
+export const INDEXED_DB = new InjectionToken<IDBFactory>('Indexed DB');
+export const SERVER_INDEXED_DB = new InjectionToken<IDBFactory>('Server Indexed DB');

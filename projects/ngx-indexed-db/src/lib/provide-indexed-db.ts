@@ -1,6 +1,8 @@
 import { makeEnvironmentProviders, Provider } from '@angular/core';
-import { DBConfig, CONFIG_TOKEN } from './ngx-indexed-db.meta';
+import { DBConfig, CONFIG_TOKEN, INDEXED_DB, SERVER_INDEXED_DB } from './ngx-indexed-db.meta';
 import { NgxIndexedDBService } from './ngx-indexed-db.service';
+import { indexedDbFactory } from '../ssr';
+import { ServerIndexedDB } from '../ssr/server-indexed-db';
 
 export const provideIndexedDb = (...dbConfigs: DBConfig[]) => {
   return makeEnvironmentProviders([..._provideIndexedDb(...dbConfigs)]);
@@ -11,5 +13,9 @@ export const _provideIndexedDb = (...dbConfigs: DBConfig[]): Provider[] => {
     acc[curr.name] = curr;
     return acc;
   }, {});
-  return [NgxIndexedDBService, { provide: CONFIG_TOKEN, useValue: configs }];
+  return [
+    NgxIndexedDBService,
+    { provide: CONFIG_TOKEN, useValue: configs },
+    { provide: INDEXED_DB, useFactory: indexedDbFactory },
+  ];
 };
