@@ -40,6 +40,6 @@ export enum DBMode {
 
 export type Key = string | number | Date | ArrayBufferView | ArrayBuffer | IDBValidKey | IDBKeyRange;
 
-export type WithID = {id: number};
+export type WithID = { id: number };
 
-export const CONFIG_TOKEN = new InjectionToken<DBConfig>(null);
+export const CONFIG_TOKEN = new InjectionToken<Record<string, DBConfig>>(null);
