@@ -1,0 +1,27 @@
+<button (click)="add()">Add new entry</button>
+<button (click)="addToTest()">Add to test entry</button>
+<button (click)="update()">Update entry</button>
+<button (click)="delete()">Delete entry</button>
+<button (click)="clean()">Clean</button>
+<button (click)="count()">Count</button>
+<button (click)="countByIndex()">CountByIndex</button>
+<button (click)="addTwoAndGetAllByIndex()">Test #209 getAllByIndex</button>
+<button (click)="bulkAdd()">bulkAdd</button>
+<button (click)="bulkGet()">bulkGet</button>
+<button (click)="bulkPut()">bulkPut</button>
+<button (click)="getAll()">getAll</button>
+<button (click)="getByKey()">getByKey</button>
+<button (click)="bulkDelete()">bulkDelete</button>
+<button (click)="versionDatabase()">versionDatabase</button>
+<button (click)="testUpdateCursor()">Test update cursor</button>
+<button (click)="getAllObjectStoreNames()">getAllObjectStoreNames</button>
+<hr />
+<div>
+  <input type="text" [(ngModel)]="storeName" name="store" #store />
+  <button (click)="createStore(storeName)">Create Store</button>
+</div>
+<hr />
+<div>
+  <input type="text" [(ngModel)]="storneNameToDelete" name="store" #store />
+  <button (click)="deleteStore()">Delete store</button>
+</div>
