@@ -12,14 +12,18 @@
         "build": {
           "builder": "@angular-devkit/build-angular:ng-packagr",
           "options": {
-            "tsConfig": "projects/ngx-indexed-db/tsconfig.lib.json",
             "project": "projects/ngx-indexed-db/ng-package.json"
           },
           "configurations": {
             "production": {
               "tsConfig": "projects/ngx-indexed-db/tsconfig.lib.prod.json"
+            },
+            "development": {
+              "tsConfig": "projects/ngx-indexed-db/tsconfig.lib.json",
+              "watch": true
             }
-          }
+          },
+          "defaultConfiguration": "production"
         },
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
@@ -55,12 +59,14 @@
       "prefix": "app",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:browser",
+          "builder": "@angular-devkit/build-angular:application",
           "options": {
             "outputPath": "dist/playground",
             "index": "projects/playground/src/index.html",
-            "main": "projects/playground/src/main.ts",
-            "polyfills": "projects/playground/src/polyfills.ts",
+            "browser": "projects/playground/src/main.ts",
+            "polyfills": [
+              "zone.js"
+            ],
             "tsConfig": "projects/playground/tsconfig.app.json",
             "assets": [
               "projects/playground/src/favicon.ico",
@@ -69,13 +75,7 @@
             "styles": [
               "projects/playground/src/styles.scss"
             ],
-            "scripts": [],
-            "vendorChunk": true,
-            "extractLicenses": false,
-            "buildOptimizer": false,
-            "sourceMap": true,
-            "optimization": false,
-            "namedChunks": true
+            "scripts": []
           },
           "configurations": {
             "production": {
@@ -90,8 +90,6 @@
               "sourceMap": false,
               "namedChunks": false,
               "extractLicenses": true,
-              "vendorChunk": false,
-              "buildOptimizer": true,
               "budgets": [
                 {
                   "type": "initial",
@@ -104,19 +102,26 @@
                   "maximumError": "10kb"
                 }
               ]
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "clearScreen": true
             }
           }
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
-          "options": {
-            "buildTarget": "playground:build"
-          },
           "configurations": {
             "production": {
               "buildTarget": "playground:build:production"
+            },
+            "development": {
+              "buildTarget": "playground:build:development"
             }
-          }
+          },
+          "defaultConfiguration": "development"
         },
         "extract-i18n": {
           "builder": "@angular-devkit/build-angular:extract-i18n",
@@ -128,7 +133,10 @@
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
             "main": "projects/playground/src/test.ts",
-            "polyfills": "projects/playground/src/polyfills.ts",
+            "polyfills": [
+              "zone.js",
+              "zone.js/testing"
+            ],
             "tsConfig": "projects/playground/tsconfig.spec.json",
             "karmaConfig": "projects/playground/karma.conf.js",
             "assets": [
@@ -167,7 +175,8 @@
           }
         }
       }
-    }},
+    }
+  },
   "cli": {
     "analytics": false
   }
