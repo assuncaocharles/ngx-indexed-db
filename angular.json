@@ -109,7 +109,8 @@
               "sourceMap": true,
               "clearScreen": true
             }
-          }
+          },
+          "defaultConfiguration": "production"
         },
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
@@ -172,6 +173,101 @@
             "production": {
               "devServerTarget": "playground:serve:production"
             }
+          }
+        }
+      }
+    },
+    "ssr-playground": {
+      "projectType": "application",
+      "schematics": {},
+      "root": "projects/ssr-playground",
+      "sourceRoot": "projects/ssr-playground/src",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular-devkit/build-angular:application",
+          "options": {
+            "outputPath": "dist/ssr-playground",
+            "index": "projects/ssr-playground/src/index.html",
+            "browser": "projects/ssr-playground/src/main.ts",
+            "polyfills": [
+              "zone.js"
+            ],
+            "tsConfig": "projects/ssr-playground/tsconfig.app.json",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "projects/ssr-playground/public"
+              }
+            ],
+            "styles": [
+              "projects/ssr-playground/src/styles.css"
+            ],
+            "scripts": [],
+            "server": "projects/ssr-playground/src/main.server.ts",
+            "prerender": true,
+            "ssr": {
+              "entry": "projects/ssr-playground/server.ts"
+            }
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "2kB",
+                  "maximumError": "4kB"
+                }
+              ],
+              "outputHashing": "all"
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular-devkit/build-angular:dev-server",
+          "configurations": {
+            "production": {
+              "buildTarget": "ssr-playground:build:production"
+            },
+            "development": {
+              "buildTarget": "ssr-playground:build:development",
+              "port": 4201
+            }
+          },
+          "defaultConfiguration": "development"
+        },
+        "extract-i18n": {
+          "builder": "@angular-devkit/build-angular:extract-i18n"
+        },
+        "test": {
+          "builder": "@angular-devkit/build-angular:karma",
+          "options": {
+            "polyfills": [
+              "zone.js",
+              "zone.js/testing"
+            ],
+            "tsConfig": "projects/ssr-playground/tsconfig.spec.json",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "projects/ssr-playground/public"
+              }
+            ],
+            "styles": [
+              "projects/ssr-playground/src/styles.css"
+            ],
+            "scripts": []
           }
         }
       }
