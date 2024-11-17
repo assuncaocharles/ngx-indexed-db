@@ -82,13 +82,21 @@ export class NgxIndexedDBService {
    * @Return the current version of database as number
    */
   getDatabaseVersion(): Observable<number | string> {
-    return new Observable(obs => {
+    return new Observable((obs: Subscriber<number | string>) => {
+      let db: IDBDatabase | null = null;
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
-        .then((db: IDBDatabase) => {
-          obs.next(db.version);
+        .then((database: IDBDatabase) => {
+          db = database;
+          obs.next(database.version);
           obs.complete();
         })
-        .catch(err => obs.error(`error during get version of database => ${err} `));
+        .catch((err) => obs.error(`Error during get version of database => ${err}`))
+        .finally(() => {
+          if (db) {
+            db.close();
+          }
+          console.log('db closed');
+        });
     });
   }
 
@@ -535,7 +543,8 @@ export class NgxIndexedDBService {
           validateBeforeTransaction(db, storeName, (e) => obs.error(e));
           const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, obs.error));
           const objectStore = transaction.objectStore(storeName);
-          const request = keyRange === undefined ? objectStore.openCursor() : objectStore.openCursor(keyRange, direction);
+          const request =
+            keyRange === undefined ? objectStore.openCursor() : objectStore.openCursor(keyRange, direction);
 
           request.onsuccess = (event: Event) => {
             obs.next(event);
@@ -713,14 +722,14 @@ export class NgxIndexedDBService {
     return DeleteObjectStore(this.dbConfig.name, ++this.dbConfig.version, storeName);
   }
 
-   /**
+  /**
    * Get all object store names.
    */
-   getAllObjectStoreNames(): Observable<string[]> {
+  getAllObjectStoreNames(): Observable<string[]> {
     return new Observable((obs: Subscriber<string[]>): void => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db: IDBDatabase): void => {
-          obs.next([...(db.objectStoreNames as unknown as Iterable<string>)]);
+          obs.next([...((db.objectStoreNames as unknown) as Iterable<string>)]);
           obs.complete();
         })
         .catch((reason: unknown): void => obs.error(reason));

@@ -11,7 +11,7 @@ export function openDatabase(
     if (!indexedDB) {
       reject('IndexedDB not available');
     }
-    const request = indexedDB.open(dbName, version);
+    const request: IDBOpenDBRequest = indexedDB.open(dbName, version);
     let db: IDBDatabase;
     request.onsuccess = (event: Event) => {
       db = request.result;
@@ -20,6 +20,7 @@ export function openDatabase(
     request.onerror = (event: Event) => {
       reject(`IndexedDB error: ${request.error}`);
     };
+
     if (typeof upgradeCallback === 'function') {
       request.onupgradeneeded = (event: Event) => {
         upgradeCallback(event, db);
