@@ -391,7 +391,7 @@ Returns the open cursor event
 
 ```js
 this.dbService.openCursor('people', IDBKeyRange.bound("A", "F")).subscribe((evt) => {
-    var cursor = (evt.target as IDBOpenDBRequest).result;
+    const cursor = (evt.target as IDBOpenDBRequest).result as unknown as IDBCursorWithValue;
     if(cursor) {
         console.log(cursor.value);
         cursor.continue();
@@ -413,7 +413,7 @@ Open a cursor by index filter.
 
 ```js
 this.dbService.openCursorByIndex('people', 'name', IDBKeyRange.only('john')).subscribe((evt) => {
-    var cursor = (evt.target as IDBOpenDBRequest).result;
+    const cursor = (evt.target as IDBOpenDBRequest).result as unknown as IDBCursorWithValue;
     if(cursor) {
         console.log(cursor.value);
         cursor.continue();

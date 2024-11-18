@@ -520,6 +520,7 @@ export class NgxIndexedDBService {
    * Returns the open cursor event
    * @param storeName The name of the store to have the entries deleted
    * @param keyRange The key range which the cursor should be open on
+   * @param direction A string telling the cursor which direction to travel. The default is next
    */
   openCursor(storeName: string, keyRange?: IDBKeyRange, direction: IDBCursorDirection = 'next'): Observable<Event> {
     return new Observable((obs) => {
