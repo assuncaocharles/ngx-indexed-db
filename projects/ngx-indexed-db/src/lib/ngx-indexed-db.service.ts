@@ -1,36 +1,29 @@
-import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
+import { Injectable, Inject, isDevMode } from '@angular/core';
 import { openDatabase, CreateObjectStore, DeleteObjectStore } from './ngx-indexed-db';
 import { createTransaction, optionsGenerator, validateBeforeTransaction } from '../utils';
-import { CONFIG_TOKEN, DBConfig, Key, RequestEvent, ObjectStoreMeta, DBMode, WithID } from './ngx-indexed-db.meta';
-import { isPlatformBrowser } from '@angular/common';
+import {
+  CONFIG_TOKEN,
+  DBConfig,
+  Key,
+  RequestEvent,
+  ObjectStoreMeta,
+  DBMode,
+  WithID,
+  INDEXED_DB,
+} from './ngx-indexed-db.meta';
 import { Observable, Subject, Subscriber, combineLatest, from } from 'rxjs';
 import { take } from 'rxjs/operators';
 
 @Injectable()
 export class NgxIndexedDBService {
-  private readonly isBrowser: boolean;
-  private indexedDB: IDBFactory;
   private defaultDatabaseName?: string = null;
   private selectedDb: string;
 
   constructor(
     @Inject(CONFIG_TOKEN) private dbConfigs: Record<string, DBConfig>,
-    @Inject(PLATFORM_ID) private platformId: any
+    @Inject(INDEXED_DB) private indexedDB: IDBFactory
   ) {
-    this.isBrowser = isPlatformBrowser(this.platformId);
-    if (this.isBrowser) {
-      this.indexedDB =
-        window.indexedDB ||
-        (window as any).mozIndexedDB ||
-        (window as any).webkitIndexedDB ||
-        (window as any).msIndexedDB;
-
-      const dbConfigs = Object.values(this.dbConfigs);
-      const isOnlyConfig = dbConfigs.length === 1;
-      for (const dbConfig of dbConfigs) {
-        this.instanciateConfig(dbConfig, isOnlyConfig);
-      }
-    }
+    Object.values(this.dbConfigs).forEach((dbConfig, _, ref) => this.instanciateConfig(dbConfig, ref.length === 1));
   }
 
   private async instanciateConfig(dbConfig: DBConfig, isOnlyConfig: boolean): Promise<void> {
@@ -59,7 +52,7 @@ export class NgxIndexedDBService {
 
     openDatabase(this.indexedDB, dbConfig.name).then((db) => {
       if (db.version !== dbConfig.version) {
-        if (process.env.NODE_ENV !== 'production') {
+        if (isDevMode()) {
           console.warn(`
             Your DB Config doesn't match the most recent version of the DB with name ${dbConfig.name}, please update it
             DB current version: ${db.version};
@@ -82,13 +75,13 @@ export class NgxIndexedDBService {
    * @Return the current version of database as number
    */
   getDatabaseVersion(): Observable<number | string> {
-    return new Observable(obs => {
+    return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db: IDBDatabase) => {
           obs.next(db.version);
           obs.complete();
         })
-        .catch(err => obs.error(`error during get version of database => ${err} `));
+        .catch((err) => obs.error(`error during get version of database => ${err} `));
     });
   }
 
@@ -536,7 +529,8 @@ export class NgxIndexedDBService {
           validateBeforeTransaction(db, storeName, (e) => obs.error(e));
           const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, obs.error));
           const objectStore = transaction.objectStore(storeName);
-          const request = keyRange === undefined ? objectStore.openCursor() : objectStore.openCursor(keyRange, direction);
+          const request =
+            keyRange === undefined ? objectStore.openCursor() : objectStore.openCursor(keyRange, direction);
 
           request.onsuccess = (event: Event) => {
             obs.next(event);
@@ -714,14 +708,14 @@ export class NgxIndexedDBService {
     return DeleteObjectStore(this.dbConfig.name, ++this.dbConfig.version, storeName);
   }
 
-   /**
+  /**
    * Get all object store names.
    */
-   getAllObjectStoreNames(): Observable<string[]> {
+  getAllObjectStoreNames(): Observable<string[]> {
     return new Observable((obs: Subscriber<string[]>): void => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db: IDBDatabase): void => {
-          obs.next([...(db.objectStoreNames as unknown as Iterable<string>)]);
+          obs.next([...((db.objectStoreNames as unknown) as Iterable<string>)]);
           obs.complete();
         })
         .catch((reason: unknown): void => obs.error(reason));
