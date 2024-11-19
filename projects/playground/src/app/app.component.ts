@@ -14,6 +14,8 @@ export class AppComponent {
   storneNameToDelete: string;
   getAll$;
 
+  bulkAdding = false;
+
   constructor(private dbService: NgxIndexedDBService) {
     this.getAll$ = this.dbService.getAll('people');
   }
@@ -33,6 +35,7 @@ export class AppComponent {
   }
 
   bulkAdd(): void {
+    this.bulkAdding = true;
     const randomData: Array<any> = [];
     for (let i = 0; i < 200000; i++) {
       randomData.push({
@@ -40,14 +43,47 @@ export class AppComponent {
         email: `email number ${Math.random() * 10}`,
       });
     }
-    this.dbService.bulkAdd('people', randomData).subscribe(
-      (results) => {
+    this.dbService.bulkAdd('people', randomData).subscribe({
+      next: (results) => {
         console.log('result bulk add => ', results);
+        this.bulkAdding = false;
       },
-      (error) => {
+      error: (error) => {
         console.error('error bulk add => ', error);
+      },
+      complete: () => {
+        console.log('complete bulk add');
+        this.bulkAdding = false;
+      },
+    });
+  }
+
+  bulkAddWithErrors(): void {
+    this.bulkAdding = true;
+    const randomData: Array<any> = [];
+    for (let i = 0; i < 10; i++) {
+      let item: any;
+      if (i === 1) {
+        item = { name: `charles number ${Math.random() * 10}`, email: Error };
+      } else {
+        item = { name: `charles number ${Math.random() * 10}`, email: `email number ${Math.random() * 10}` };
       }
-    );
+      randomData.push(item);
+    }
+
+    this.dbService.bulkAdd('people', randomData).subscribe({
+      next: (results) => {
+        console.log('result bulk add => ', results);
+        this.bulkAdding = false;
+      },
+      error: (error) => {
+        console.error('error bulk add => ', error);
+      },
+      complete: () => {
+        console.log('complete bulk add');
+        this.bulkAdding = false;
+      },
+    });
   }
 
   addToTest(): void {

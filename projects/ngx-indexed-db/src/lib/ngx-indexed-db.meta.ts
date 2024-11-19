@@ -42,4 +42,6 @@ export type Key = string | number | Date | ArrayBufferView | ArrayBuffer | IDBVa
 
 export type WithID = { id: number };
 
+export type TwithKey<T> = T & { key?: IDBValidKey };
+
 export const CONFIG_TOKEN = new InjectionToken<Record<string, DBConfig>>(null);

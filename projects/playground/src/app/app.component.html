@@ -7,6 +7,7 @@
 <button (click)="countByIndex()">CountByIndex</button>
 <button (click)="addTwoAndGetAllByIndex()">Test #209 getAllByIndex</button>
 <button (click)="bulkAdd()">bulkAdd</button>
+<button (click)="bulkAddWithErrors()">bulkAdd with error</button>
 <button (click)="bulkGet()">bulkGet</button>
 <button (click)="bulkPut()">bulkPut</button>
 <button (click)="getAll()">getAll</button>
@@ -25,3 +26,5 @@
   <input type="text" [(ngModel)]="storneNameToDelete" name="store" #store />
   <button (click)="deleteStore()">Delete store</button>
 </div>
+<hr />
+<div *ngIf="bulkAdding">bulk adding...</div>

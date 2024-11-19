@@ -1,10 +1,19 @@
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { openDatabase, CreateObjectStore, DeleteObjectStore } from './ngx-indexed-db';
 import { createTransaction, optionsGenerator, validateBeforeTransaction } from '../utils';
-import { CONFIG_TOKEN, DBConfig, Key, RequestEvent, ObjectStoreMeta, DBMode, WithID } from './ngx-indexed-db.meta';
+import {
+  CONFIG_TOKEN,
+  DBConfig,
+  Key,
+  RequestEvent,
+  ObjectStoreMeta,
+  DBMode,
+  WithID,
+  TwithKey,
+} from './ngx-indexed-db.meta';
 import { isPlatformBrowser } from '@angular/common';
-import { Observable, Subject, Subscriber, combineLatest, from } from 'rxjs';
-import { take } from 'rxjs/operators';
+import { Observable, Subject, Subscriber, combineLatest, from, of } from 'rxjs';
+import { catchError, take } from 'rxjs/operators';
 
 @Injectable()
 export class NgxIndexedDBService {
@@ -82,13 +91,13 @@ export class NgxIndexedDBService {
    * @Return the current version of database as number
    */
   getDatabaseVersion(): Observable<number | string> {
-    return new Observable(obs => {
+    return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db: IDBDatabase) => {
           obs.next(db.version);
           obs.complete();
         })
-        .catch(err => obs.error(`error during get version of database => ${err} `));
+        .catch((err) => obs.error(`error during get version of database => ${err} `));
     });
   }
 
@@ -172,35 +181,72 @@ export class NgxIndexedDBService {
    * @param storeName The name of the store to add the item
    * @param values The entries to be added containing optional key attribute
    */
-  bulkAdd<T>(storeName: string, values: Array<T & { key?: any }>): Observable<number[]> {
-    const promises = new Promise<number[]>((resolve, reject) => {
-      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
-        .then((db: IDBDatabase) => {
-          const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, resolve, reject));
-          const objectStore = transaction.objectStore(storeName);
+  bulkAdd<T>(storeName: string, values: Array<TwithKey<T>>): Observable<number[]> {
+    if (!values?.length) return of([]);
 
-          const results = values.map((value) => {
-            return new Promise<number>((resolve1, reject1) => {
-              const key = value.key;
-              delete value.key;
+    return from(
+      new Promise<number[]>((resolve, reject) => {
+        openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+          .then((db: IDBDatabase) => {
+            const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, resolve, reject));
+            const objectStore = transaction.objectStore(storeName);
+            const results: number[] = [];
 
-              const request: IDBRequest<IDBValidKey> = Boolean(key)
-                ? objectStore.add(value, key)
-                : objectStore.add(value);
+            let pendingItems: number = values.length;
+            let hasError = false;
 
-              request.onsuccess = (evt: Event) => {
-                const result = (evt.target as IDBOpenDBRequest).result;
-                resolve1((result as unknown) as number);
-              };
+            const checkCompletion = () => {
+              pendingItems--;
+              if (pendingItems === 0) {
+                transaction.oncomplete = () => {
+                  if (!hasError) {
+                    resolve(results);
+                  }
+                };
+              }
+            };
+
+            transaction.onerror = (event: Event) => {
+              hasError = true;
+              reject(new Error(`Transaction failed: ${event}`));
+            };
+
+            values.forEach((value: TwithKey<T>, index: number) => {
+              try {
+                const { key, ...valueWithoutKey } = value;
+                const request =
+                  key !== undefined ? objectStore.add(valueWithoutKey, key) : objectStore.add(valueWithoutKey);
+
+                request.onsuccess = (event: Event) => {
+                  results[index] = (event.target as IDBRequest).result as number; // keep position
+                  checkCompletion();
+                };
+
+                request.onerror = (event: Event) => {
+                  hasError = true;
+                  event.stopPropagation(); // Prevent transaction abort
+                  console.error(`Failed to add item ${index}:`, event.target);
+                };
+              } catch (error) {
+                console.error(`Error processing item ${index}:`, error);
+                checkCompletion();
+              }
             });
-          });
 
-          resolve(Promise.all(results));
-        })
-        .catch((reason) => reject(reason));
-    });
-
-    return from(promises);
+            transaction.oncomplete = () => {
+              if (!hasError) {
+                resolve(results);
+              }
+            };
+          })
+          .catch((error) => reject(new Error(`Database open failed: ${error}`)));
+      })
+    ).pipe(
+      catchError((error) => {
+        console.error('Bulk add operation failed:', error);
+        throw error;
+      })
+    );
   }
 
   /**
@@ -535,7 +581,8 @@ export class NgxIndexedDBService {
           validateBeforeTransaction(db, storeName, (e) => obs.error(e));
           const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, obs.error));
           const objectStore = transaction.objectStore(storeName);
-          const request = keyRange === undefined ? objectStore.openCursor() : objectStore.openCursor(keyRange, direction);
+          const request =
+            keyRange === undefined ? objectStore.openCursor() : objectStore.openCursor(keyRange, direction);
 
           request.onsuccess = (event: Event) => {
             obs.next(event);
@@ -713,14 +760,14 @@ export class NgxIndexedDBService {
     return DeleteObjectStore(this.dbConfig.name, ++this.dbConfig.version, storeName);
   }
 
-   /**
+  /**
    * Get all object store names.
    */
-   getAllObjectStoreNames(): Observable<string[]> {
+  getAllObjectStoreNames(): Observable<string[]> {
     return new Observable((obs: Subscriber<string[]>): void => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db: IDBDatabase): void => {
-          obs.next([...(db.objectStoreNames as unknown as Iterable<string>)]);
+          obs.next([...((db.objectStoreNames as unknown) as Iterable<string>)]);
           obs.complete();
         })
         .catch((reason: unknown): void => obs.error(reason));
