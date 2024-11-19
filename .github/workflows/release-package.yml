@@ -14,10 +14,9 @@ jobs:
         with:
           node-version: 20
           registry-url: https://registry.npmjs.org/
-      - run: npm install -g yarn
-      - run: yarn install
-      - run: yarn pack
-      - run: yarn run build:lib
+      - run: npm install
+      - run: npm pack
+      - run: npm run build:lib
       - name: Publish
         working-directory: ./dist/ngx-indexed-db
         run: npm publish --access public
