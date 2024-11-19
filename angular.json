@@ -61,7 +61,10 @@
         "build": {
           "builder": "@angular-devkit/build-angular:application",
           "options": {
-            "outputPath": "dist/playground",
+            "outputPath": {
+              "base": "dist/playground",
+              "browser": ""
+            },
             "index": "projects/playground/src/index.html",
             "browser": "projects/playground/src/main.ts",
             "polyfills": [
@@ -75,7 +78,8 @@
             "styles": [
               "projects/playground/src/styles.scss"
             ],
-            "scripts": []
+            "scripts": [],
+            "clearScreen": true
           },
           "configurations": {
             "production": {
