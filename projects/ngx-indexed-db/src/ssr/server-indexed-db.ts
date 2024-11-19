@@ -5,14 +5,14 @@
  *
  */
 export class ServerIndexedDB implements IDBFactory {
-  cmp(first: unknown, second: unknown): number {
+  cmp(): number {
     return 0;
   }
   databases(): Promise<IDBDatabaseInfo[]> {
     return Promise.resolve([]);
   }
 
-  deleteDatabase(name: string): IDBOpenDBRequest {
+  deleteDatabase(): IDBOpenDBRequest {
     return {
       onupgradeneeded: null,
       onblocked: null,
@@ -22,7 +22,7 @@ export class ServerIndexedDB implements IDBFactory {
     } as IDBOpenDBRequest;
   }
 
-  open(name: string, version: number): IDBOpenDBRequest {
+  open(): IDBOpenDBRequest {
     return {
       onupgradeneeded: null,
       onblocked: null,
