@@ -29,6 +29,5 @@ jobs:
 
       - name: npm ci and npm run build
         run: |
-          npm i -g yarn
-          yarn install --immutable --immutable-cache --check-cache
-          yarn run build:lib
+          npm install --immutable --immutable-cache --check-cache
+          npm run build:lib
