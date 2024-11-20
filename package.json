@@ -1,6 +1,6 @@
 {
   "name": "ngx-indexed-db",
-  "version": "19.1.0",
+  "version": "19.2.0",
   "files": [
     "dist/ngx-indexed-db/**/*"
   ],
@@ -8,12 +8,15 @@
     "ng": "ng",
     "start": "ng serve",
     "start:playground": "ng serve --project playground",
+    "start:ssr-playground": "ng serve --project ssr-playground",
     "build:lib": "ng build --project ngx-indexed-db -c production",
     "watch:lib": "ng build --project ngx-indexed-db -c development",
+    "build:playground": "ng build --project playground",
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e",
-    "format": "prettier \"projects/**/*.{ts,json}\" --write"
+    "format": "prettier \"projects/**/*.{ts,json}\" --write",
+    "serve:ssr:ssr-playground": "node dist/ssr-playground/server/server.mjs"
   },
   "lint-staged": {
     "*.{ts,js}": [
@@ -34,7 +37,10 @@
     "@angular/forms": "^18.0.4",
     "@angular/platform-browser": "^18.0.4",
     "@angular/platform-browser-dynamic": "^18.0.4",
+    "@angular/platform-server": "^18.0.4",
     "@angular/router": "^18.0.4",
+    "@angular/ssr": "^18.0.5",
+    "express": "^4.18.2",
     "rxjs": "~6.5.5",
     "tslib": "^2.0.0",
     "zone.js": "~0.14.0"
@@ -44,9 +50,10 @@
     "@angular/cli": "^18.0.5",
     "@angular/compiler-cli": "^18.0.4",
     "@commitlint/config-conventional": "^12.1.4",
+    "@types/express": "^4.17.17",
     "@types/jasmine": "~3.6.0",
     "@types/jasminewd2": "~2.0.3",
-    "@types/node": "^12.20.13",
+    "@types/node": "^18.18.0",
     "codelyzer": "^6.0.0",
     "commitlint": "^12.1.4",
     "cz-conventional-changelog": "3.2.0",

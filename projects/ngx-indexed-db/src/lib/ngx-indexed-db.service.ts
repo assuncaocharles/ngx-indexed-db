@@ -1,4 +1,4 @@
-import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
+import { Injectable, Inject, isDevMode } from '@angular/core';
 import { openDatabase, CreateObjectStore, DeleteObjectStore } from './ngx-indexed-db';
 import { createTransaction, optionsGenerator, validateBeforeTransaction } from '../utils';
 import {
@@ -9,37 +9,22 @@ import {
   ObjectStoreMeta,
   DBMode,
   WithID,
+  INDEXED_DB,
   TwithKey,
 } from './ngx-indexed-db.meta';
-import { isPlatformBrowser } from '@angular/common';
 import { Observable, Subject, Subscriber, combineLatest, from, of } from 'rxjs';
 import { catchError, take } from 'rxjs/operators';
 
 @Injectable()
 export class NgxIndexedDBService {
-  private readonly isBrowser: boolean;
-  private indexedDB: IDBFactory;
   private defaultDatabaseName?: string = null;
   private selectedDb: string;
 
   constructor(
     @Inject(CONFIG_TOKEN) private dbConfigs: Record<string, DBConfig>,
-    @Inject(PLATFORM_ID) private platformId: any
+    @Inject(INDEXED_DB) private indexedDB: IDBFactory
   ) {
-    this.isBrowser = isPlatformBrowser(this.platformId);
-    if (this.isBrowser) {
-      this.indexedDB =
-        window.indexedDB ||
-        (window as any).mozIndexedDB ||
-        (window as any).webkitIndexedDB ||
-        (window as any).msIndexedDB;
-
-      const dbConfigs = Object.values(this.dbConfigs);
-      const isOnlyConfig = dbConfigs.length === 1;
-      for (const dbConfig of dbConfigs) {
-        this.instanciateConfig(dbConfig, isOnlyConfig);
-      }
-    }
+    Object.values(this.dbConfigs).forEach((dbConfig, _, ref) => this.instanciateConfig(dbConfig, ref.length === 1));
   }
 
   private async instanciateConfig(dbConfig: DBConfig, isOnlyConfig: boolean): Promise<void> {
@@ -68,7 +53,7 @@ export class NgxIndexedDBService {
 
     openDatabase(this.indexedDB, dbConfig.name).then((db) => {
       if (db.version !== dbConfig.version) {
-        if (process.env.NODE_ENV !== 'production') {
+        if (isDevMode()) {
           console.warn(`
             Your DB Config doesn't match the most recent version of the DB with name ${dbConfig.name}, please update it
             DB current version: ${db.version};
@@ -573,6 +558,7 @@ export class NgxIndexedDBService {
    * Returns the open cursor event
    * @param storeName The name of the store to have the entries deleted
    * @param keyRange The key range which the cursor should be open on
+   * @param direction A string telling the cursor which direction to travel. The default is next
    */
   openCursor(storeName: string, keyRange?: IDBKeyRange, direction: IDBCursorDirection = 'next'): Observable<Event> {
     return new Observable((obs) => {

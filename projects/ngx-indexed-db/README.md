@@ -2,7 +2,7 @@
 
 [![Known Vulnerabilities](https://snyk.io/test/github/assuncaocharles/ngx-indexed-db/badge.svg)](https://snyk.io/test/github/assuncaocharles/ngx-indexed-db) [![CodeFactor](https://www.codefactor.io/repository/github/assuncaocharles/ngx-indexed-db/badge/master)](https://www.codefactor.io/repository/github/assuncaocharles/ngx-indexed-db/overview/master) [![Build Status](https://travis-ci.com/assuncaocharles/ngx-indexed-db.svg?branch=master)](https://travis-ci.com/assuncaocharles/ngx-indexed-db) ![CI](https://github.com/assuncaocharles/ngx-indexed-db/workflows/CI/badge.svg)
 
-`ngx-indexed-db` is a service that wraps IndexedDB database in an Angular service combined with the power of observables.
+`ngx-indexed-db` is a service (CSR & SSR) that wraps IndexedDB database in an Angular service combined with the power of observables.
 
 ## Installation
 
@@ -18,6 +18,7 @@ $ yarn add ngx-indexed-db
 
 ## Usage
 
+### With Module
 Import the `NgxIndexedDBModule` and initiate it:
 
 ```js
@@ -44,6 +45,50 @@ const dbConfig: DBConfig  = {
   ],
   ...
 })
+```
+### With Standalone API
+
+Use `provideIndexedDb` and set it up:
+
+```js
+import { provideIndexedDb, DBConfig } from 'ngx-indexed-db';
+
+const dbConfig: DBConfig  = {
+  name: 'MyDb',
+  version: 1,
+  objectStoresMeta: [{
+    store: 'people',
+    storeConfig: { keyPath: 'id', autoIncrement: true },
+    storeSchema: [
+      { name: 'name', keypath: 'name', options: { unique: false } },
+      { name: 'email', keypath: 'email', options: { unique: false } }
+    ]
+  }]
+};
+
+const appConfig: ApplicationConfig = {
+  providers: [...,provideIndexedDb(dbConfig),...]
+}
+
+OR
+
+@NgModule({
+  ...
+ providers:[
+    ...
+    provideIndexedDb(dbConfig)
+  ],
+  ...
+})
+```
+### SSR
+
+Starting from version 19.2.0, `ngx-indexed-db` fully supports **Server-Side Rendering (SSR)**. This enhancement prevents issues related to the absence of `window.indexedDB` in server environments.
+
+Additionally, you can provide a custom implementation of IndexedDB using an **injection token**. This allows greater flexibility, especially when mocking IndexedDB for testing or in non-browser environments (like SSR).
+
+```js
+const SERVER_INDEXED_DB = new InjectionToken<IDBFactory>('Server Indexed Db');
 ```
 
 ### Migrations
@@ -346,7 +391,7 @@ Returns the open cursor event
 
 ```js
 this.dbService.openCursor('people', IDBKeyRange.bound("A", "F")).subscribe((evt) => {
-    var cursor = (evt.target as IDBOpenDBRequest).result;
+    const cursor = (evt.target as IDBOpenDBRequest).result as unknown as IDBCursorWithValue;
     if(cursor) {
         console.log(cursor.value);
         cursor.continue();
@@ -368,7 +413,7 @@ Open a cursor by index filter.
 
 ```js
 this.dbService.openCursorByIndex('people', 'name', IDBKeyRange.only('john')).subscribe((evt) => {
-    var cursor = (evt.target as IDBOpenDBRequest).result;
+    const cursor = (evt.target as IDBOpenDBRequest).result as unknown as IDBCursorWithValue;
     if(cursor) {
         console.log(cursor.value);
         cursor.continue();
@@ -418,7 +463,7 @@ this.dbService.clear('people').subscribe((successDeleted) => {
 });
 ```
 
-### deleteDatabase(): Observable<boolean> 
+### deleteDatabase(): Observable<boolean>
 
 Returns true if successfully delete the DB.
 

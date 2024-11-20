@@ -45,3 +45,8 @@ export type WithID = { id: number };
 export type TwithKey<T> = T & { key?: IDBValidKey };
 
 export const CONFIG_TOKEN = new InjectionToken<Record<string, DBConfig>>(null);
+export const INDEXED_DB = new InjectionToken<IDBFactory>('Indexed DB');
+/**
+ * Token used to inject the indexed db implementation on the server
+ */
+export const SERVER_INDEXED_DB = new InjectionToken<IDBFactory>('Server Indexed DB');
