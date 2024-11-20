@@ -36,6 +36,7 @@ export class AppComponent {
 
   bulkAdd(): void {
     this.bulkAdding = true;
+
     const randomData: Array<any> = [];
     for (let i = 0; i < 200000; i++) {
       randomData.push({
@@ -43,16 +44,18 @@ export class AppComponent {
         email: `email number ${Math.random() * 10}`,
       });
     }
+
+    const startTime = performance.now();
+
     this.dbService.bulkAdd('people', randomData).subscribe({
       next: (results) => {
+        const endTime = performance.now();
+        console.log(`Bulk add performance: ${endTime - startTime} milliseconds`);
         console.log('result bulk add => ', results);
         this.bulkAdding = false;
       },
       error: (error) => {
         console.error('error bulk add => ', error);
-      },
-      complete: () => {
-        console.log('complete bulk add');
         this.bulkAdding = false;
       },
     });
@@ -61,9 +64,9 @@ export class AppComponent {
   bulkAddWithErrors(): void {
     this.bulkAdding = true;
     const randomData: Array<any> = [];
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 200000; i++) {
       let item: any;
-      if (i === 1) {
+      if (i % 2 === 0) {
         item = { name: `charles number ${Math.random() * 10}`, email: Error };
       } else {
         item = { name: `charles number ${Math.random() * 10}`, email: `email number ${Math.random() * 10}` };
@@ -71,8 +74,13 @@ export class AppComponent {
       randomData.push(item);
     }
 
+    const startTime = performance.now();
+
     this.dbService.bulkAdd('people', randomData).subscribe({
       next: (results) => {
+        const endTime = performance.now();
+        console.log(`Bulk add performance: ${endTime - startTime} milliseconds`);
+
         console.log('result bulk add => ', results);
         this.bulkAdding = false;
       },
