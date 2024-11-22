@@ -82,13 +82,13 @@ export class NgxIndexedDBService {
    * @Return the current version of database as number
    */
   getDatabaseVersion(): Observable<number | string> {
-    return new Observable(obs => {
+    return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db: IDBDatabase) => {
           obs.next(db.version);
           obs.complete();
         })
-        .catch(err => obs.error(`error during get version of database => ${err} `));
+        .catch((err) => obs.error(`error during get version of database => ${err} `));
     });
   }
 
@@ -149,6 +149,7 @@ export class NgxIndexedDBService {
           request.onsuccess = async (evt: Event) => {
             const result: any = (evt.target as IDBOpenDBRequest).result;
             const getRequest: IDBRequest = objectStore.get(result) as IDBRequest<T>;
+
             getRequest.onsuccess = (event: Event) => {
               obs.next((event.target as IDBRequest<T & WithID>).result);
               obs.complete();
@@ -162,6 +163,9 @@ export class NgxIndexedDBService {
           request.onerror = (event: Event) => {
             obs.error(event);
           };
+
+          transaction.oncomplete = () => db.close();
+          transaction.onerror = () => db.close();
         })
         .catch((error) => obs.error(error));
     });
@@ -535,7 +539,8 @@ export class NgxIndexedDBService {
           validateBeforeTransaction(db, storeName, (e) => obs.error(e));
           const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, obs.error));
           const objectStore = transaction.objectStore(storeName);
-          const request = keyRange === undefined ? objectStore.openCursor() : objectStore.openCursor(keyRange, direction);
+          const request =
+            keyRange === undefined ? objectStore.openCursor() : objectStore.openCursor(keyRange, direction);
 
           request.onsuccess = (event: Event) => {
             obs.next(event);
@@ -713,14 +718,14 @@ export class NgxIndexedDBService {
     return DeleteObjectStore(this.dbConfig.name, ++this.dbConfig.version, storeName);
   }
 
-   /**
+  /**
    * Get all object store names.
    */
-   getAllObjectStoreNames(): Observable<string[]> {
+  getAllObjectStoreNames(): Observable<string[]> {
     return new Observable((obs: Subscriber<string[]>): void => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db: IDBDatabase): void => {
-          obs.next([...(db.objectStoreNames as unknown as Iterable<string>)]);
+          obs.next([...((db.objectStoreNames as unknown) as Iterable<string>)]);
           obs.complete();
         })
         .catch((reason: unknown): void => obs.error(reason));

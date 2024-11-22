@@ -97,6 +97,20 @@ export class AppComponent {
     });
   }
 
+  deleteDatabase(): void {
+    this.dbService.deleteDatabase().subscribe({
+      next: (result) => {
+        console.log('Database deleted successfully: ', result);
+      },
+      error: (error) => {
+        console.error('Error deleting database: ', error);
+      },
+      complete: () => {
+        console.log('Deletion and obs completed');
+      },
+    });
+  }
+
   clean(): void {
     this.dbService.clear('people').subscribe((result) => {
       console.log('result: ', result);
