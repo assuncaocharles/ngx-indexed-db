@@ -1,23 +1,25 @@
-import { Injectable, Inject, isDevMode } from '@angular/core';
-import { openDatabase, CreateObjectStore, DeleteObjectStore } from './ngx-indexed-db';
+import { Inject, Injectable, isDevMode } from '@angular/core';
+import { Observable, Subject, Subscriber, combineLatest, from } from 'rxjs';
+import { take } from 'rxjs/operators';
 import { createTransaction, optionsGenerator, validateBeforeTransaction } from '../utils';
+import { CloseDbConnection } from './decorators';
+import { CreateObjectStore, DeleteObjectStore, openDatabase } from './ngx-indexed-db';
 import {
   CONFIG_TOKEN,
   DBConfig,
-  Key,
-  RequestEvent,
-  ObjectStoreMeta,
   DBMode,
-  WithID,
   INDEXED_DB,
+  Key,
+  ObjectStoreMeta,
+  RequestEvent,
+  WithID,
 } from './ngx-indexed-db.meta';
-import { Observable, Subject, Subscriber, combineLatest, from } from 'rxjs';
-import { take } from 'rxjs/operators';
 
 @Injectable()
 export class NgxIndexedDBService {
   private defaultDatabaseName?: string = null;
   private selectedDb: string;
+  private dbInstance: IDBDatabase | null = null;
 
   constructor(
     @Inject(CONFIG_TOKEN) private dbConfigs: Record<string, DBConfig>,
@@ -51,6 +53,8 @@ export class NgxIndexedDBService {
     );
 
     openDatabase(this.indexedDB, dbConfig.name).then((db) => {
+      this.dbInstance = db;
+
       if (db.version !== dbConfig.version) {
         if (isDevMode()) {
           console.warn(`
@@ -69,11 +73,16 @@ export class NgxIndexedDBService {
     return this.dbConfigs[this.selectedDb];
   }
 
+  getDatabaseInstance(): IDBDatabase | null {
+    return this.dbInstance;
+  }
+
   /**
    * The function return the current version of database
    *
    * @Return the current version of database as number
    */
+  @CloseDbConnection()
   getDatabaseVersion(): Observable<number | string> {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
@@ -128,6 +137,7 @@ export class NgxIndexedDBService {
    * @param value The entry to be added
    * @param key The optional key for the entry
    */
+  @CloseDbConnection()
   add<T>(storeName: string, value: T, key?: any): Observable<T & WithID> {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
@@ -165,6 +175,7 @@ export class NgxIndexedDBService {
    * @param storeName The name of the store to add the item
    * @param values The entries to be added containing optional key attribute
    */
+  @CloseDbConnection()
   bulkAdd<T>(storeName: string, values: Array<T & { key?: any }>): Observable<number[]> {
     const promises = new Promise<number[]>((resolve, reject) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)

@@ -106,3 +106,19 @@ export function DeleteObjectStore(dbName: string, version: number, storeName: st
     }
   });
 }
+
+export function closeDatabase(db: IDBDatabase): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    if (!db) {
+      reject(new Error('No database to close'));
+      return;
+    }
+
+    try {
+      db.close();
+      resolve();
+    } catch (error) {
+      reject(`Error closing database: ${error}`);
+    }
+  });
+}
