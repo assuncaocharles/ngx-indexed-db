@@ -11,9 +11,8 @@ export function CloseDbConnection(): MethodDecorator {
       if (result instanceof Observable) {
         return result.pipe(
           finalize(async () => {
-            const dbName = this.selectedDb || this.defaultDatabaseName;
-            if (dbName) {
-              const db = this.getDatabaseInstance?.();
+            const db: IDBDatabase | null = this.getDatabaseInstance();
+            if (db) {
               await closeDatabase(db);
             }
           })
