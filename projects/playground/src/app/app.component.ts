@@ -204,4 +204,15 @@ export class AppComponent {
       )
       .subscribe();
   }
+
+  deleteDatabase(): void {
+    this.dbService.deleteDatabase().subscribe(
+      (result: boolean) => {
+        console.log('database deleted: ', result);
+      },
+      (error) => {
+        console.error('error deleting database: ', error);
+      }
+    );
+  }
 }
