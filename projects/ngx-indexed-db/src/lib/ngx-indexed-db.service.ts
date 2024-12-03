@@ -19,7 +19,6 @@ import {
 export class NgxIndexedDBService {
   private defaultDatabaseName?: string = null;
   private selectedDb: string;
-  private dbInstance: IDBDatabase | null = null;
 
   constructor(
     @Inject(CONFIG_TOKEN) private dbConfigs: Record<string, DBConfig>,
@@ -53,8 +52,6 @@ export class NgxIndexedDBService {
     );
 
     openDatabase(this.indexedDB, dbConfig.name).then((db) => {
-      this.dbInstance = db;
-
       if (db.version !== dbConfig.version) {
         if (isDevMode()) {
           console.warn(`
@@ -71,10 +68,6 @@ export class NgxIndexedDBService {
 
   private get dbConfig(): DBConfig {
     return this.dbConfigs[this.selectedDb];
-  }
-
-  getDatabaseInstance(): IDBDatabase | null {
-    return this.dbInstance;
   }
 
   /**
@@ -212,6 +205,7 @@ export class NgxIndexedDBService {
    * @param storeName The name of the store to add the item
    * @param keys The keys to be deleted
    */
+  @CloseDbConnection()
   bulkDelete(storeName: string, keys: Key[]): Observable<number[]> {
     const promises = keys.map((key) => {
       return new Promise<number>((resolve, reject) => {
@@ -240,6 +234,7 @@ export class NgxIndexedDBService {
    * @param storeName The name of the store to query
    * @param key The entry key
    */
+  @CloseDbConnection()
   getByKey<T>(storeName: string, key: IDBValidKey): Observable<T> {
     return new Observable<T>((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
@@ -264,6 +259,7 @@ export class NgxIndexedDBService {
    * @param storeName The name of the store to retrieve the items
    * @param keys The ids entries to be retrieve
    */
+  @CloseDbConnection()
   bulkGet<T>(storeName: string, keys: Array<IDBValidKey>): Observable<T[]> {
     const observables = keys.map((key) => this.getByKey<T>(storeName, key));
 
@@ -280,6 +276,7 @@ export class NgxIndexedDBService {
    * @param storeName The name of the store to query
    * @param id The entry id
    */
+  @CloseDbConnection()
   getByID<T>(storeName: string, id: string | number): Observable<T> {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
@@ -302,6 +299,7 @@ export class NgxIndexedDBService {
    * @param indexName The index name to filter
    * @param key The entry key.
    */
+  @CloseDbConnection()
   getByIndex<T>(storeName: string, indexName: string, key: IDBValidKey): Observable<T> {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
@@ -324,6 +322,7 @@ export class NgxIndexedDBService {
    * Return all elements from one store
    * @param storeName The name of the store to select the items
    */
+  @CloseDbConnection()
   getAll<T>(storeName: string): Observable<T[]> {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
@@ -352,6 +351,7 @@ export class NgxIndexedDBService {
    * @param storeName The name of the store to update
    * @param value The new value for the entry
    */
+  @CloseDbConnection()
   update<T>(storeName: string, value: T): Observable<T> {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
@@ -388,6 +388,7 @@ export class NgxIndexedDBService {
    *
    * @error If the call to bulkPut fails the transaction will be aborted and previously inserted entities will be deleted
    */
+  @CloseDbConnection()
   public bulkPut<T>(storeName: string, items: Array<T>): Observable<Key> {
     let transaction: IDBTransaction;
     return new Observable((obs) => {
@@ -429,6 +430,7 @@ export class NgxIndexedDBService {
    * @param storeName The name of the store to have the entry deleted
    * @param key The key of the entry to be deleted
    */
+  @CloseDbConnection()
   delete<T>(storeName: string, key: Key): Observable<T[]> {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
@@ -459,6 +461,7 @@ export class NgxIndexedDBService {
    * @param storeName The name of the store to have the entry deleted
    * @param key The key of the entry to be deleted
    */
+  @CloseDbConnection()
   deleteByKey(storeName: string, key: Key): Observable<boolean> {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
@@ -485,6 +488,7 @@ export class NgxIndexedDBService {
    * Returns true if successfully delete all entries from the store.
    * @param storeName The name of the store to have the entries deleted
    */
+  @CloseDbConnection()
   clear(storeName: string): Observable<boolean> {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
@@ -508,6 +512,7 @@ export class NgxIndexedDBService {
   /**
    * Returns true if successfully delete the DB.
    */
+  @CloseDbConnection()
   deleteDatabase(): Observable<boolean> {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
@@ -520,7 +525,11 @@ export class NgxIndexedDBService {
           };
           deleteDBRequest.onerror = (error) => obs.error(error);
           deleteDBRequest.onblocked = () => {
-            throw new Error(`Unable to delete database because it's blocked`);
+            console.warn(
+              'Delete blocked: Ensure all tabs, instances, or connections are closed. Database name:',
+              this.dbConfig.name
+            );
+            obs.error(new Error("Unable to delete database because it's blocked"));
           };
         })
         .catch((error) => obs.error(error));
@@ -533,6 +542,7 @@ export class NgxIndexedDBService {
    * @param keyRange The key range which the cursor should be open on
    * @param direction A string telling the cursor which direction to travel. The default is next
    */
+  @CloseDbConnection()
   openCursor(storeName: string, keyRange?: IDBKeyRange, direction: IDBCursorDirection = 'next'): Observable<Event> {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
@@ -558,6 +568,7 @@ export class NgxIndexedDBService {
    * @param indexName The index name to filter.
    * @param keyRange The range value and criteria to apply on the index.
    */
+  @CloseDbConnection()
   openCursorByIndex(
     storeName: string,
     indexName: string,
@@ -604,6 +615,7 @@ export class NgxIndexedDBService {
    * @param indexName The index name to filter
    * @param keyRange  The range value and criteria to apply on the index.
    */
+  @CloseDbConnection()
   getAllByIndex<T>(storeName: string, indexName: string, keyRange: IDBKeyRange): Observable<T[]> {
     const data: T[] = [];
     return new Observable((obs) => {
@@ -635,6 +647,7 @@ export class NgxIndexedDBService {
    * @param indexName The index name to filter
    * @param keyRange  The range value and criteria to apply on the index.
    */
+  @CloseDbConnection()
   getAllKeysByIndex(
     storeName: string,
     indexName: string,
@@ -669,6 +682,7 @@ export class NgxIndexedDBService {
    * @param storeName The name of the store to query
    * @param keyRange  The range value and criteria to apply.
    */
+  @CloseDbConnection()
   count(storeName: string, keyRange?: IDBValidKey | IDBKeyRange): Observable<number> {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
@@ -692,6 +706,7 @@ export class NgxIndexedDBService {
    * @param storeName The name of the store to query
    * @param keyRange  The range value and criteria to apply.
    */
+  @CloseDbConnection()
   countByIndex(storeName: string, indexName: string, keyRange?: IDBValidKey | IDBKeyRange): Observable<number> {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
@@ -722,6 +737,7 @@ export class NgxIndexedDBService {
   /**
    * Get all object store names.
    */
+  @CloseDbConnection()
   getAllObjectStoreNames(): Observable<string[]> {
     return new Observable((obs: Subscriber<string[]>): void => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
