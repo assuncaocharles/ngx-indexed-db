@@ -1,6 +1,8 @@
 import { ObjectStoreMeta } from './ngx-indexed-db.meta';
 import { Observable, Subscriber } from 'rxjs';
 
+export const openedDatabases: IDBDatabase[] = [];
+
 export function openDatabase(
   indexedDB: IDBFactory,
   dbName: string,
@@ -15,6 +17,7 @@ export function openDatabase(
     let db: IDBDatabase;
     request.onsuccess = (event: Event) => {
       db = request.result;
+      openedDatabases.push(db);
       resolve(db);
     };
     request.onerror = (event: Event) => {
