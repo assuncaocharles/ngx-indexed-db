@@ -63,6 +63,8 @@ export class NgxIndexedDBService {
         }
         this.dbConfigs[dbConfig.name].version = db.version;
       }
+
+      db.close();
     });
   }
 
