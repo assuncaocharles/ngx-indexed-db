@@ -3,7 +3,7 @@ import { finalize } from 'rxjs/operators';
 import { closeDatabase, openedDatabases } from './ngx-indexed-db';
 
 export function CloseDbConnection(): MethodDecorator {
-  return function (_target: Object, _propertyKey: string, descriptor: PropertyDescriptor): PropertyDescriptor {
+  return function (_target: object, _propertyKey: string, descriptor: PropertyDescriptor): PropertyDescriptor {
     const originalMethod = descriptor.value;
     descriptor.value = function (...args: unknown[]) {
       const result = originalMethod.apply(this, args);
