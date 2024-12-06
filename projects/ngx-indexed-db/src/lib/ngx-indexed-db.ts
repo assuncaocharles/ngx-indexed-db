@@ -1,6 +1,8 @@
 import { ObjectStoreMeta } from './ngx-indexed-db.meta';
 import { Observable, Subscriber } from 'rxjs';
 
+export const openedDatabases: IDBDatabase[] = [];
+
 export function openDatabase(
   indexedDB: IDBFactory,
   dbName: string,
@@ -15,6 +17,7 @@ export function openDatabase(
     let db: IDBDatabase;
     request.onsuccess = (event: Event) => {
       db = request.result;
+      openedDatabases.push(db);
       resolve(db);
     };
     request.onerror = (event: Event) => {
@@ -103,6 +106,22 @@ export function DeleteObjectStore(dbName: string, version: number, storeName: st
       request.onerror = (e) => obs.error(e);
     } catch (error) {
       obs.error(error);
+    }
+  });
+}
+
+export function closeDatabase(db: IDBDatabase): Promise<void> {
+  return new Promise<void>((resolve, reject) => {
+    if (!db) {
+      reject(new Error('No database to close'));
+      return;
+    }
+
+    try {
+      db.close();
+      resolve();
+    } catch (error) {
+      reject(`Error closing database: ${error}`);
     }
   });
 }
