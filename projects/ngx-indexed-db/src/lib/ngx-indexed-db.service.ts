@@ -1,10 +1,11 @@
 import { Inject, Injectable, isDevMode } from '@angular/core';
-import { Observable, Subject, Subscriber, combineLatest, from } from 'rxjs';
+import { Observable, Subject, Subscriber, combineLatest, from, of } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { createTransaction, optionsGenerator, validateBeforeTransaction } from '../utils';
 import { CloseDbConnection } from './decorators';
 import { CreateObjectStore, DeleteObjectStore, openDatabase } from './ngx-indexed-db';
 import {
+  BulkAdd,
   CONFIG_TOKEN,
   DBConfig,
   DBMode,
@@ -169,37 +170,63 @@ export class NgxIndexedDBService {
    * Adds new entries in the store and returns its key
    * @param storeName The name of the store to add the item
    * @param values The entries to be added containing optional key attribute
+   * @param withData Optional flag to return saved values
    */
+
   @CloseDbConnection()
-  bulkAdd<T>(storeName: string, values: Array<T & { key?: any }>): Observable<number[]> {
-    const promises = new Promise<number[]>((resolve, reject) => {
-      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
-        .then((db: IDBDatabase) => {
-          const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, resolve, reject));
-          const objectStore = transaction.objectStore(storeName);
+  bulkAdd<T>(storeName: string, values: Array<BulkAdd<T>>, withData = true): Observable<number[]> {
+    if (!values?.length) {
+      console.warn('No values provided to bulkAdd');
+      return of([]);
+    }
 
-          const results = values.map((value) => {
-            return new Promise<number>((resolve1, reject1) => {
-              const key = value.key;
-              delete value.key;
+    return from(
+      new Promise<number[]>((resolve, reject) => {
+        openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+          .then((db: IDBDatabase) => {
+            const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, resolve, reject));
+            const objectStore = transaction.objectStore(storeName);
 
-              const request: IDBRequest<IDBValidKey> = Boolean(key)
-                ? objectStore.add(value, key)
-                : objectStore.add(value);
+            transaction.onerror = (event: Event) => {
+              console.error(`Bulk add transaction error: ${event}`);
+              reject(new Error(`Bulk add transaction failed: ${event}`));
+            };
 
-              request.onsuccess = (evt: Event) => {
-                const result = (evt.target as IDBOpenDBRequest).result;
-                resolve1((result as unknown) as number);
-              };
+            transaction.oncomplete = () => {
+              resolve(withData ? Promise.all(results) : []);
+              console.log('Bulk add transaction completed');
+            };
+
+            const results = values.map((value: BulkAdd<T>) => {
+              return new Promise<number>((resolveItem, rejectItem) => {
+                const { key, ...others } = value;
+
+                try {
+                  const request = Boolean(key) ? objectStore.add(others, key) : objectStore.add(others);
+
+                  request.onsuccess = (event: Event) => {
+                    const result = (event.target as IDBRequest).result as number;
+                    resolveItem(result);
+                  };
+
+                  request.onerror = (event: Event) => {
+                    console.error(`Failed to add item in bulk add: ${event.target}`);
+                    event.stopPropagation();
+                    rejectItem(new Error(`Failed to add item in bulk add: ${event}`));
+                  };
+                } catch (error) {
+                  console.error('Error processing item in bulk add: ', error);
+                  rejectItem(error);
+                }
+              });
             });
+          })
+          .catch((error) => {
+            console.error('Database open failed in bulk add: ', error);
+            reject(new Error(`Database open failed in bulk add: ${error}`));
           });
-
-          resolve(Promise.all(results));
-        })
-        .catch((reason) => reject(reason));
-    });
-
-    return from(promises);
+      })
+    );
   }
 
   /**
