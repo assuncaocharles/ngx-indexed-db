@@ -34,20 +34,29 @@ export class AppComponent {
 
   bulkAdd(): void {
     const randomData: Array<any> = [];
+
     for (let i = 0; i < 200000; i++) {
       randomData.push({
         name: `charles number ${Math.random() * 10}`,
         email: `email number ${Math.random() * 10}`,
       });
     }
-    this.dbService.bulkAdd('people', randomData).subscribe(
-      (results) => {
+
+    console.log('bulkAdd start...');
+    console.time('bulkAdd');
+
+    this.dbService.bulkAdd('people', randomData).subscribe({
+      next: (results) => {
         console.log('result bulk add => ', results);
       },
-      (error) => {
+      error: (error) => {
         console.error('error bulk add => ', error);
-      }
-    );
+      },
+      complete: () => {
+        console.timeEnd('bulkAdd');
+        console.log('Bulk add complete');
+      },
+    });
   }
 
   addToTest(): void {

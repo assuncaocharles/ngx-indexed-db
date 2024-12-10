@@ -42,6 +42,8 @@ export type Key = string | number | Date | ArrayBufferView | ArrayBuffer | IDBVa
 
 export type WithID = { id: number };
 
+export type BulkAdd<T> = T & { key?: any };
+
 export const CONFIG_TOKEN = new InjectionToken<Record<string, DBConfig>>(null);
 export const INDEXED_DB = new InjectionToken<IDBFactory>('Indexed DB');
 /**
