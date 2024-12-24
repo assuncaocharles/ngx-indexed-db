@@ -31,9 +31,9 @@ export class NgxIndexedDBService {
     if (!dbConfig.name) {
       throw new Error('NgxIndexedDB: Please, provide the dbName in the configuration');
     }
-    if (!dbConfig.version) {
-      throw new Error('NgxIndexedDB: Please, provide the db version in the configuration');
-    }
+    // if (!dbConfig.version) {
+    //   throw new Error('NgxIndexedDB: Please, provide the db version in the configuration');
+    // }
     if ((dbConfig.isDefault ?? false) && this.defaultDatabaseName) {
       // A default DB is already configured, throw an error
       throw new Error('NgxIndexedDB: Only one database can be set as default');
