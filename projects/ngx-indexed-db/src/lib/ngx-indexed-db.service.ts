@@ -127,6 +127,26 @@ export class NgxIndexedDBService {
   }
 
   /**
+  * Create dynamic store if not already without incrementing version
+  * For Dynamic store
+  * @param storeName The name of the store to create
+  */
+   async createDynamicObjectStore(
+      storeSchema: ObjectStoreMeta,
+      migrationFactory?: () => { [key: number]: (db: IDBDatabase, transaction: IDBTransaction) => void }
+    ): Promise<void> {
+      const storeSchemas: ObjectStoreMeta[] = [storeSchema];
+      await CreateObjectStore(
+        this.indexedDB,
+        this.dbConfig.name,
+        this.dbConfig.version,
+        storeSchemas,
+        migrationFactory
+      );
+    }
+
+
+  /**
    * Adds new entry in the store and returns its key
    * @param storeName The name of the store to add the item
    * @param value The entry to be added
