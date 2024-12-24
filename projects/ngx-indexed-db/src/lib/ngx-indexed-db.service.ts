@@ -381,6 +381,42 @@ export class NgxIndexedDBService {
     });
   }
 
+   /**
+   * Updates a record in store with the given value and key. Return only the saved item
+   * @param storeName The name of the store to update
+   * @param value The value for the entry
+   * @param key The key for the entry
+   */
+   @CloseDbConnection()
+   updateByKey<T>(storeName: string, value: T, key?: IDBValidKey): Observable<T> {
+     let transaction: IDBTransaction;
+     return new Observable<T>((obs) => {
+       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+         .then((db) => {
+           validateBeforeTransaction(db, storeName, (e) => obs.error(e));
+           transaction = createTransaction(
+             db,
+             optionsGenerator(DBMode.readwrite, storeName, (e) => obs.error(e))
+           );
+           const objectStore = transaction.objectStore(storeName);
+
+           const request: IDBRequest<IDBValidKey> = objectStore.put(value, key);
+
+           request.onsuccess = async (evt: Event) => {
+             const getRequest: IDBRequest = objectStore.get(request.result) as IDBRequest<T>;
+             getRequest.onsuccess = (event: Event) => {
+               obs.next((event.target as IDBRequest<T & WithID>).result);
+               obs.complete();
+             };
+           };
+         })
+         .catch((reason) => {
+           transaction?.abort();
+           obs.error(reason);
+         });
+     });
+   }
+
   /**
    * Adds or updates a record in store with the given value and key. Return all items present in the store
    * @param storeName The name of the store to update
