@@ -2,7 +2,7 @@ import { InjectionToken } from '@angular/core';
 
 export interface DBConfig {
   name: string;
-  version: number;
+  version?: number;
   objectStoresMeta: ObjectStoreMeta[];
   migrationFactory?: () => { [key: number]: (db: IDBDatabase, transaction: IDBTransaction) => void };
   isDefault?: boolean;
