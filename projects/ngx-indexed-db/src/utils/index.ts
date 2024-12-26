@@ -13,6 +13,7 @@ export function validateStoreName(db: IDBDatabase, storeName: string): boolean {
 export function validateBeforeTransaction(db: IDBDatabase, storeName: string, reject: (message: string) => void): void {
   if (!db) {
     reject('You need to use the openDatabase function to create a database before you query it!');
+    return; // Stop further execution
   }
   if (!validateStoreName(db, storeName)) {
     reject(`objectStore does not exists: ${storeName}`);
