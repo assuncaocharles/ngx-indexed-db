@@ -54,7 +54,8 @@
     "@types/jasmine": "~3.6.0",
     "@types/jasminewd2": "~2.0.3",
     "@types/node": "^18.18.0",
-    "codelyzer": "^6.0.0",
+    "angular-eslint": "^18.0.5",
+    "eslint": "^9.16.0",
     "commitlint": "^12.1.4",
     "cz-conventional-changelog": "3.2.0",
     "husky": ">=4",
@@ -70,8 +71,8 @@
     "prettier": "2.1.1",
     "protractor": "~7.0.0",
     "ts-node": "~8.3.0",
-    "tslint": "~6.1.0",
-    "typescript": "5.4.5"
+    "typescript": "5.4.5",
+    "typescript-eslint": "8.18.0"
   },
   "config": {
     "commitizen": {
