@@ -1,6 +1,6 @@
-import { Observable } from 'rxjs';
-import { finalize } from 'rxjs/operators';
-import { closeDatabase, openedDatabases } from './ngx-indexed-db';
+import {Observable} from 'rxjs';
+import {finalize} from 'rxjs/operators';
+import {closeDatabase, openedDatabases} from './ngx-indexed-db';
 
 export function CloseDbConnection(): MethodDecorator {
   return function (_target: object, _propertyKey: string, descriptor: PropertyDescriptor): PropertyDescriptor {
@@ -13,12 +13,10 @@ export function CloseDbConnection(): MethodDecorator {
           finalize(async () => {
             const promises = openedDatabases.map(async (db: IDBDatabase) => {
               await closeDatabase(db);
-              console.log('Database connection closed: ', db.name);
             });
             await Promise.all(promises);
             openedDatabases.length = 0;
-          })
-        );
+          }));
       }
       return result;
     };
