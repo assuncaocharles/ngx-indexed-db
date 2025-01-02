@@ -30,7 +30,6 @@ module.exports = tseslint.config(
           style: "kebab-case",
         },
       ],
-      "prefer-const": "off",
       "no-extra-boolean-cast": "off",
       "@typescript-eslint/array-type": "off",
       "@typescript-eslint/consistent-indexed-object-style": "off",
