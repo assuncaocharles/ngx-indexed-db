@@ -35,7 +35,6 @@ module.exports = tseslint.config(
       "@typescript-eslint/consistent-indexed-object-style": "off",
       "@typescript-eslint/consistent-type-definitions": "off",
       "@typescript-eslint/no-explicit-any" : "off",
-      "@typescript-eslint/no-unused-vars": "off"
     },
   },
   {
