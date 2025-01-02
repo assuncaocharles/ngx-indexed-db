@@ -11,6 +11,7 @@ import { Component } from '@angular/core';
 export class AppComponent {
   title = 'playground';
   storeName: string;
+  checkStoreName: string;
   storneNameToDelete: string;
   getAll$;
 
@@ -140,6 +141,13 @@ export class AppComponent {
 
     this.dbService.createObjectStore(storeSchema);
   }
+
+  checkStore(storeName: string) {
+    this.dbService.isStoreExist(storeName).subscribe(x => {
+      console.log(`Store ${storeName} exist or not: ${x}`);
+    });
+  }
+
 
   getAll(): void {
     this.getAll$.subscribe((d) => {

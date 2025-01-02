@@ -23,6 +23,11 @@
 </div>
 <hr />
 <div>
+  <input type="text" [(ngModel)]="checkStoreName" name="store" #store />
+  <button (click)="checkStore(checkStoreName)">Check Store Exist</button>
+</div>
+<hr>
+<div>
   <input type="text" [(ngModel)]="storneNameToDelete" name="store" #store />
   <button (click)="deleteStore()">Delete store</button>
 </div>

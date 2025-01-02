@@ -1,7 +1,7 @@
 import { Inject, Injectable, isDevMode } from '@angular/core';
 import { Observable, Subject, Subscriber, combineLatest, from } from 'rxjs';
 import { take } from 'rxjs/operators';
-import { createTransaction, optionsGenerator, validateBeforeTransaction } from '../utils';
+import { createTransaction, optionsGenerator, validateBeforeTransaction, validateStoreName } from '../utils';
 import { CloseDbConnection } from './decorators';
 import { CreateObjectStore, DeleteObjectStore, openDatabase } from './ngx-indexed-db';
 import {
@@ -750,4 +750,32 @@ export class NgxIndexedDBService {
         .catch((reason: unknown): void => obs.error(reason));
     });
   }
+
+  /**
+   * Checks if a store exists in the database.
+   * @param storeName The name of the store to check.
+   */
+  @CloseDbConnection()
+  isStoreExist(storeName: string): Observable<boolean> {
+    return new Observable<boolean>((observer) => {
+      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+        .then((db: IDBDatabase) => {
+          try {
+            if (validateStoreName(db, storeName)) {
+              observer.next(true);
+            } else {
+              observer.next(false);
+            }
+            observer.complete();
+          } catch (error) {
+            observer.error(error); // Emit an error if something unexpected happens
+          }
+        })
+        .catch(() => {
+          observer.next(false); // If the database fails to open, assume the store does not exist
+          observer.complete();
+        });
+    });
+  }
+
 }
