@@ -199,7 +199,7 @@ export class NgxIndexedDBService {
           const objectStore = transaction.objectStore(storeName);
 
           const results = values.map((value) => {
-            return new Promise<number>((resolve1, reject1) => {
+            return new Promise<number>((resolve1) => {
               const key = value.key;
               delete value.key;
 

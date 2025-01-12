@@ -15,12 +15,12 @@ export function openDatabase(
     }
     const request = indexedDB.open(dbName, version);
     let db: IDBDatabase;
-    request.onsuccess = (event: Event) => {
+    request.onsuccess = () => {
       db = request.result;
       openedDatabases.push(db);
       resolve(db);
     };
-    request.onerror = (event: Event) => {
+    request.onerror = () => {
       reject(`IndexedDB error: ${request.error}`);
     };
     if (typeof upgradeCallback === 'function') {
