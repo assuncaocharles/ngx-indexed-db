@@ -31,9 +31,9 @@ export class NgxIndexedDBService {
     if (!dbConfig.name) {
       throw new Error('NgxIndexedDB: Please, provide the dbName in the configuration');
     }
-    if (!dbConfig.version) {
-      throw new Error('NgxIndexedDB: Please, provide the db version in the configuration');
-    }
+    // if (!dbConfig.version) {
+    //   throw new Error('NgxIndexedDB: Please, provide the db version in the configuration');
+    // }
     if ((dbConfig.isDefault ?? false) && this.defaultDatabaseName) {
       // A default DB is already configured, throw an error
       throw new Error('NgxIndexedDB: Only one database can be set as default');
@@ -125,6 +125,26 @@ export class NgxIndexedDBService {
       migrationFactory
     );
   }
+
+  /**
+  * Create dynamic store if not already without incrementing version
+  * For Dynamic store
+  * @param storeName The name of the store to create
+  */
+   async createDynamicObjectStore(
+      storeSchema: ObjectStoreMeta,
+      migrationFactory?: () => { [key: number]: (db: IDBDatabase, transaction: IDBTransaction) => void }
+    ): Promise<void> {
+      const storeSchemas: ObjectStoreMeta[] = [storeSchema];
+      await CreateObjectStore(
+        this.indexedDB,
+        this.dbConfig.name,
+        this.dbConfig.version,
+        storeSchemas,
+        migrationFactory
+      );
+    }
+
 
   /**
    * Adds new entry in the store and returns its key
