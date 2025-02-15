@@ -42,6 +42,10 @@ export type Key = string | number | Date | ArrayBufferView | ArrayBuffer | IDBVa
 
 export type WithID = { id: number };
 
+type Modify<T, R> = Omit<T, keyof R> & R;
+
+export type NgxIDBCursorWithValue<V> = Modify<IDBCursorWithValue, { value: V | null }>;
+
 export const CONFIG_TOKEN = new InjectionToken<Record<string, DBConfig>>(null);
 export const INDEXED_DB = new InjectionToken<IDBFactory>('Indexed DB');
 /**
