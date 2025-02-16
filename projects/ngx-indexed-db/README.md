@@ -344,6 +344,20 @@ this.dbService.count('people').subscribe((peopleCount) => {
 });
 ```
 
+### countByIndex(storeName: string, indexName: string, query?: IDBValidKey | IDBKeyRange): Observable<number>
+
+Returns the number of records within a key range.
+
+- @param storeName The name of the store to query
+- @param indexName The index name to filter
+- @param query The key or key range criteria to apply.
+
+```js
+this.dbService.countByIndex('people', 'email').subscribe((peopleCount) => {
+  console.log(peopleCount);
+});
+```
+
 ### deleteObjectStore(storeName: string): Observable<boolean>
 
 Delete the store by name, return true or false.
