@@ -395,45 +395,36 @@ this.dbService.deleteByKey('people', 3).subscribe((status) => {
 });
 ```
 
-### openCursor(storeName: string, keyRange?: IDBKeyRange, direction?: IDBCursorDirection): Observable<Event>
+### openCursor<V = any, P extends IDBValidKey = IDBValidKey, K extends IDBValidKey = IDBValidKey>(storeName: string, query?: IDBValidKey | IDBKeyRange | null, direction?: IDBCursorDirection, mode: DBMode = DBMode.readonly): : Observable<{ done: () => void; cursor: NgxIDBCursorWithValue<V, P, K>; }>
 
 Returns the open cursor event
 
 - @param storeName The name of the store to have the entries deleted
-- @param keyRange The key range which the cursor should be open on
-- @param direction IDB Cursor Direction to work with, default to `next`
+- @param query The key or key range criteria to apply
+- @param direction A string telling the cursor which direction to travel
+- @param mode The transaction mode.
 
 ```js
-this.dbService.openCursor('people', IDBKeyRange.bound("A", "F")).subscribe((evt) => {
-    const cursor = (evt.target as IDBOpenDBRequest).result as unknown as IDBCursorWithValue;
-    if(cursor) {
-        console.log(cursor.value);
-        cursor.continue();
-    } else {
-        console.log('Entries all displayed.');
-    }
+this.dbService.openCursor('people', IDBKeyRange.bound("A", "F")).subscribe(({ cursor, done }) => {
+  console.log(cursor.value);
+  done();   // has to be called after last expected "next" callback 
 });
 ```
 
-### openCursorByIndex(storeName: string, indexName: string, keyRange: IDBKeyRange, direction?: IDBCursorDirection, mode?: DBMode): Observable<Event>
+### openCursorByIndex<V = any, P extends IDBValidKey = IDBValidKey, K extends IDBValidKey = IDBValidKey>(storeName: string, indexName: string, query?: IDBValidKey | IDBKeyRange | null, direction?: IDBCursorDirection, mode: DBMode = DBMode.readonly): Observable<{ done: () => void; cursor: NgxIDBCursorWithValue<V, P, K>; }>
 
 Open a cursor by index filter.
 
-- @param storeName The name of the store to query.
-- @param indexName The index name to filter.
-- @param keyRange The range value and criteria to apply on the index.
-- @param direction IDB Cursor Direction to work with, default to `next`
-- @param mode DB Mode to work with, default to `readonly`
+- @param storeName The name of the store to query
+- @param indexName The index name to filter
+- @param query The key or key range criteria to apply
+- @param direction A string telling the cursor which direction to travel
+- @param mode The transaction mode.
 
 ```js
-this.dbService.openCursorByIndex('people', 'name', IDBKeyRange.only('john')).subscribe((evt) => {
-    const cursor = (evt.target as IDBOpenDBRequest).result as unknown as IDBCursorWithValue;
-    if(cursor) {
-        console.log(cursor.value);
-        cursor.continue();
-    } else {
-        console.log('Entries all displayed.');
-    }
+this.dbService.openCursorByIndex('people', 'name', IDBKeyRange.only('john')).subscribe(({ cursor, done }) => {
+  console.log(cursor.value);
+  done();   // has to be called after last expected "next" callback 
 });
 ```
 
