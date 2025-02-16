@@ -762,13 +762,13 @@ export class NgxIndexedDBService {
    */
   @CloseDbConnection()
   getAllObjectStoreNames(): Observable<string[]> {
-    return new Observable((obs: Subscriber<string[]>): void => {
+    return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
-        .then((db: IDBDatabase): void => {
-          obs.next([...((db.objectStoreNames as unknown) as Iterable<string>)]);
+        .then((db) => {
+          obs.next(Array.from(db.objectStoreNames));
           obs.complete();
         })
-        .catch((reason: unknown): void => obs.error(reason));
+        .catch((reason) => obs.error(reason));
     });
   }
 }
