@@ -331,12 +331,12 @@ const storeSchema: ObjectStoreMeta = {
 this.dbService.createObjectStore(storeSchema);
 ```
 
-### count(storeName: string, keyRange?: IDBValidKey | IDBKeyRange): Observable<number>
+### count(storeName: string, query?: IDBValidKey | IDBKeyRange): Observable<number>
 
 Returns the number of rows in a store.
 
 - @param storeName The name of the store to query
-- @param keyRange The range value and criteria to apply.
+- @param query The key or key range criteria to apply.
 
 ```js
 this.dbService.count('people').subscribe((peopleCount) => {

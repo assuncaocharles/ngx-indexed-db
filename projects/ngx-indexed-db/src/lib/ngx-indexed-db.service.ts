@@ -702,20 +702,20 @@ export class NgxIndexedDBService {
   /**
    * Returns the number of rows in a store.
    * @param storeName The name of the store to query
-   * @param keyRange  The range value and criteria to apply.
+   * @param query The key or key range criteria to apply.
    */
   @CloseDbConnection()
-  count(storeName: string, keyRange?: IDBValidKey | IDBKeyRange): Observable<number> {
+  count(storeName: string, query?: IDBValidKey | IDBKeyRange): Observable<number> {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
           validateBeforeTransaction(db, storeName, (e) => obs.error(e));
           const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error));
           const objectStore = transaction.objectStore(storeName);
-          const request: IDBRequest = objectStore.count(keyRange);
+          const request = objectStore.count(query);
           request.onerror = (e) => obs.error(e);
           request.onsuccess = (e) => {
-            obs.next(((e.target as IDBOpenDBRequest).result as unknown) as number);
+            obs.next((e.target as IDBRequest<number>).result);
             obs.complete();
           };
         })
