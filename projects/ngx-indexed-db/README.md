@@ -437,13 +437,14 @@ this.dbService.openCursorByIndex('people', 'name', IDBKeyRange.only('john')).sub
 });
 ```
 
-### getAllByIndex<T>(storeName: string, indexName: string, keyRange: IDBKeyRange): Observable<T[]>
+### getAllByIndex<T>(storeName: string, indexName: string, query?: IDBValidKey | IDBKeyRange | null, direction?: IDBCursorDirection): Observable<T[]>
 
 Returns all items by an index.
 
 - @param storeName The name of the store to query
 - @param indexName The index name to filter
-- @param keyRange The range value and criteria to apply on the index.
+- @param query The key or key range criteria to apply
+- @param direction A string telling the cursor which direction to travel.
 
 ```js
 this.dbService.getAllByIndex('people', 'name', IDBKeyRange.only('john')).subscribe((allPeopleByIndex) => {

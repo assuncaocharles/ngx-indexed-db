@@ -10,6 +10,7 @@ import {
   DBMode,
   INDEXED_DB,
   Key,
+  NgxIDBCursorWithValue,
   ObjectStoreMeta,
   RequestEvent,
   WithID,
@@ -635,21 +636,29 @@ export class NgxIndexedDBService {
    * Returns all items by an index.
    * @param storeName The name of the store to query
    * @param indexName The index name to filter
-   * @param keyRange  The range value and criteria to apply on the index.
+   * @param query The key or key range criteria to apply
+   * @param direction A string telling the cursor which direction to travel.
    */
   @CloseDbConnection()
-  getAllByIndex<T>(storeName: string, indexName: string, keyRange: IDBKeyRange): Observable<T[]> {
-    const data: T[] = [];
+  getAllByIndex<T>(
+    storeName: string,
+    indexName: string,
+    query?: IDBValidKey | IDBKeyRange | null,
+    direction?: IDBCursorDirection
+  ): Observable<T[]> {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
-        .then((db) => {
-          validateBeforeTransaction(db, storeName, (e) => obs.error(e));
+      .then((db) => {
+        validateBeforeTransaction(db, storeName, (e) => obs.error(e));
           const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error));
           const objectStore = transaction.objectStore(storeName);
           const index = objectStore.index(indexName);
-          const request = index.openCursor(keyRange);
+          const request = index.openCursor(query, direction);
+
+          const data: T[] = [];
+          request.onerror = (e) => obs.error(e);
           request.onsuccess = (event) => {
-            const cursor: IDBCursorWithValue = (event.target as IDBRequest<IDBCursorWithValue>).result;
+            const cursor = (event.target as IDBRequest<NgxIDBCursorWithValue<T>>).result;
             if (cursor) {
               data.push(cursor.value);
               cursor.continue();
