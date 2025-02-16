@@ -467,14 +467,14 @@ export class NgxIndexedDBService {
           );
           const objectStore = transaction.objectStore(storeName);
           objectStore.delete(key);
-
+          
           transaction.oncomplete = () => {
             this.getAll(storeName)
-              .pipe(take(1))
-              .subscribe((newValues) => {
+            .pipe(take(1))
+            .subscribe((newValues) => {
                 obs.next(newValues as T[]);
-                obs.complete();
-              });
+              obs.complete();
+            });
           };
         })
         .catch((reason) => obs.error(reason));
@@ -497,24 +497,24 @@ export class NgxIndexedDBService {
             optionsGenerator(DBMode.readwrite, storeName, (e) => obs.error(e))
           );
           const objectStore = transaction.objectStore(storeName);
+          objectStore.delete(key);
 
+          transaction.onerror = (e) => obs.error(e);
           transaction.oncomplete = () => {
             obs.next(true);
             obs.complete();
-          };
-
-          objectStore.delete(key);
+          };       
         })
         .catch((reason) => obs.error(reason));
     });
   }
 
   /**
-   * Returns true if successfully delete all entries from the store.
+   * Clear the data in the objectStore.
    * @param storeName The name of the store to have the entries deleted
    */
   @CloseDbConnection()
-  clear(storeName: string): Observable<boolean> {
+  clear(storeName: string): Observable<void> {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
@@ -525,8 +525,10 @@ export class NgxIndexedDBService {
           );
           const objectStore = transaction.objectStore(storeName);
           objectStore.clear();
+
+          transaction.onerror = (e) => obs.error(e);
           transaction.oncomplete = () => {
-            obs.next(true);
+            obs.next();
             obs.complete();
           };
         })
@@ -535,17 +537,17 @@ export class NgxIndexedDBService {
   }
 
   /**
-   * Returns true if successfully delete the DB.
+   * Delete database.
    */
   @CloseDbConnection()
-  deleteDatabase(): Observable<boolean> {
+  deleteDatabase(): Observable<void> {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then(async (db) => {
-          await db.close();
+          db.close();
           const deleteDBRequest = this.indexedDB.deleteDatabase(this.dbConfig.name);
           deleteDBRequest.onsuccess = () => {
-            obs.next(true);
+            obs.next();
             obs.complete();
           };
           deleteDBRequest.onerror = (error) => obs.error(error);
@@ -787,7 +789,7 @@ export class NgxIndexedDBService {
    * Delete the store by name.
    * @param storeName The name of the store to query
    */
-  deleteObjectStore(storeName: string): Observable<boolean> {
+  deleteObjectStore(storeName: string): Observable<void> {
     return DeleteObjectStore(this.dbConfig.name, ++this.dbConfig.version, storeName);
   }
 
