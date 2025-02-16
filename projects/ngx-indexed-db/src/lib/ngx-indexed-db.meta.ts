@@ -42,9 +42,16 @@ export type Key = string | number | Date | ArrayBufferView | ArrayBuffer | IDBVa
 
 export type WithID = { id: number };
 
+export type IndexKey<P extends IDBValidKey, K extends IDBValidKey> = {
+  readonly primaryKey: P;
+  readonly key: K;
+};
+
 type Modify<T, R> = Omit<T, keyof R> & R;
 
-export type NgxIDBCursorWithValue<V> = Modify<IDBCursorWithValue, { value: V | null }>;
+export type NgxIDBCursor<P extends IDBValidKey, K extends IDBValidKey> = Modify<IDBCursor, { key: K; primaryKey: P }>;
+
+export type NgxIDBCursorWithValue<V,P extends IDBValidKey = IDBValidKey, K extends IDBValidKey = IDBValidKey> = NgxIDBCursor<P, K> & { value: V | null };
 
 export const CONFIG_TOKEN = new InjectionToken<Record<string, DBConfig>>(null);
 export const INDEXED_DB = new InjectionToken<IDBFactory>('Indexed DB');

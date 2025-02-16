@@ -9,7 +9,9 @@ import {
   DBConfig,
   DBMode,
   INDEXED_DB,
+  IndexKey,
   Key,
+  NgxIDBCursor,
   NgxIDBCursorWithValue,
   ObjectStoreMeta,
   RequestEvent,
@@ -675,28 +677,35 @@ export class NgxIndexedDBService {
   /**
    * Returns all primary keys by an index.
    * @param storeName The name of the store to query
-   * @param indexName The index name to filter
-   * @param keyRange  The range value and criteria to apply on the index.
+   * @param query The key or key range criteria to apply
+   * @param direction A string telling the cursor which direction to travel.
    */
   @CloseDbConnection()
-  getAllKeysByIndex(
+  getAllKeysByIndex<P extends IDBValidKey = IDBValidKey, K extends IDBValidKey = IDBValidKey>(
     storeName: string,
     indexName: string,
-    keyRange: IDBKeyRange
-  ): Observable<{ primaryKey: any; key: any }[]> {
-    const data: { primaryKey: any; key: any }[] = [];
+    query?: IDBValidKey | IDBKeyRange | null,
+    direction?: IDBCursorDirection
+  ): Observable<IndexKey<P, K>[]> {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
-        .then((db) => {
-          validateBeforeTransaction(db, storeName, (e) => obs.error(e));
-          const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error));
-          const objectStore = transaction.objectStore(storeName);
-          const index = objectStore.index(indexName);
-          const request = index.openKeyCursor(keyRange);
-          request.onsuccess = (event) => {
-            const cursor: IDBCursor = (event.target as IDBRequest<IDBCursor>).result;
+      .then((db) => {
+        validateBeforeTransaction(db, storeName, (e) => obs.error(e));
+        const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error));
+        const objectStore = transaction.objectStore(storeName);
+        const index = objectStore.index(indexName);
+        
+        const data: IndexKey<P, K>[] = [];
+        const request = index.openKeyCursor(query, direction);
+        request.onerror = (e) => obs.error(e);
+        request.onsuccess = (event) => {
+            const cursor = (event.target as IDBRequest<NgxIDBCursor<P, K>>).result;
             if (cursor) {
-              data.push({ primaryKey: cursor.primaryKey, key: cursor.key });
+              const { primaryKey, key } = cursor;
+              data.push({
+                primaryKey,
+                key,
+              });
               cursor.continue();
             } else {
               obs.next(data);

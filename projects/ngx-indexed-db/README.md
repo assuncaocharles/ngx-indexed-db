@@ -452,6 +452,21 @@ this.dbService.getAllByIndex('people', 'name', IDBKeyRange.only('john')).subscri
 });
 ```
 
+### getAllKeysByIndex<P extends IDBValidKey = IDBValidKey, K extends IDBValidKey = IDBValidKey>(storeName: string, indexName: string, query?: IDBValidKey | IDBKeyRange | null, direction?: IDBCursorDirection): Observable<IndexKey<P, K>[]>
+
+Returns all items by an index.
+
+- @param storeName The name of the store to query
+- @param indexName The index name to filter
+- @param query The range value and criteria to apply on the index
+- @param direction A string telling the cursor which direction to travel.
+
+```js
+this.dbService.getAllKeysByIndex('people', 'name', IDBKeyRange.only('john')).subscribe((keys) => {
+  console.log(keys);
+});
+```
+
 ### getDatabaseVersion(): Observable<number>
 
 Returns the current database version.
