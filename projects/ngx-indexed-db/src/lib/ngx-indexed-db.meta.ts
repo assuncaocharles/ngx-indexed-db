@@ -38,8 +38,6 @@ export enum DBMode {
   readwrite = 'readwrite',
 }
 
-export type Key = string | number | Date | ArrayBufferView | ArrayBuffer | IDBValidKey | IDBKeyRange;
-
 export type WithID = { id: number };
 
 export type IndexKey<P extends IDBValidKey, K extends IDBValidKey> = {

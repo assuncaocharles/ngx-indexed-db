@@ -1,5 +1,5 @@
 import { Inject, Injectable, isDevMode } from '@angular/core';
-import { Observable, Subject, Subscriber, combineLatest, from } from 'rxjs';
+import { Observable, combineLatest, from } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { createTransaction, optionsGenerator, validateBeforeTransaction } from '../utils';
 import { CloseDbConnection } from './decorators';
@@ -10,7 +10,6 @@ import {
   DBMode,
   INDEXED_DB,
   IndexKey,
-  Key,
   NgxIDBCursor,
   NgxIDBCursorWithValue,
   ObjectStoreMeta,
@@ -231,7 +230,7 @@ export class NgxIndexedDBService {
    * @param keys The keys to be deleted
    */
   @CloseDbConnection()
-  bulkDelete(storeName: string, keys: Key[]): Observable<number[]> {
+  bulkDelete(storeName: string, keys: IDBValidKey[]): Observable<number[]> {
     const promises = keys.map((key) => {
       return new Promise<number>((resolve, reject) => {
         openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
@@ -414,7 +413,7 @@ export class NgxIndexedDBService {
    * @error If the call to bulkPut fails the transaction will be aborted and previously inserted entities will be deleted
    */
   @CloseDbConnection()
-  public bulkPut<T>(storeName: string, items: T[]): Observable<Key> {
+  public bulkPut<T>(storeName: string, items: T[]): Observable<IDBValidKey> {
     let transaction: IDBTransaction;
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
@@ -427,12 +426,12 @@ export class NgxIndexedDBService {
           const objectStore = transaction.objectStore(storeName);
 
           items.forEach((item, index: number) => {
-            const request: IDBRequest<IDBValidKey> = objectStore.put(item);
+            const request = objectStore.put(item);
 
             if (index === items.length - 1) {
               request.onsuccess = (evt: Event) => {
                 transaction.commit();
-                obs.next((evt.target as IDBRequest<Key>).result);
+                obs.next((evt.target as IDBRequest<IDBValidKey>).result);
                 obs.complete();
               };
             }
@@ -456,7 +455,7 @@ export class NgxIndexedDBService {
    * @param key The key of the entry to be deleted
    */
   @CloseDbConnection()
-  delete<T>(storeName: string, key: Key): Observable<T[]> {
+  delete<T>(storeName: string, key: IDBValidKey): Observable<T[]> {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
@@ -488,7 +487,7 @@ export class NgxIndexedDBService {
    * @param key The key of the entry to be deleted
    */
   @CloseDbConnection()
-  deleteByKey(storeName: string, key: Key): Observable<boolean> {
+  deleteByKey(storeName: string, key: IDBValidKey): Observable<boolean> {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
