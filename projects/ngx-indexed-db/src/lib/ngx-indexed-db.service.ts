@@ -468,13 +468,14 @@ export class NgxIndexedDBService {
           const objectStore = transaction.objectStore(storeName);
           objectStore.delete(key);
           
+          transaction.onerror = (e) => obs.error(e);
           transaction.oncomplete = () => {
-            this.getAll(storeName)
-            .pipe(take(1))
-            .subscribe((newValues) => {
-                obs.next(newValues as T[]);
-              obs.complete();
-            });
+            this.getAll<T>(storeName)
+              .pipe(take(1))
+              .subscribe((newValues) => {
+                obs.next(newValues);
+                obs.complete();
+              });
           };
         })
         .catch((reason) => obs.error(reason));
