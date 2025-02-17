@@ -564,7 +564,8 @@ export class NgxIndexedDBService {
   }
 
   /**
-   * Returns the open cursor event
+   * Returns the open cursor
+   * If no matching data are present, the observable is completed immediately.
    * @param storeName The name of the store to have the entries deleted
    * @param query The key or key range criteria to apply
    * @param direction A string telling the cursor which direction to travel
@@ -576,15 +577,8 @@ export class NgxIndexedDBService {
     query?: IDBValidKey | IDBKeyRange | null,
     direction?: IDBCursorDirection,
     mode: DBMode = DBMode.readonly,
-  ): Observable<{
-    done: () => void;
-    cursor: NgxIDBCursorWithValue<V, P, K>;
-  }> {
+  ): Observable<NgxIDBCursorWithValue<V, P, K>> {
     return new Observable((obs) => {
-      function done() {
-        obs.complete();
-      }
-
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
           validateBeforeTransaction(db, storeName, (e) => obs.error(e));
@@ -592,23 +586,22 @@ export class NgxIndexedDBService {
           const objectStore = transaction.objectStore(storeName);
           const request = objectStore.openCursor(query, direction);
 
+          transaction.oncomplete = () => obs.complete();
           request.onerror = (e) => obs.error(e);
-
           request.onsuccess = (event: Event) => {
             const cursor = (event.target as IDBRequest<NgxIDBCursorWithValue<V, P, K>>).result;
             if (cursor) {
-              obs.next({ done, cursor });
-            } else {
-              obs.complete();
+              obs.next(cursor);
             }
-          };
+          }; 
         })
         .catch((reason) => obs.error(reason));
     });
   }
 
   /**
-   * Open a cursor by index filter.
+   * Open a cursor by index filter
+   * If no matching data are present, the observable is completed immediately.
    * @param storeName The name of the store to query
    * @param indexName The index name to filter
    * @param keyRange The range value and criteria to apply on the index.
@@ -620,15 +613,8 @@ export class NgxIndexedDBService {
     query?: IDBValidKey | IDBKeyRange | null,
     direction?: IDBCursorDirection,
     mode: DBMode = DBMode.readonly,
-  ): Observable<{
-    done: () => void;
-    cursor: NgxIDBCursorWithValue<V, P, K>;
-  }> {
+  ): Observable<NgxIDBCursorWithValue<V, P, K>> {
     return new Observable((obs) => {
-      function done() {
-        obs.complete();
-      }
-
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
           validateBeforeTransaction(db, storeName, (e) => obs.error(e));
@@ -637,14 +623,12 @@ export class NgxIndexedDBService {
           const index = objectStore.index(indexName);
           const request = index.openCursor(query, direction);
 
+          transaction.oncomplete = () => obs.complete();
           request.onerror = (e) => obs.error(e);
-
           request.onsuccess = (event: Event) => {
             const cursor = (event.target as IDBRequest<NgxIDBCursorWithValue<V, P, K>>).result;
             if (cursor) {
-              obs.next({ done, cursor });
-            } else {
-              obs.complete();
+              obs.next(cursor);
             }
           };
         })

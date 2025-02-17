@@ -395,9 +395,10 @@ this.dbService.deleteByKey('people', 3).subscribe((status) => {
 });
 ```
 
-### openCursor<V = any, P extends IDBValidKey = IDBValidKey, K extends IDBValidKey = IDBValidKey>(storeName: string, query?: IDBValidKey | IDBKeyRange | null, direction?: IDBCursorDirection, mode: DBMode = DBMode.readonly): : Observable<{ done: () => void; cursor: NgxIDBCursorWithValue<V, P, K>; }>
+### openCursor<V = any, P extends IDBValidKey = IDBValidKey, K extends IDBValidKey = IDBValidKey>(storeName: string, query?: IDBValidKey | IDBKeyRange | null, direction?: IDBCursorDirection, mode: DBMode = DBMode.readonly): : Observable<NgxIDBCursorWithValue<V, P, K>>
 
-Returns the open cursor event
+Open a cursor.
+If no matching data are present, the observable is completed immediately.
 
 - @param storeName The name of the store to have the entries deleted
 - @param query The key or key range criteria to apply
@@ -405,15 +406,15 @@ Returns the open cursor event
 - @param mode The transaction mode.
 
 ```js
-this.dbService.openCursor('people', IDBKeyRange.bound("A", "F")).subscribe(({ cursor, done }) => {
+this.dbService.openCursor('people', IDBKeyRange.bound("A", "F")).subscribe((cursor) => {
   console.log(cursor.value);
-  done();   // has to be called after last expected "next" callback 
 });
 ```
 
-### openCursorByIndex<V = any, P extends IDBValidKey = IDBValidKey, K extends IDBValidKey = IDBValidKey>(storeName: string, indexName: string, query?: IDBValidKey | IDBKeyRange | null, direction?: IDBCursorDirection, mode: DBMode = DBMode.readonly): Observable<{ done: () => void; cursor: NgxIDBCursorWithValue<V, P, K>; }>
+### openCursorByIndex<V = any, P extends IDBValidKey = IDBValidKey, K extends IDBValidKey = IDBValidKey>(storeName: string, indexName: string, query?: IDBValidKey | IDBKeyRange | null, direction?: IDBCursorDirection, mode: DBMode = DBMode.readonly): Observable<NgxIDBCursorWithValue<V, P, K>>
 
 Open a cursor by index filter.
+If no matching data are present, the observable is completed immediately.
 
 - @param storeName The name of the store to query
 - @param indexName The index name to filter
@@ -422,9 +423,8 @@ Open a cursor by index filter.
 - @param mode The transaction mode.
 
 ```js
-this.dbService.openCursorByIndex('people', 'name', IDBKeyRange.only('john')).subscribe(({ cursor, done }) => {
+this.dbService.openCursorByIndex('people', 'name', IDBKeyRange.only('john')).subscribe((cursor) => {
   console.log(cursor.value);
-  done();   // has to be called after last expected "next" callback 
 });
 ```
 
