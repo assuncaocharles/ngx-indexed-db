@@ -129,15 +129,15 @@ export class NgxIndexedDBService {
   }
 
   /**
-  * Create dynamic store if not already without incrementing version
-  * For Dynamic store
-  * @param storeName The name of the store to create
-  */
-   async createDynamicObjectStore(
-      storeSchema: ObjectStoreMeta,
-      migrationFactory?: () => { [key: number]: (db: IDBDatabase, transaction: IDBTransaction) => void }
-    ): Promise<void> {
-      const storeSchemas: ObjectStoreMeta[] = [storeSchema];
+   * Create dynamic store if not already without incrementing version
+   * For Dynamic store
+   * @param storeName The name of the store to create
+   */
+  async createDynamicObjectStore(
+    storeSchema: ObjectStoreMeta,
+    migrationFactory?: () => { [key: number]: (db: IDBDatabase, transaction: IDBTransaction) => void }
+  ): Promise<void> {
+    const storeSchemas: ObjectStoreMeta[] = [storeSchema];
       await CreateObjectStore(
         this.indexedDB,
         this.dbConfig.name,
@@ -145,7 +145,7 @@ export class NgxIndexedDBService {
         storeSchemas,
         migrationFactory
       );
-    }
+  }
 
 
   /**
@@ -466,7 +466,7 @@ export class NgxIndexedDBService {
           );
           const objectStore = transaction.objectStore(storeName);
           objectStore.delete(key);
-          
+
           transaction.onerror = (e) => obs.error(e);
           transaction.oncomplete = () => {
             this.getAll<T>(storeName)
@@ -503,7 +503,7 @@ export class NgxIndexedDBService {
           transaction.oncomplete = () => {
             obs.next(true);
             obs.complete();
-          };       
+          };
         })
         .catch((reason) => obs.error(reason));
     });
@@ -576,7 +576,7 @@ export class NgxIndexedDBService {
     storeName: string,
     query?: IDBValidKey | IDBKeyRange | null,
     direction?: IDBCursorDirection,
-    mode: DBMode = DBMode.readonly,
+    mode: DBMode = DBMode.readonly
   ): Observable<NgxIDBCursorWithValue<V, P, K>> {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
@@ -593,7 +593,7 @@ export class NgxIndexedDBService {
             if (cursor) {
               obs.next(cursor);
             }
-          }; 
+          };
         })
         .catch((reason) => obs.error(reason));
     });
@@ -612,7 +612,7 @@ export class NgxIndexedDBService {
     indexName: string,
     query?: IDBValidKey | IDBKeyRange | null,
     direction?: IDBCursorDirection,
-    mode: DBMode = DBMode.readonly,
+    mode: DBMode = DBMode.readonly
   ): Observable<NgxIDBCursorWithValue<V, P, K>> {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
@@ -652,8 +652,8 @@ export class NgxIndexedDBService {
   ): Observable<T[]> {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
-      .then((db) => {
-        validateBeforeTransaction(db, storeName, (e) => obs.error(e));
+        .then((db) => {
+          validateBeforeTransaction(db, storeName, (e) => obs.error(e));
           const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error));
           const objectStore = transaction.objectStore(storeName);
           const index = objectStore.index(indexName);
@@ -691,16 +691,16 @@ export class NgxIndexedDBService {
   ): Observable<IndexKey<P, K>[]> {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
-      .then((db) => {
-        validateBeforeTransaction(db, storeName, (e) => obs.error(e));
-        const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error));
-        const objectStore = transaction.objectStore(storeName);
-        const index = objectStore.index(indexName);
-        
-        const data: IndexKey<P, K>[] = [];
-        const request = index.openKeyCursor(query, direction);
-        request.onerror = (e) => obs.error(e);
-        request.onsuccess = (event) => {
+        .then((db) => {
+          validateBeforeTransaction(db, storeName, (e) => obs.error(e));
+          const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error));
+          const objectStore = transaction.objectStore(storeName);
+          const index = objectStore.index(indexName);
+
+          const data: IndexKey<P, K>[] = [];
+          const request = index.openKeyCursor(query, direction);
+          request.onerror = (e) => obs.error(e);
+          request.onsuccess = (event) => {
             const cursor = (event.target as IDBRequest<NgxIDBCursor<P, K>>).result;
             if (cursor) {
               const { primaryKey, key } = cursor;

@@ -190,7 +190,7 @@ export class AppComponent {
       },
       complete: () => {
         console.log('No (other) records');
-      }
+      },
     });
   }
 
@@ -206,7 +206,7 @@ export class AppComponent {
       },
       complete: () => {
         console.log('No (other) records');
-      }
+      },
     });
   }
 
