@@ -452,10 +452,10 @@ export class NgxIndexedDBService {
   /**
    * Returns all items from the store after delete.
    * @param storeName The name of the store to have the entry deleted
-   * @param key The key of the entry to be deleted
+   * @param query The key or key range criteria to apply
    */
   @CloseDbConnection()
-  delete<T>(storeName: string, key: IDBValidKey): Observable<T[]> {
+  delete<T>(storeName: string, query: IDBValidKey | IDBKeyRange): Observable<T[]> {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
@@ -465,15 +465,18 @@ export class NgxIndexedDBService {
             optionsGenerator(DBMode.readwrite, storeName, (e) => obs.error(e))
           );
           const objectStore = transaction.objectStore(storeName);
-          objectStore.delete(key);
+          objectStore.delete(query);
 
           transaction.onerror = (e) => obs.error(e);
           transaction.oncomplete = () => {
             this.getAll<T>(storeName)
               .pipe(take(1))
-              .subscribe((newValues) => {
-                obs.next(newValues);
-                obs.complete();
+              .subscribe({
+                next: (newValues) => {
+                  obs.next(newValues);
+                },
+                error: (e) => obs.error(e), 
+                complete: () => obs.complete(),
               });
           };
         })
@@ -482,12 +485,12 @@ export class NgxIndexedDBService {
   }
 
   /**
-   * Returns true from the store after a successful delete.
+   * Returns after a successful delete.
    * @param storeName The name of the store to have the entry deleted
-   * @param key The key of the entry to be deleted
+   * @param query The key or key range criteria to apply
    */
   @CloseDbConnection()
-  deleteByKey(storeName: string, key: IDBValidKey): Observable<boolean> {
+  deleteByKey(storeName: string, query: IDBValidKey | IDBKeyRange): Observable<void> {
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
@@ -497,11 +500,11 @@ export class NgxIndexedDBService {
             optionsGenerator(DBMode.readwrite, storeName, (e) => obs.error(e))
           );
           const objectStore = transaction.objectStore(storeName);
-          objectStore.delete(key);
+          objectStore.delete(query);
 
           transaction.onerror = (e) => obs.error(e);
           transaction.oncomplete = () => {
-            obs.next(true);
+            obs.next();
             obs.complete();
           };
         })
