@@ -175,9 +175,28 @@ export class AppComponent {
       .subscribe((result) => console.log(result));
   }
 
+  testUpdateCursorXTimes(x = 3) {
+    this.dbService.openCursor('people', undefined, undefined, DBMode.readwrite).subscribe({
+      next: (cursor) => {
+        const item = cursor.value;
+
+        item.name = `${item.name} ${Math.random() * 10}`;
+
+        cursor.update(item);
+
+        if (--x > 0) {
+          cursor.continue();
+        }
+      },
+      complete: () => {
+        console.log('No (other) records');
+      }
+    });
+  }
+
   testUpdateCursor() {
     this.dbService.openCursor('people', undefined, 'prev', DBMode.readwrite).subscribe({
-      next: ({ cursor }) => {
+      next: (cursor) => {
         const item = cursor.value;
 
         item.name = `${item.name} ${Math.random() * 10}`;
