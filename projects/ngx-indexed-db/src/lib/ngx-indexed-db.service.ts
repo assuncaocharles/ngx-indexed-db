@@ -569,18 +569,23 @@ export class NgxIndexedDBService {
   /**
    * Returns the open cursor
    * If no matching data are present, the observable is completed immediately.
-   * @param storeName The name of the store to have the entries deleted
-   * @param query The key or key range criteria to apply
-   * @param direction A string telling the cursor which direction to travel
-   * @param mode The transaction mode.
+   * @param options The options to open the cursor
+   * @param options.storeName The name of the store to have the entries deleted
+   * @param options.query The key or key range criteria to apply
+   * @param options.direction A string telling the cursor which direction to travel
+   * @param options.mode The transaction mode.
    */
   @CloseDbConnection()
   openCursor<V = any, P extends IDBValidKey = IDBValidKey, K extends IDBValidKey = IDBValidKey>(
-    storeName: string,
-    query?: IDBValidKey | IDBKeyRange | null,
-    direction?: IDBCursorDirection,
-    mode: DBMode = DBMode.readonly
+    options: {
+      storeName: string,
+      query?: IDBValidKey | IDBKeyRange | null,
+      direction?: IDBCursorDirection,
+      mode: DBMode
+    } 
   ): Observable<NgxIDBCursorWithValue<V, P, K>> {
+    const { storeName, query, direction, mode = DBMode.readonly } = options;
+
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
@@ -605,18 +610,25 @@ export class NgxIndexedDBService {
   /**
    * Open a cursor by index filter
    * If no matching data are present, the observable is completed immediately.
-   * @param storeName The name of the store to query
-   * @param indexName The index name to filter
-   * @param keyRange The range value and criteria to apply on the index.
+   * @param options The options to open the cursor
+   * @param options.storeName The name of the store to query
+   * @param options.indexName The index name to filter
+   * @param options.query The key or key range criteria to apply
+   * @param options.direction A string telling the cursor which direction to travel
+   * @param options.mode The transaction mode.
    */
   @CloseDbConnection()
   openCursorByIndex<V, P extends IDBValidKey = IDBValidKey, K extends IDBValidKey = IDBValidKey>(
-    storeName: string,
-    indexName: string,
-    query?: IDBValidKey | IDBKeyRange | null,
-    direction?: IDBCursorDirection,
-    mode: DBMode = DBMode.readonly
+    options: {
+      storeName: string,
+      indexName: string,
+      query?: IDBValidKey | IDBKeyRange | null,
+      direction?: IDBCursorDirection,
+      mode?: DBMode
+    }
   ): Observable<NgxIDBCursorWithValue<V, P, K>> {
+    const { storeName, indexName, query, direction, mode = DBMode.readonly } = options;
+
     return new Observable((obs) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
