@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { NgxIndexedDBService } from 'ngx-indexed-db';
+import { DBMode, NgxIndexedDBService } from 'ngx-indexed-db';
 import { of, throwError, forkJoin } from 'rxjs';
 import { catchError, switchMap, tap } from 'rxjs/operators';
 @Component({
@@ -178,19 +178,22 @@ export class AppComponent {
   }
 
   testUpdateCursor() {
-    this.dbService.openCursor('people', undefined, 'prev').subscribe((evt) => {
-      const cursor = ((evt.target as IDBOpenDBRequest).result as unknown) as IDBCursorWithValue;
-
-      if (cursor) {
+    this.dbService.openCursor({
+      storeName: 'people',
+      direction: 'prev',
+      mode: DBMode.readwrite,
+    }).subscribe({
+      next: (cursor) => {
         const item = cursor.value;
 
         item.name = `${item.name} ${Math.random() * 10}`;
 
         cursor.update(item);
         cursor.continue();
-      } else {
-        console.log('Not found');
-      }
+      },
+      complete: () => {
+        console.log('No (other) records');
+      },
     });
   }
 

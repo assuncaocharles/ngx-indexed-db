@@ -1,4 +1,4 @@
-import { NgxIndexedDBService } from 'ngx-indexed-db';
+import { DBMode, NgxIndexedDBService } from 'ngx-indexed-db';
 import { forkJoin, of, throwError } from 'rxjs';
 import { catchError, switchMap, tap } from 'rxjs/operators';
 import { Component } from '@angular/core';
@@ -175,20 +175,46 @@ export class AppComponent {
       .subscribe((result) => console.log(result));
   }
 
-  testUpdateCursor() {
-    this.dbService.openCursor('people', undefined, 'prev').subscribe((evt) => {
-      const cursor = ((evt.target as IDBOpenDBRequest).result as unknown) as IDBCursorWithValue;
+  testUpdateCursorXTimes(x = 3) {
+    this.dbService.openCursor({
+      storeName: 'people',
+      direction: 'next',
+      mode: DBMode.readwrite,
+    }).subscribe({
+      next: (cursor) => {
+        const item = cursor.value;
 
-      if (cursor) {
+        item.name = `${item.name} ${Math.random() * 10}`;
+
+        cursor.update(item);
+
+        if (--x > 0) {
+          cursor.continue();
+        }
+      },
+      complete: () => {
+        console.log('No (other) records');
+      },
+    });
+  }
+
+  testUpdateCursor() {
+    this.dbService.openCursor({
+      storeName: 'people',
+      direction: 'prev',
+      mode: DBMode.readwrite,
+    }).subscribe({
+      next: (cursor) => {
         const item = cursor.value;
 
         item.name = `${item.name} ${Math.random() * 10}`;
 
         cursor.update(item);
         cursor.continue();
-      } else {
-        console.log('Not found');
-      }
+      },
+      complete: () => {
+        console.log('No (other) records');
+      },
     });
   }
 
@@ -207,8 +233,8 @@ export class AppComponent {
 
   deleteDatabase(): void {
     this.dbService.deleteDatabase().subscribe(
-      (result: boolean) => {
-        console.log('database deleted: ', result);
+      () => {
+        console.log('database deleted');
       },
       (error) => {
         console.error('error deleting database: ', error);
