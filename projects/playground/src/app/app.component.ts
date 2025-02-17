@@ -176,7 +176,11 @@ export class AppComponent {
   }
 
   testUpdateCursorXTimes(x = 3) {
-    this.dbService.openCursor('people', undefined, undefined, DBMode.readwrite).subscribe({
+    this.dbService.openCursor({
+      storeName: 'people',
+      direction: 'next',
+      mode: DBMode.readwrite,
+    }).subscribe({
       next: (cursor) => {
         const item = cursor.value;
 
@@ -195,7 +199,11 @@ export class AppComponent {
   }
 
   testUpdateCursor() {
-    this.dbService.openCursor('people', undefined, 'prev', DBMode.readwrite).subscribe({
+    this.dbService.openCursor({
+      storeName: 'people',
+      direction: 'prev',
+      mode: DBMode.readwrite,
+    }).subscribe({
       next: (cursor) => {
         const item = cursor.value;
 
