@@ -164,7 +164,8 @@ export class NgxIndexedDBService {
             optionsGenerator(DBMode.readwrite, storeName, (e) => obs.error(e))
           );
           const objectStore = transaction.objectStore(storeName);
-          const request: IDBRequest<IDBValidKey> = Boolean(key) ? objectStore.add(value, key) : objectStore.add(value);
+          const hasKey = Boolean(key);
+          const request: IDBRequest<IDBValidKey> = hasKey ? objectStore.add(value, key) : objectStore.add(value);
 
           request.onsuccess = async (evt: Event) => {
             const result: any = (evt.target as IDBOpenDBRequest).result;
@@ -205,7 +206,8 @@ export class NgxIndexedDBService {
               const key = value.key;
               delete value.key;
 
-              const request: IDBRequest<IDBValidKey> = Boolean(key)
+              const hasKey = Boolean(key);
+              const request: IDBRequest<IDBValidKey> = hasKey
                 ? objectStore.add(value, key)
                 : objectStore.add(value);
 
