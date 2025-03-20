@@ -155,6 +155,24 @@ export class AppComponent {
     });
   }
 
+  deleteAllByIndex(): void {
+    forkJoin([
+      this.dbService.add('people', {
+        name: 'John',
+        email: `email number ${Math.random() * 10}`,
+      }),
+      this.dbService.add('people', {
+        name: 'John',
+        email: `email number ${Math.random() * 10}`,
+      }),
+    ])
+      .pipe(switchMap((data1, data2) =>  {
+        console.log(data1, data2);
+        return this.dbService.deleteAllByIndex('people', 'name', IDBKeyRange.only('John'));
+      }))
+      .subscribe((result) => console.log(result));
+  }
+
   getAllObjectStoreNames(): void {
     this.dbService.getAllObjectStoreNames().subscribe((storeNames: string[]): void => {
       console.log(storeNames);
