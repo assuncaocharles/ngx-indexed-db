@@ -3,12 +3,13 @@ import { FormsModule } from '@angular/forms';
 import { DBMode, NgxIndexedDBService } from 'ngx-indexed-db';
 import { of, throwError, forkJoin } from 'rxjs';
 import { catchError, switchMap, tap } from 'rxjs/operators';
+
 @Component({
   selector: 'app-root',
-  standalone: true,
   imports: [FormsModule],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
+  standalone: true
 })
 export class AppComponent {
   title = 'ssr-playground';
@@ -23,7 +24,7 @@ export class AppComponent {
   add(): void {
     //prepare random person data with or without email for count by index
     const randomPerson = {
-      name: `charles number ${Math.random() * 10}`,
+      name: `charles number ${Math.random() * 10}`
     };
     if (Math.random().toFixed(0) === '1') {
       randomPerson['email'] = `email number ${Math.random() * 10}`;
@@ -39,7 +40,7 @@ export class AppComponent {
     for (let i = 0; i < 200000; i++) {
       randomData.push({
         name: `charles number ${Math.random() * 10}`,
-        email: `email number ${Math.random() * 10}`,
+        email: `email number ${Math.random() * 10}`
       });
     }
     this.dbService.bulkAdd('people', randomData).subscribe(
@@ -55,7 +56,7 @@ export class AppComponent {
   addToTest(): void {
     this.dbService
       .add('test', {
-        name: `charles number`,
+        name: `charles number`
       })
       .pipe(
         catchError((x) => {
@@ -136,8 +137,8 @@ export class AppComponent {
       storeConfig: { keyPath: 'id', autoIncrement: true },
       storeSchema: [
         { name: 'name', keypath: 'name', options: { unique: false } },
-        { name: 'email', keypath: 'email', options: { unique: false } },
-      ],
+        { name: 'email', keypath: 'email', options: { unique: false } }
+      ]
     };
 
     this.dbService.createObjectStore(storeSchema);
@@ -159,14 +160,14 @@ export class AppComponent {
     forkJoin([
       this.dbService.add('people', {
         name: 'John',
-        email: `email number ${Math.random() * 10}`,
+        email: `email number ${Math.random() * 10}`
       }),
       this.dbService.add('people', {
         name: 'John',
-        email: `email number ${Math.random() * 10}`,
-      }),
+        email: `email number ${Math.random() * 10}`
+      })
     ])
-      .pipe(switchMap((data1, data2) =>  {
+      .pipe(switchMap((data1, data2) => {
         console.log(data1, data2);
         return this.dbService.deleteAllByIndex('people', 'name', IDBKeyRange.only('John'));
       }))
@@ -184,12 +185,12 @@ export class AppComponent {
     forkJoin([
       this.dbService.add('people', {
         name: `desmond`,
-        email: `email number ${Math.random() * 10}`,
+        email: `email number ${Math.random() * 10}`
       }),
       this.dbService.add('people', {
         name: `desmond`,
-        email: `email number ${Math.random() * 10}`,
-      }),
+        email: `email number ${Math.random() * 10}`
+      })
     ])
       .pipe(switchMap(() => this.dbService.getAllByIndex('people', 'name', IDBKeyRange.only('desmond'))))
       .subscribe((result) => console.log(result));
@@ -199,7 +200,7 @@ export class AppComponent {
     this.dbService.openCursor({
       storeName: 'people',
       direction: 'prev',
-      mode: DBMode.readwrite,
+      mode: DBMode.readwrite
     }).subscribe({
       next: (cursor) => {
         const item = cursor.value;
@@ -211,7 +212,7 @@ export class AppComponent {
       },
       complete: () => {
         console.log('No (other) records');
-      },
+      }
     });
   }
 
