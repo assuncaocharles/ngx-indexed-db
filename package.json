@@ -41,7 +41,6 @@
     "@angular/router": "^19.2.4",
     "@angular/ssr": "^19.2.5",
     "express": "^4.21.2",
-    "ngx-indexed-db": "^19.4.3",
     "rxjs": "^7.0.0",
     "tslib": "^2.0.0",
     "zone.js": "~0.15.0"
