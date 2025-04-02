@@ -26,7 +26,9 @@ export class NgxIndexedDBService {
     @Inject(CONFIG_TOKEN) private dbConfigs: Record<string, DBConfig>,
     @Inject(INDEXED_DB) private indexedDB: IDBFactory
   ) {
-    Object.values(this.dbConfigs).forEach((dbConfig, _, ref) => this.instanciateConfig(dbConfig, ref.length === 1));
+    for (const [_, dbConfig] of Object.entries(this.dbConfigs)) {
+      await this.instanciateConfig(dbConfig, Object.keys(this.dbConfigs).length === 1);
+    }
   }
 
   private async instanciateConfig(dbConfig: DBConfig, isOnlyConfig: boolean): Promise<void> {
