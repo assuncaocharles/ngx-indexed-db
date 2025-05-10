@@ -313,6 +313,7 @@ export class NgxIndexedDBService {
           const request: IDBRequest = objectStore.get(id) as IDBRequest<T>;
           request.onsuccess = (event: Event) => {
             obs.next((event.target as IDBRequest<T>).result);
+            obs.complete();
           };
         })
         .catch((error) => obs.error(error));
