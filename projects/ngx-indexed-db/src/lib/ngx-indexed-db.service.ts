@@ -170,9 +170,8 @@ export class NgxIndexedDBService {
    * Adds new entries in the store and returns its key
    * @param storeName The name of the store to add the item
    * @param values The entries to be added containing optional key attribute
-   * @param withData Optional flag to return saved values
+   * @param withData Optional flag to return saved values (if false, returns empty array to optimize resources)
    */
-
   @CloseDbConnection()
   bulkAdd<T>(storeName: string, values: Array<BulkAdd<T>>, withData = true): Observable<number[]> {
     if (!values?.length) {
@@ -184,41 +183,51 @@ export class NgxIndexedDBService {
       new Promise<number[]>((resolve, reject) => {
         openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
           .then((db: IDBDatabase) => {
-            const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, resolve, reject));
+            const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, reject));
             const objectStore = transaction.objectStore(storeName);
+            const results: number[] = [];
+            let hasError = false;
+
+            transaction.oncomplete = () => {
+              if (!hasError) {
+                console.log('Bulk add transaction completed successfully');
+                resolve(withData ? results : []);
+              }
+            };
 
             transaction.onerror = (event: Event) => {
               console.error(`Bulk add transaction error: ${event}`);
+              hasError = true;
               reject(new Error(`Bulk add transaction failed: ${event}`));
             };
 
-            transaction.oncomplete = () => {
-              resolve(withData ? Promise.all(results) : []);
-              console.log('Bulk add transaction completed');
+            transaction.onabort = (event: Event) => {
+              console.error(`Bulk add transaction aborted: ${event}`);
+              hasError = true;
+              reject(new Error(`Bulk add transaction was aborted: ${event}`));
             };
 
-            const results = values.map((value: BulkAdd<T>) => {
-              return new Promise<number>((resolveItem, rejectItem) => {
-                const { key, ...others } = value;
+            values.forEach((value: BulkAdd<T>, idx) => {
+              const { key, ...others } = value;
+              try {
+                const request = Boolean(key) ? objectStore.add(others, key) : objectStore.add(others);
 
-                try {
-                  const request = Boolean(key) ? objectStore.add(others, key) : objectStore.add(others);
-
-                  request.onsuccess = (event: Event) => {
+                request.onsuccess = (event: Event) => {
+                  if (withData) {
                     const result = (event.target as IDBRequest).result as number;
-                    resolveItem(result);
-                  };
+                    results[idx] = result;
+                  }
+                };
 
-                  request.onerror = (event: Event) => {
-                    console.error(`Failed to add item in bulk add: ${event.target}`);
-                    event.stopPropagation();
-                    rejectItem(new Error(`Failed to add item in bulk add: ${event}`));
-                  };
-                } catch (error) {
-                  console.error('Error processing item in bulk add: ', error);
-                  rejectItem(error);
-                }
-              });
+                request.onerror = (event: Event) => {
+                  console.error(`Failed to add item at index ${idx} in bulk add: ${event}`);
+                  hasError = true;
+                };
+              } catch (error) {
+                console.error(`Error processing item at index ${idx} in bulk add: `, error);
+                hasError = true;
+                transaction.abort();
+              }
             });
           })
           .catch((error) => {
