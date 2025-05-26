@@ -170,17 +170,17 @@ export class NgxIndexedDBService {
    * Adds new entries in the store and returns its key
    * @param storeName The name of the store to add the item
    * @param values The entries to be added containing optional key attribute
-   * @param withData Optional flag to return saved values (if false, returns empty array to optimize resources)
+   * @param withData Optional flag to return saved values (if false, returns completion message to optimize resources)
    */
   @CloseDbConnection()
-  bulkAdd<T>(storeName: string, values: Array<BulkAdd<T>>, withData = true): Observable<number[]> {
+  bulkAdd<T>(storeName: string, values: Array<BulkAdd<T>>, withData = true): Observable<number[] | string> {
     if (!values?.length) {
       console.warn('No values provided to bulkAdd');
-      return of([]);
+      return of(withData ? [] : 'bulk completed');
     }
 
     return from(
-      new Promise<number[]>((resolve, reject) => {
+      new Promise<number[] | string>((resolve, reject) => {
         openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
           .then((db: IDBDatabase) => {
             const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, reject));
@@ -191,7 +191,7 @@ export class NgxIndexedDBService {
             transaction.oncomplete = () => {
               if (!hasError) {
                 console.log('Bulk add transaction completed successfully');
-                resolve(withData ? results : []);
+                resolve(withData ? results : 'bulk completed');
               }
             };
 
