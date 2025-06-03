@@ -6,15 +6,12 @@
     "declarationMap": true,
     "declaration": true,
     "inlineSources": true,
-    "types": ["node"],
+    "types": ["node"]
   },
   "angularCompilerOptions": {
     "skipTemplateCodegen": true,
     "strictMetadataEmit": true,
-    "enableResourceInlining": true,
+    "enableResourceInlining": true
   },
-  "exclude": [
-    "src/test.ts",
-    "**/*.spec.ts"
-  ]
+  "exclude": ["src/test.ts", "**/*.spec.ts"]
 }

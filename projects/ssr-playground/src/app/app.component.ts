@@ -138,8 +138,8 @@ export class AppComponent {
       storeConfig: { keyPath: 'id', autoIncrement: true },
       storeSchema: [
         { name: 'name', keypath: 'name', options: { unique: false } },
-        { name: 'email', keypath: 'email', options: { unique: false } }
-      ]
+        { name: 'email', keypath: 'email', options: { unique: false } },
+      ],
     };
 
     this.#dbService.createObjectStore(storeSchema);
@@ -161,12 +161,12 @@ export class AppComponent {
     forkJoin([
       this.#dbService.add('people', {
         name: 'John',
-        email: `email number ${Math.random() * 10}`
+        email: `email number ${Math.random() * 10}`,
       }),
       this.#dbService.add('people', {
         name: 'John',
-        email: `email number ${Math.random() * 10}`
-      })
+        email: `email number ${Math.random() * 10}`,
+      }),
     ])
       .pipe(
         switchMap((data1, data2) => {
@@ -188,11 +188,11 @@ export class AppComponent {
     forkJoin([
       this.#dbService.add('people', {
         name: `desmond`,
-        email: `email number ${Math.random() * 10}`
+        email: `email number ${Math.random() * 10}`,
       }),
       this.#dbService.add('people', {
         name: `desmond`,
-        email: `email number ${Math.random() * 10}`
+        email: `email number ${Math.random() * 10}`,
       }),
     ])
       .pipe(switchMap(() => this.#dbService.getAllByIndex('people', 'name', IDBKeyRange.only('desmond'))))
@@ -204,7 +204,7 @@ export class AppComponent {
       .openCursor({
         storeName: 'people',
         direction: 'prev',
-        mode: DBMode.readwrite
+        mode: DBMode.readwrite,
       })
       .subscribe({
         next: (cursor) => {
@@ -217,7 +217,7 @@ export class AppComponent {
         },
         complete: () => {
           console.log('No (other) records');
-        }
+        },
       });
   }
 
