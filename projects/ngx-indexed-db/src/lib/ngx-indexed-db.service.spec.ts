@@ -26,7 +26,7 @@ describe('NgxIndexedDBService', () => {
   );
 
   it('should be created', () => {
-    const service: NgxIndexedDBService = TestBed.get(NgxIndexedDBService);
+    const service = TestBed.inject(NgxIndexedDBService);
     expect(service).toBeTruthy();
   });
 });
