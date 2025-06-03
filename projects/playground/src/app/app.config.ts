@@ -1,11 +1,7 @@
+import { ApplicationConfig } from '@angular/core';
 import { DBConfig, provideIndexedDb } from 'ngx-indexed-db';
-import { BrowserModule } from '@angular/platform-browser';
-import { NgModule } from '@angular/core';
 
-import { AppComponent } from './app.component';
-import { FormsModule } from '@angular/forms';
-
-const dbConfig: DBConfig = {
+export const dbConfig: DBConfig = {
   name: 'MyDb',
   version: 1,
   objectStoresMeta: [
@@ -25,10 +21,6 @@ const dbConfig: DBConfig = {
   ],
 };
 
-@NgModule({
-  declarations: [AppComponent],
-  imports: [BrowserModule, FormsModule],
+export const appConfig: ApplicationConfig = {
   providers: [provideIndexedDb(dbConfig)],
-  bootstrap: [AppComponent],
-})
-export class AppModule {}
+};

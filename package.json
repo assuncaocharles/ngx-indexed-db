@@ -1,6 +1,6 @@
 {
   "name": "ngx-indexed-db",
-  "version": "20.0.1",
+  "version": "21.0.0",
   "files": [
     "dist/ngx-indexed-db/**/*"
   ],
