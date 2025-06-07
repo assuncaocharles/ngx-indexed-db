@@ -1,13 +1,14 @@
 import { DBMode, NgxIndexedDBService } from 'ngx-indexed-db';
 import { forkJoin, of, throwError } from 'rxjs';
 import { catchError, switchMap, tap } from 'rxjs/operators';
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
+  imports: [FormsModule],
   styleUrls: ['./app.component.scss'],
-  standalone: false
 })
 export class AppComponent {
   title = 'playground';
@@ -15,8 +16,10 @@ export class AppComponent {
   storneNameToDelete: string;
   getAll$;
 
-  constructor(private dbService: NgxIndexedDBService) {
-    this.getAll$ = this.dbService.getAll('people');
+  readonly #dbService = inject(NgxIndexedDBService);
+
+  constructor() {
+    this.getAll$ = this.#dbService.getAll('people');
   }
 
   add(): void {
@@ -28,7 +31,7 @@ export class AppComponent {
       randomPerson['email'] = `email number ${Math.random() * 10}`;
     }
 
-    this.dbService.add('people', randomPerson).subscribe((result) => {
+    this.#dbService.add('people', randomPerson).subscribe((result) => {
       console.log('result: ', result);
     });
   }
@@ -41,7 +44,7 @@ export class AppComponent {
         email: `email number ${Math.random() * 10}`,
       });
     }
-    this.dbService.bulkAdd('people', randomData).subscribe(
+    this.#dbService.bulkAdd('people', randomData).subscribe(
       (results) => {
         console.log('result bulk add => ', results);
       },
@@ -52,7 +55,7 @@ export class AppComponent {
   }
 
   addToTest(): void {
-    this.dbService
+    this.#dbService
       .add('test', {
         name: `charles number`,
       })
@@ -71,7 +74,7 @@ export class AppComponent {
     // for (let i = 0; i < 3; i++) {
     //   this.bulkAdd();
     // }
-    this.dbService.bulkGet('people', [1, 2]).subscribe((result) => {
+    this.#dbService.bulkGet('people', [1, 2]).subscribe((result) => {
       console.log('results: ', result);
     });
   }
@@ -81,49 +84,49 @@ export class AppComponent {
     for (let i = 0; i < 100_000; ++i) {
       people.push({ name: `charles number ${Math.random() * 10}`, email: `email number ${Math.random() * 10}` });
     }
-    this.dbService.bulkPut('people', people).subscribe((result) => {
+    this.#dbService.bulkPut('people', people).subscribe((result) => {
       console.log('result: ', result);
     });
   }
 
   update(): void {
-    this.dbService.update('people', { id: 1, email: 'asd', name: 'charles' }).subscribe((result) => {
+    this.#dbService.update('people', { id: 1, email: 'asd', name: 'charles' }).subscribe((result) => {
       console.log('result: ', result);
     });
   }
 
   delete(): void {
-    this.dbService.delete('people', 3).subscribe((result) => {
+    this.#dbService.delete('people', 3).subscribe((result) => {
       console.log('result: ', result);
     });
   }
 
   clean(): void {
-    this.dbService.clear('people').subscribe((result) => {
+    this.#dbService.clear('people').subscribe((result) => {
       console.log('result: ', result);
     });
   }
 
   count(): void {
-    this.dbService.count('people').subscribe((result) => {
+    this.#dbService.count('people').subscribe((result) => {
       console.log('result: ', result);
     });
   }
 
   countByIndex(): void {
-    this.dbService.countByIndex('people', 'email').subscribe((result) => {
+    this.#dbService.countByIndex('people', 'email').subscribe((result) => {
       console.log('result: ', result);
     });
   }
 
   bulkDelete(): void {
-    this.dbService.bulkDelete('people', [5, 6]).subscribe((result) => {
+    this.#dbService.bulkDelete('people', [5, 6]).subscribe((result) => {
       console.log('result: ', result);
     });
   }
 
   deleteStore(): void {
-    this.dbService.deleteObjectStore(this.storneNameToDelete).subscribe((result) => {
+    this.#dbService.deleteObjectStore(this.storneNameToDelete).subscribe((result) => {
       console.log('result: ', result);
     });
   }
@@ -139,7 +142,7 @@ export class AppComponent {
       ],
     };
 
-    this.dbService.createObjectStore(storeSchema);
+    this.#dbService.createObjectStore(storeSchema);
   }
 
   getAll(): void {
@@ -149,31 +152,33 @@ export class AppComponent {
   }
 
   getByKey(): void {
-    this.dbService.getByKey('people', 1).subscribe((d) => {
+    this.#dbService.getByKey('people', 1).subscribe((d) => {
       console.log(d);
     });
   }
 
   deleteAllByIndex(): void {
     forkJoin([
-      this.dbService.add('people', {
+      this.#dbService.add('people', {
         name: 'John',
         email: `email number ${Math.random() * 10}`,
       }),
-      this.dbService.add('people', {
+      this.#dbService.add('people', {
         name: 'John',
         email: `email number ${Math.random() * 10}`,
       }),
     ])
-      .pipe(switchMap((data1, data2) =>  {
-        console.log(data1, data2);
-        return this.dbService.deleteAllByIndex('people', 'name', IDBKeyRange.only('John'));
-      }))
+      .pipe(
+        switchMap((data1, data2) => {
+          console.log(data1, data2);
+          return this.#dbService.deleteAllByIndex('people', 'name', IDBKeyRange.only('John'));
+        })
+      )
       .subscribe((result) => console.log(result));
   }
 
   getAllObjectStoreNames(): void {
-    this.dbService.getAllObjectStoreNames().subscribe((storeNames: string[]): void => {
+    this.#dbService.getAllObjectStoreNames().subscribe((storeNames: string[]): void => {
       console.log(storeNames);
     });
   }
@@ -181,64 +186,68 @@ export class AppComponent {
   addTwoAndGetAllByIndex(): void {
     // #209 getAllByIndex with multiple result should resolve observable
     forkJoin([
-      this.dbService.add('people', {
+      this.#dbService.add('people', {
         name: `desmond`,
         email: `email number ${Math.random() * 10}`,
       }),
-      this.dbService.add('people', {
+      this.#dbService.add('people', {
         name: `desmond`,
         email: `email number ${Math.random() * 10}`,
       }),
     ])
-      .pipe(switchMap(() => this.dbService.getAllByIndex('people', 'name', IDBKeyRange.only('desmond'))))
+      .pipe(switchMap(() => this.#dbService.getAllByIndex('people', 'name', IDBKeyRange.only('desmond'))))
       .subscribe((result) => console.log(result));
   }
 
   testUpdateCursorXTimes(x = 3) {
-    this.dbService.openCursor({
-      storeName: 'people',
-      direction: 'next',
-      mode: DBMode.readwrite,
-    }).subscribe({
-      next: (cursor) => {
-        const item = cursor.value;
+    this.#dbService
+      .openCursor({
+        storeName: 'people',
+        direction: 'next',
+        mode: DBMode.readwrite,
+      })
+      .subscribe({
+        next: (cursor) => {
+          const item = cursor.value;
 
-        item.name = `${item.name} ${Math.random() * 10}`;
+          item.name = `${item.name} ${Math.random() * 10}`;
 
-        cursor.update(item);
+          cursor.update(item);
 
-        if (--x > 0) {
-          cursor.continue();
-        }
-      },
-      complete: () => {
-        console.log('No (other) records');
-      },
-    });
+          if (--x > 0) {
+            cursor.continue();
+          }
+        },
+        complete: () => {
+          console.log('No (other) records');
+        },
+      });
   }
 
   testUpdateCursor() {
-    this.dbService.openCursor({
-      storeName: 'people',
-      direction: 'prev',
-      mode: DBMode.readwrite,
-    }).subscribe({
-      next: (cursor) => {
-        const item = cursor.value;
+    this.#dbService
+      .openCursor({
+        storeName: 'people',
+        direction: 'prev',
+        mode: DBMode.readwrite,
+      })
+      .subscribe({
+        next: (cursor) => {
+          const item = cursor.value;
 
-        item.name = `${item.name} ${Math.random() * 10}`;
+          item.name = `${item.name} ${Math.random() * 10}`;
 
-        cursor.update(item);
-        cursor.continue();
-      },
-      complete: () => {
-        console.log('No (other) records');
-      },
-    });
+          cursor.update(item);
+          cursor.continue();
+        },
+        complete: () => {
+          console.log('No (other) records');
+        },
+      });
   }
 
   public async versionDatabase(): Promise<void> {
-    this.dbService
+    this.#dbService
       .getDatabaseVersion()
       .pipe(
         tap((response) => console.log('Versione database => ', response)),
@@ -251,7 +260,7 @@ export class AppComponent {
   }
 
   deleteDatabase(): void {
-    this.dbService.deleteDatabase().subscribe(
+    this.#dbService.deleteDatabase().subscribe(
       () => {
         console.log('database deleted');
       },

@@ -7,14 +7,10 @@
     "esModuleInterop": true,
     "declaration": false,
     "experimentalDecorators": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "importHelpers": true,
     "target": "ES2022",
-    "module": "es2020",
-    "lib": [
-      "es2018",
-      "dom"
-    ],
+    "module": "ES2020",
     "paths": {
       "ngx-indexed-db": [
         "dist/ngx-indexed-db/ngx-indexed-db",
