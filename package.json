@@ -31,8 +31,8 @@
   },
   "dependencies": {
     "@angular/animations": "^20.0.2",
-    "@angular/common": "^20.0.2",
-    "@angular/compiler": "^20.0.2",
+    "@angular/common": "^20.3.14",
+    "@angular/compiler": "^20.3.15",
     "@angular/core": "^20.0.2",
     "@angular/forms": "^20.0.2",
     "@angular/platform-browser": "^20.0.2",
@@ -40,7 +40,7 @@
     "@angular/platform-server": "^20.0.2",
     "@angular/router": "^20.0.2",
     "@angular/ssr": "^20.0.1",
-    "express": "^4.21.2",
+    "express": "^4.22.0",
     "rxjs": "^7.0.0",
     "tslib": "^2.0.0",
     "zone.js": "~0.15.0"
