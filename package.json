@@ -1,6 +1,6 @@
 {
   "name": "ngx-indexed-db",
-  "version": "21.0.0",
+  "version": "21.0.1",
   "files": [
     "dist/ngx-indexed-db/**/*"
   ],
@@ -12,6 +12,7 @@
     "build:lib": "ng build --project ngx-indexed-db -c production",
     "watch:lib": "ng build --project ngx-indexed-db -c development",
     "build:playground": "ng build --project playground",
+    "build:library": "ng build --project ngx-indexed-db",
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e",
