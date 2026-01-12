@@ -1,5 +1,5 @@
 import { ObjectStoreMeta } from './ngx-indexed-db.meta';
-import { Observable, Subscriber } from 'rxjs';
+import { Observable } from 'rxjs';
 
 export const openedDatabases: IDBDatabase[] = [];
 
@@ -15,12 +15,12 @@ export function openDatabase(
     }
     const request = indexedDB.open(dbName, version);
     let db: IDBDatabase;
-    request.onsuccess = (event: Event) => {
+    request.onsuccess = () => {
       db = request.result;
       openedDatabases.push(db);
       resolve(db);
     };
-    request.onerror = (event: Event) => {
+    request.onerror = () => {
       reject(`IndexedDB error: ${request.error}`);
     };
     if (typeof upgradeCallback === 'function') {
@@ -84,12 +84,12 @@ export async function CreateObjectStore(
   });
 }
 
-export function DeleteObjectStore(dbName: string, version: number, storeName: string): Observable<boolean> {
+export function DeleteObjectStore(dbName: string, version: number, storeName: string): Observable<void> {
   if (!dbName || !version || !storeName) {
     throw Error('Params: "dbName", "version", "storeName" are mandatory.');
   }
 
-  return new Observable<boolean>((obs: Subscriber<boolean>) => {
+  return new Observable((obs) => {
     try {
       const newVersion = version + 1;
       const request: IDBOpenDBRequest = indexedDB.open(dbName, newVersion);
@@ -99,7 +99,7 @@ export function DeleteObjectStore(dbName: string, version: number, storeName: st
         database.deleteObjectStore(storeName);
         database.close();
         console.log('onupgradeneeded');
-        obs.next(true);
+        obs.next();
         obs.complete();
       };
 

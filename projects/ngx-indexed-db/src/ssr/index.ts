@@ -1,5 +1,5 @@
 import { assertInInjectionContext, inject, PLATFORM_ID } from '@angular/core';
-import { DOCUMENT, isPlatformBrowser } from '@angular/common';
+import { isPlatformBrowser, DOCUMENT } from '@angular/common';
 import { SERVER_INDEXED_DB } from '../lib/ngx-indexed-db.meta';
 import { ServerIndexedDB } from './server-indexed-db';
 

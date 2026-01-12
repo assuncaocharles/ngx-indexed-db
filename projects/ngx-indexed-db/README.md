@@ -153,8 +153,7 @@ import { NgxIndexedDBService } from 'ngx-indexed-db';
 
 ...
   export class AppComponent {
-    constructor(private dbService: NgxIndexedDBService){
-    }
+    #dbService = inject(NgxIndexedDBService);
   }
 ```
 
@@ -331,12 +330,12 @@ const storeSchema: ObjectStoreMeta = {
 this.dbService.createObjectStore(storeSchema);
 ```
 
-### count(storeName: string, keyRange?: IDBValidKey | IDBKeyRange): Observable<number>
+### count(storeName: string, query?: IDBValidKey | IDBKeyRange): Observable<number>
 
 Returns the number of rows in a store.
 
 - @param storeName The name of the store to query
-- @param keyRange The range value and criteria to apply.
+- @param query The key or key range criteria to apply.
 
 ```js
 this.dbService.count('people').subscribe((peopleCount) => {
@@ -344,9 +343,23 @@ this.dbService.count('people').subscribe((peopleCount) => {
 });
 ```
 
-### deleteObjectStore(storeName: string): Observable<boolean>
+### countByIndex(storeName: string, indexName: string, query?: IDBValidKey | IDBKeyRange): Observable<number>
 
-Delete the store by name, return true or false.
+Returns the number of records within a key range.
+
+- @param storeName The name of the store to query
+- @param indexName The index name to filter
+- @param query The key or key range criteria to apply.
+
+```js
+this.dbService.countByIndex('people', 'email').subscribe((peopleCount) => {
+  console.log(peopleCount);
+});
+```
+
+### deleteObjectStore(storeName: string): Observable<void>
+
+Delete the store by name.
 
 - @param storeName The name of the store to query
 
@@ -368,9 +381,9 @@ this.dbService.delete('people', 3).subscribe((allPeople) => {
 });
 ```
 
-### deleteByKey(storeName: string, key: Key): Observable<boolean>
+### deleteByKey(storeName: string, key: Key): Observable<void>
 
-Returns true if the delete completes successfully.
+Returns if the delete completes successfully.
 
 - @param storeName The name of the store to have the entry deleted
 - @param key The key of the entry to be deleted
@@ -381,59 +394,79 @@ this.dbService.deleteByKey('people', 3).subscribe((status) => {
 });
 ```
 
-### openCursor(storeName: string, keyRange?: IDBKeyRange, direction?: IDBCursorDirection): Observable<Event>
+### openCursor<V = any, P extends IDBValidKey = IDBValidKey, K extends IDBValidKey = IDBValidKey>({
+  storeName: string,
+  query?: IDBValidKey | IDBKeyRange | null,
+  direction?: IDBCursorDirection,
+  mode: DBMode = DBMode.readonly
+}): Observable<NgxIDBCursorWithValue<V, P, K>>
 
-Returns the open cursor event
+Opens a cursor.
+If no matching data are present, the observable is completed immediately.
 
-- @param storeName The name of the store to have the entries deleted
-- @param keyRange The key range which the cursor should be open on
-- @param direction IDB Cursor Direction to work with, default to `next`
+- @param options The options to open the cursor
+- @param options.storeName The name of the store to have the entries deleted
+- @param options.query The key or key range criteria to apply
+- @param options.direction A string telling the cursor which direction to travel
+- @param options.mode The transaction mode.
 
 ```js
-this.dbService.openCursor('people', IDBKeyRange.bound("A", "F")).subscribe((evt) => {
-    const cursor = (evt.target as IDBOpenDBRequest).result as unknown as IDBCursorWithValue;
-    if(cursor) {
-        console.log(cursor.value);
-        cursor.continue();
-    } else {
-        console.log('Entries all displayed.');
-    }
+this.dbService.openCursor('people', IDBKeyRange.bound("A", "F")).subscribe((cursor) => {
+  console.log(cursor.value);
 });
 ```
 
-### openCursorByIndex(storeName: string, indexName: string, keyRange: IDBKeyRange, direction?: IDBCursorDirection, mode?: DBMode): Observable<Event>
+### openCursorByIndex<V = any, P extends IDBValidKey = IDBValidKey, K extends IDBValidKey = IDBValidKey>({
+  storeName: string,
+  indexName: string,
+  query?: IDBValidKey | IDBKeyRange | null,
+  direction?: IDBCursorDirection,
+  mode: DBMode = DBMode.readonly
+}): Observable<NgxIDBCursorWithValue<V, P, K>>
 
 Open a cursor by index filter.
+If no matching data are present, the observable is completed immediately.
 
-- @param storeName The name of the store to query.
-- @param indexName The index name to filter.
-- @param keyRange The range value and criteria to apply on the index.
-- @param direction IDB Cursor Direction to work with, default to `next`
-- @param mode DB Mode to work with, default to `readonly`
+- @param options The options to open the cursor
+- @param options.storeName The name of the store to query
+- @param options.indexName The index name to filter
+- @param options.query The key or key range criteria to apply
+- @param options.direction A string telling the cursor which direction to travel
+- @param options.mode The transaction mode.
 
 ```js
-this.dbService.openCursorByIndex('people', 'name', IDBKeyRange.only('john')).subscribe((evt) => {
-    const cursor = (evt.target as IDBOpenDBRequest).result as unknown as IDBCursorWithValue;
-    if(cursor) {
-        console.log(cursor.value);
-        cursor.continue();
-    } else {
-        console.log('Entries all displayed.');
-    }
+this.dbService.openCursorByIndex('people', 'name', IDBKeyRange.only('john')).subscribe((cursor) => {
+  console.log(cursor.value);
 });
 ```
 
-### getAllByIndex<T>(storeName: string, indexName: string, keyRange: IDBKeyRange): Observable<T[]>
+### getAllByIndex<T>(storeName: string, indexName: string, query?: IDBValidKey | IDBKeyRange | null, direction?: IDBCursorDirection): Observable<T[]>
 
 Returns all items by an index.
 
 - @param storeName The name of the store to query
 - @param indexName The index name to filter
-- @param keyRange The range value and criteria to apply on the index.
+- @param query The key or key range criteria to apply
+- @param direction A string telling the cursor which direction to travel.
 
 ```js
 this.dbService.getAllByIndex('people', 'name', IDBKeyRange.only('john')).subscribe((allPeopleByIndex) => {
   console.log('All: ', allPeopleByIndex);
+});
+```
+
+### getAllKeysByIndex<P extends IDBValidKey = IDBValidKey, K extends IDBValidKey = IDBValidKey>(storeName: string, indexName: string, query?: IDBValidKey | IDBKeyRange | null, direction?: IDBCursorDirection): Observable<IndexKey<P, K>[]>
+
+Returns all items by an index.
+
+- @param storeName The name of the store to query
+- @param indexName The index name to filter
+- @param query The range value and criteria to apply on the index
+- @param direction A string telling the cursor which direction to travel.
+
+```js
+this.dbService.getAllKeysByIndex('people', 'name', IDBKeyRange.only('john')).subscribe((keys) => {
+  console.log(keys);
 });
 ```
 
@@ -451,7 +484,7 @@ this.dbService.getDatabaseVersion().pipe(
 ).subscribe();
 ```
 
-### clear(storeName: string): Observable<boolean>
+### clear(storeName: string): Observable<void>
 
 Returns true if successfully delete all entries from the store.
 
@@ -463,7 +496,7 @@ this.dbService.clear('people').subscribe((successDeleted) => {
 });
 ```
 
-### deleteDatabase(): Observable<boolean>
+### deleteDatabase(): Observable<void>
 
 Returns true if successfully delete the DB.
 

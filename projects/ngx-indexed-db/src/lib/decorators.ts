@@ -13,7 +13,6 @@ export function CloseDbConnection(): MethodDecorator {
           finalize(async () => {
             const promises = openedDatabases.map(async (db: IDBDatabase) => {
               await closeDatabase(db);
-              console.log('Database connection closed: ', db.name);
             });
             await Promise.all(promises);
             openedDatabases.length = 0;

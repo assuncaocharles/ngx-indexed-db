@@ -3,7 +3,7 @@ import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
 import { provideClientHydration } from '@angular/platform-browser';
-import { provideIndexedDb, DBConfig, SERVER_INDEXED_DB } from 'ngx-indexed-db';
+import { provideIndexedDb, DBConfig } from 'ngx-indexed-db';
 
 const dbConfig: DBConfig = {
   name: 'MyDb',
