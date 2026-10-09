@@ -1,5 +1,5 @@
-import { assertInInjectionContext, inject, PLATFORM_ID } from '@angular/core';
-import { isPlatformBrowser, DOCUMENT } from '@angular/common';
+import { assertInInjectionContext, DOCUMENT, inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { SERVER_INDEXED_DB } from '../lib/ngx-indexed-db.meta';
 import { ServerIndexedDB } from './server-indexed-db';
 
@@ -15,5 +15,5 @@ export function indexedDbFactory(): IDBFactory {
   assertInInjectionContext(indexedDbFactory);
   const platformId = inject(PLATFORM_ID);
   const serverIndexedDB = inject(SERVER_INDEXED_DB, { optional: true }) ?? new ServerIndexedDB();
-  return isPlatformBrowser(platformId) ? inject(DOCUMENT).defaultView.indexedDB : serverIndexedDB;
+  return isPlatformBrowser(platformId) ? inject(DOCUMENT).defaultView!.indexedDB : serverIndexedDB;
 }

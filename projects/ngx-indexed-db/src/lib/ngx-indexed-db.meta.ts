@@ -58,7 +58,7 @@ export type NgxIDBCursorWithValue<
   K extends IDBValidKey = IDBValidKey
 > = NgxIDBCursor<P, K, V> & { value: V };
 
-export const CONFIG_TOKEN = new InjectionToken<Record<string, DBConfig>>(null);
+export const CONFIG_TOKEN = new InjectionToken<Record<string, DBConfig>>('NgxIndexedDB Config');
 export const INDEXED_DB = new InjectionToken<IDBFactory>('Indexed DB');
 /**
  * Token used to inject the indexed db implementation on the server

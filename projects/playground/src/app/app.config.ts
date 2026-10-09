@@ -1,4 +1,4 @@
-import { ApplicationConfig } from '@angular/core';
+import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { DBConfig, provideIndexedDb } from 'ngx-indexed-db';
 
 export const dbConfig: DBConfig = {
@@ -22,5 +22,5 @@ export const dbConfig: DBConfig = {
 };
 
 export const appConfig: ApplicationConfig = {
-  providers: [provideIndexedDb(dbConfig)],
+  providers: [provideBrowserGlobalErrorListeners(), provideIndexedDb(dbConfig)],
 };

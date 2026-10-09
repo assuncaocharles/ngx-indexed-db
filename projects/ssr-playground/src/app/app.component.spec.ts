@@ -1,10 +1,12 @@
 import { TestBed } from '@angular/core/testing';
+import { provideIndexedDb } from 'ngx-indexed-db';
 import { AppComponent } from './app.component';
 
 describe('AppComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AppComponent],
+      providers: [provideIndexedDb({ name: 'MyDb', version: 1, objectStoresMeta: [] })],
     }).compileComponents();
   });
 
@@ -14,16 +16,10 @@ describe('AppComponent', () => {
     expect(app).toBeTruthy();
   });
 
-  it(`should have the 'ssr-playground' title`, () => {
+  it('should render title', async () => {
     const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app.title).toEqual('ssr-playground');
-  });
-
-  it('should render title', () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    fixture.detectChanges();
+    await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, ssr-playground');
+    expect(compiled.querySelector('h1')?.textContent).toContain('ssr-playground');
   });
 });

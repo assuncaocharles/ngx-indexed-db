@@ -1,28 +1,37 @@
-<button (click)="add()">Add new entry</button>
-<button (click)="addToTest()">Add to test entry</button>
-<button (click)="update()">Update entry</button>
-<button (click)="delete()">Delete entry</button>
-<button (click)="clean()">Clean</button>
-<button (click)="count()">Count</button>
-<button (click)="countByIndex()">CountByIndex</button>
-<button (click)="addTwoAndGetAllByIndex()">Test #209 getAllByIndex</button>
-<button (click)="bulkAdd()">bulkAdd</button>
-<button (click)="bulkGet()">bulkGet</button>
-<button (click)="bulkPut()">bulkPut</button>
-<button (click)="getAll()">getAll</button>
-<button (click)="getByKey()">getByKey</button>
-<button (click)="deleteAllByIndex()">deleteAllByIndex</button>
-<button (click)="bulkDelete()">bulkDelete</button>
-<button (click)="versionDatabase()">versionDatabase</button>
-<button (click)="testUpdateCursor()">Test update cursor</button>
-<button (click)="getAllObjectStoreNames()">getAllObjectStoreNames</button>
+<h1>{{ title() }}</h1>
+
+<button type="button" (click)="add()">Add new entry</button>
+<button type="button" (click)="addToTest()">Add to test entry</button>
+<button type="button" (click)="update()">Update entry</button>
+<button type="button" (click)="delete()">Delete entry</button>
+<button type="button" (click)="clean()">Clean</button>
+<button type="button" (click)="count()">Count</button>
+<button type="button" (click)="countByIndex()">CountByIndex</button>
+<button type="button" (click)="addTwoAndGetAllByIndex()">Test #209 getAllByIndex</button>
+<button type="button" (click)="bulkAdd()">bulkAdd</button>
+<button type="button" (click)="bulkGet()">bulkGet</button>
+<button type="button" (click)="bulkPut()">bulkPut</button>
+<button type="button" (click)="getAll()">getAll</button>
+<button type="button" (click)="getByKey()">getByKey</button>
+<button type="button" (click)="deleteAllByIndex()">deleteAllByIndex</button>
+<button type="button" (click)="bulkDelete()">bulkDelete</button>
+<button type="button" (click)="versionDatabase()">versionDatabase</button>
+<button type="button" (click)="testUpdateCursor()">Test update cursor</button>
+<button type="button" (click)="testUpdateCursorXTimes(2)">Test update cursor X times</button>
+<button type="button" (click)="getAllObjectStoreNames()">getAllObjectStoreNames</button>
+<button type="button" (click)="deleteDatabase()">delete database</button>
 <hr />
 <div>
-  <input type="text" [(ngModel)]="storeName" name="store" #store />
-  <button (click)="createStore(storeName)">Create Store</button>
+  <input type="text" [(ngModel)]="storeName" name="storeName" aria-label="Store name to create" />
+  <button type="button" (click)="createStore()">Create Store</button>
 </div>
 <hr />
 <div>
-  <input type="text" [(ngModel)]="storneNameToDelete" name="store" #store />
-  <button (click)="deleteStore()">Delete store</button>
+  <input type="text" [(ngModel)]="storeNameToDelete" name="storeNameToDelete" aria-label="Store name to delete" />
+  <button type="button" (click)="deleteStore()">Delete store</button>
 </div>
+<hr />
+
+<h2>Last result</h2>
+<pre>{{ lastResult() | json }}</pre>
+

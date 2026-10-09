@@ -21,13 +21,15 @@ $ yarn add ngx-indexed-db
 
 ## Usage
 
-### With Module
-Import the `NgxIndexedDBModule` and initiate it:
+### With Standalone API (recommended)
 
-```js
-import { NgxIndexedDBModule, DBConfig } from 'ngx-indexed-db';
+Use `provideIndexedDb` and set it up:
 
-const dbConfig: DBConfig  = {
+```ts
+import { ApplicationConfig } from '@angular/core';
+import { provideIndexedDb, DBConfig } from 'ngx-indexed-db';
+
+const dbConfig: DBConfig = {
   name: 'MyDb',
   version: 1,
   objectStoresMeta: [{
@@ -39,6 +41,18 @@ const dbConfig: DBConfig  = {
     ]
   }]
 };
+
+export const appConfig: ApplicationConfig = {
+  providers: [provideIndexedDb(dbConfig)]
+};
+```
+
+### With Module (deprecated)
+
+`NgxIndexedDBModule` is kept for backwards compatibility but is deprecated in favour of `provideIndexedDb`:
+
+```ts
+import { NgxIndexedDBModule, DBConfig } from 'ngx-indexed-db';
 
 @NgModule({
   ...
@@ -49,40 +63,44 @@ const dbConfig: DBConfig  = {
   ...
 })
 ```
-### With Standalone API
 
-Use `provideIndexedDb` and set it up:
+### Signals & zoneless applications
 
-```js
-import { provideIndexedDb, DBConfig } from 'ngx-indexed-db';
+`ngx-indexed-db` does not depend on `zone.js` and works in zoneless applications (the default since Angular 21). The service returns cold `Observable`s, so they plug straight into Angular's signal APIs, which take care of change detection for you:
 
-const dbConfig: DBConfig  = {
-  name: 'MyDb',
-  version: 1,
-  objectStoresMeta: [{
-    store: 'people',
-    storeConfig: { keyPath: 'id', autoIncrement: true },
-    storeSchema: [
-      { name: 'name', keypath: 'name', options: { unique: false } },
-      { name: 'email', keypath: 'email', options: { unique: false } }
-    ]
-  }]
-};
+```ts
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { rxResource } from '@angular/core/rxjs-interop';
+import { NgxIndexedDBService } from 'ngx-indexed-db';
 
-const appConfig: ApplicationConfig = {
-  providers: [...,provideIndexedDb(dbConfig),...]
+interface Person {
+  id: number;
+  name: string;
 }
 
-OR
-
-@NgModule({
-  ...
- providers:[
-    ...
-    provideIndexedDb(dbConfig)
-  ],
-  ...
+@Component({
+  selector: 'app-people',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `
+    @if (people.hasValue()) {
+      @for (person of people.value(); track person.id) {
+        <p>{{ person.name }}</p>
+      }
+    }
+    <button type="button" (click)="add()">Add</button>
+  `,
 })
+export class PeopleComponent {
+  readonly #db = inject(NgxIndexedDBService);
+
+  protected readonly people = rxResource({
+    stream: () => this.#db.getAll<Person>('people'),
+  });
+
+  add(): void {
+    this.#db.add('people', { name: 'charles' }).subscribe(() => this.people.reload());
+  }
+}
 ```
 
 ### SSR

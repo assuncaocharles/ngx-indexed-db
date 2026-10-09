@@ -30,9 +30,7 @@ export function createTransaction(db: IDBDatabase, options: Options): IDBTransac
 export function optionsGenerator(
   type: any,
   storeName: any,
-  reject: (reason?: any) => void,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  resolve?: (e: any) => void
+  reject: (reason?: any) => void
 ): Options {
   return {
     storeName,

@@ -10,7 +10,7 @@
       "prefix": "lib",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:ng-packagr",
+          "builder": "@angular/build:ng-packagr",
           "options": {
             "project": "projects/ngx-indexed-db/ng-package.json"
           },
@@ -26,20 +26,16 @@
           "defaultConfiguration": "production"
         },
         "test": {
-          "builder": "@angular-devkit/build-angular:karma",
+          "builder": "@angular/build:unit-test",
           "options": {
-            "main": "projects/ngx-indexed-db/src/test.ts",
             "tsConfig": "projects/ngx-indexed-db/tsconfig.spec.json",
-            "karmaConfig": "projects/ngx-indexed-db/karma.conf.js"
+            "setupFiles": ["projects/ngx-indexed-db/src/test-setup.ts"]
           }
         },
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {
-            "lintFilePatterns": [
-              "projects/ngx-indexed-db/**/*.ts",
-              "projects/ngx-indexed-db/**/*.html"
-            ]
+            "lintFilePatterns": ["projects/ngx-indexed-db/**/*.ts", "projects/ngx-indexed-db/**/*.html"]
           }
         }
       }
@@ -56,7 +52,7 @@
       "prefix": "app",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:application",
+          "builder": "@angular/build:application",
           "options": {
             "outputPath": {
               "base": "dist/playground",
@@ -64,28 +60,14 @@
             },
             "index": "projects/playground/src/index.html",
             "browser": "projects/playground/src/main.ts",
-            "polyfills": [
-              "zone.js"
-            ],
             "tsConfig": "projects/playground/tsconfig.app.json",
-            "assets": [
-              "projects/playground/src/favicon.ico",
-              "projects/playground/src/assets"
-            ],
-            "styles": [
-              "projects/playground/src/styles.scss"
-            ],
+            "assets": ["projects/playground/src/favicon.ico", "projects/playground/src/assets"],
+            "styles": ["projects/playground/src/styles.scss"],
             "scripts": [],
             "clearScreen": true
           },
           "configurations": {
             "production": {
-              "fileReplacements": [
-                {
-                  "replace": "projects/playground/src/environments/environment.ts",
-                  "with": "projects/playground/src/environments/environment.prod.ts"
-                }
-              ],
               "optimization": true,
               "outputHashing": "all",
               "sourceMap": false,
@@ -114,7 +96,7 @@
           "defaultConfiguration": "production"
         },
         "serve": {
-          "builder": "@angular-devkit/build-angular:dev-server",
+          "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
               "buildTarget": "playground:build:production"
@@ -126,50 +108,22 @@
           "defaultConfiguration": "development"
         },
         "extract-i18n": {
-          "builder": "@angular-devkit/build-angular:extract-i18n",
+          "builder": "@angular/build:extract-i18n",
           "options": {
             "buildTarget": "playground:build"
           }
         },
         "test": {
-          "builder": "@angular-devkit/build-angular:karma",
+          "builder": "@angular/build:unit-test",
           "options": {
-            "main": "projects/playground/src/test.ts",
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing"
-            ],
             "tsConfig": "projects/playground/tsconfig.spec.json",
-            "karmaConfig": "projects/playground/karma.conf.js",
-            "assets": [
-              "projects/playground/src/favicon.ico",
-              "projects/playground/src/assets"
-            ],
-            "styles": [
-              "projects/playground/src/styles.scss"
-            ],
-            "scripts": []
+            "setupFiles": ["projects/playground/src/test-setup.ts"]
           }
         },
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {
-            "lintFilePatterns": [
-              "projects/playground/**/*.ts",
-              "projects/playground/**/*.html"
-            ]
-          }
-        },
-        "e2e": {
-          "builder": "@angular-devkit/build-angular:protractor",
-          "options": {
-            "protractorConfig": "projects/playground/e2e/protractor.conf.js",
-            "devServerTarget": "playground:serve"
-          },
-          "configurations": {
-            "production": {
-              "devServerTarget": "playground:serve:production"
-            }
+            "lintFilePatterns": ["projects/playground/**/*.ts", "projects/playground/**/*.html"]
           }
         }
       }
@@ -182,14 +136,11 @@
       "prefix": "app",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:application",
+          "builder": "@angular/build:application",
           "options": {
             "outputPath": "dist/ssr-playground",
             "index": "projects/ssr-playground/src/index.html",
             "browser": "projects/ssr-playground/src/main.ts",
-            "polyfills": [
-              "zone.js"
-            ],
             "tsConfig": "projects/ssr-playground/tsconfig.app.json",
             "assets": [
               {
@@ -197,14 +148,15 @@
                 "input": "projects/ssr-playground/public"
               }
             ],
-            "styles": [
-              "projects/ssr-playground/src/styles.css"
-            ],
+            "styles": ["projects/ssr-playground/src/styles.css"],
             "scripts": [],
             "server": "projects/ssr-playground/src/main.server.ts",
-            "prerender": true,
             "ssr": {
               "entry": "projects/ssr-playground/server.ts"
+            },
+            "outputMode": "server",
+            "security": {
+              "allowedHosts": ["localhost"]
             }
           },
           "configurations": {
@@ -232,7 +184,7 @@
           "defaultConfiguration": "production"
         },
         "serve": {
-          "builder": "@angular-devkit/build-angular:dev-server",
+          "builder": "@angular/build:dev-server",
           "configurations": {
             "production": {
               "buildTarget": "ssr-playground:build:production"
@@ -245,35 +197,19 @@
           "defaultConfiguration": "development"
         },
         "extract-i18n": {
-          "builder": "@angular-devkit/build-angular:extract-i18n"
+          "builder": "@angular/build:extract-i18n"
         },
         "test": {
-          "builder": "@angular-devkit/build-angular:karma",
+          "builder": "@angular/build:unit-test",
           "options": {
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing"
-            ],
             "tsConfig": "projects/ssr-playground/tsconfig.spec.json",
-            "assets": [
-              {
-                "glob": "**/*",
-                "input": "projects/ssr-playground/public"
-              }
-            ],
-            "styles": [
-              "projects/ssr-playground/src/styles.css"
-            ],
-            "scripts": []
+            "setupFiles": ["projects/ssr-playground/src/test-setup.ts"]
           }
         },
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {
-            "lintFilePatterns": [
-              "projects/ssr-playground/**/*.ts",
-              "projects/ssr-playground/**/*.html"
-            ]
+            "lintFilePatterns": ["projects/ssr-playground/**/*.ts", "projects/ssr-playground/**/*.html"]
           }
         }
       }
@@ -281,9 +217,7 @@
   },
   "cli": {
     "analytics": false,
-    "schematicCollections": [
-      "angular-eslint"
-    ]
+    "schematicCollections": ["angular-eslint"]
   },
   "schematics": {
     "@schematics/angular:component": {

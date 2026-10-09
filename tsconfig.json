@@ -1,22 +1,52 @@
+/* To learn more about Typescript configuration file: https://www.typescriptlang.org/docs/handbook/tsconfig-json.html. */
+/* To learn more about Angular compiler options: https://angular.dev/reference/configs/angular-compiler-options. */
 {
   "compileOnSave": false,
   "compilerOptions": {
-    "baseUrl": "./",
     "outDir": "./dist/out-tsc",
     "sourceMap": true,
-    "esModuleInterop": true,
     "declaration": false,
+    "esModuleInterop": true,
     "experimentalDecorators": true,
-    "moduleResolution": "bundler",
     "importHelpers": true,
-    "target": "ES2022",
-    "module": "ES2020",
+    "isolatedModules": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitReturns": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noUncheckedIndexedAccess": true,
+    "noUncheckedSideEffectImports": true,
+    "exactOptionalPropertyTypes": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "target": "ES2025",
+    "module": "preserve",
+    "moduleResolution": "bundler",
     "paths": {
-      "ngx-indexed-db": [
-        "dist/ngx-indexed-db/ngx-indexed-db",
-        "dist/ngx-indexed-db"
-      ]
-    },
-    "useDefineForClassFields": false
-  }
+      "ngx-indexed-db": ["./dist/ngx-indexed-db"]
+    }
+  },
+  "angularCompilerOptions": {
+    "strictInjectionParameters": true,
+    "strictInputAccessModifiers": true,
+    "strictTemplates": true,
+    "typeCheckHostBindings": true,
+    "strictStandalone": true,
+    "extendedDiagnostics": {
+      "defaultCategory": "error"
+    }
+  },
+  "files": [],
+  "references": [
+    { "path": "./projects/ngx-indexed-db/tsconfig.lib.json" },
+    { "path": "./projects/ngx-indexed-db/tsconfig.spec.json" },
+    { "path": "./projects/playground/tsconfig.app.json" },
+    { "path": "./projects/playground/tsconfig.spec.json" },
+    { "path": "./projects/ssr-playground/tsconfig.app.json" },
+    { "path": "./projects/ssr-playground/tsconfig.spec.json" }
+  ]
 }

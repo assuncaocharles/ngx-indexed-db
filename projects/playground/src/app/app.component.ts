@@ -1,140 +1,121 @@
 import { DBMode, NgxIndexedDBService } from 'ngx-indexed-db';
-import { forkJoin, of, throwError } from 'rxjs';
-import { catchError, switchMap, tap } from 'rxjs/operators';
-import { Component, inject } from '@angular/core';
+import { forkJoin, Observable, Observer, of, throwError } from 'rxjs';
+import { catchError, switchMap } from 'rxjs/operators';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { rxResource } from '@angular/core/rxjs-interop';
+import { JsonPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+
+interface Person {
+  id?: number;
+  name: string;
+  email?: string;
+}
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
-  imports: [FormsModule],
-  styleUrls: ['./app.component.scss'],
+  imports: [FormsModule, JsonPipe],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  styleUrl: './app.component.scss',
 })
 export class AppComponent {
-  title = 'playground';
-  storeName: string;
-  storneNameToDelete: string;
-  getAll$;
-
   readonly #dbService = inject(NgxIndexedDBService);
 
-  constructor() {
-    this.getAll$ = this.#dbService.getAll('people');
-  }
+  protected readonly title = signal('playground');
+  protected readonly storeName = signal('');
+  protected readonly storeNameToDelete = signal('');
+  protected readonly lastResult = signal<unknown>(null);
+
+  /** All people in the store, re-read every time a write operation finishes. */
+  protected readonly people = rxResource({
+    stream: () => this.#dbService.getAll<Person>('people'),
+  });
+  protected readonly peopleCount = computed(() => (this.people.hasValue() ? this.people.value().length : 0));
+  protected readonly peoplePreview = computed(() => (this.people.hasValue() ? this.people.value().slice(-10) : []));
 
   add(): void {
     //prepare random person data with or without email for count by index
-    const randomPerson = {
+    const randomPerson: Person = {
       name: `charles number ${Math.random() * 10}`,
     };
     if (Math.random().toFixed(0) === '1') {
-      randomPerson['email'] = `email number ${Math.random() * 10}`;
+      randomPerson.email = `email number ${Math.random() * 10}`;
     }
 
-    this.#dbService.add('people', randomPerson).subscribe((result) => {
-      console.log('result: ', result);
-    });
+    this.#run('add', this.#dbService.add('people', randomPerson));
   }
 
   bulkAdd(): void {
-    const randomData: Array<any> = [];
+    const randomData: Person[] = [];
     for (let i = 0; i < 200000; i++) {
       randomData.push({
         name: `charles number ${Math.random() * 10}`,
         email: `email number ${Math.random() * 10}`,
       });
     }
-    this.#dbService.bulkAdd('people', randomData).subscribe(
-      (results) => {
-        console.log('result bulk add => ', results);
-      },
-      (error) => {
-        console.error('error bulk add => ', error);
-      }
-    );
+    this.#run('bulkAdd', this.#dbService.bulkAdd('people', randomData));
   }
 
   addToTest(): void {
-    this.#dbService
-      .add('test', {
-        name: `charles number`,
-      })
-      .pipe(
-        catchError((x) => {
-          console.log('in catchError', x);
-          return of(x);
+    this.#run(
+      'addToTest',
+      this.#dbService
+        .add('test', {
+          name: `charles number`,
         })
-      )
-      .subscribe((result) => {
-        console.log('result: ', result);
-      });
+        .pipe(
+          catchError((x) => {
+            console.log('in catchError', x);
+            return of(x);
+          })
+        )
+    );
   }
 
   bulkGet(): void {
-    // for (let i = 0; i < 3; i++) {
-    //   this.bulkAdd();
-    // }
-    this.#dbService.bulkGet('people', [1, 2]).subscribe((result) => {
-      console.log('results: ', result);
-    });
+    this.#run('bulkGet', this.#dbService.bulkGet('people', [1, 2]));
   }
 
   bulkPut(): void {
-    const people = [];
+    const people: Person[] = [];
     for (let i = 0; i < 100_000; ++i) {
       people.push({ name: `charles number ${Math.random() * 10}`, email: `email number ${Math.random() * 10}` });
     }
-    this.#dbService.bulkPut('people', people).subscribe((result) => {
-      console.log('result: ', result);
-    });
+    this.#run('bulkPut', this.#dbService.bulkPut('people', people));
   }
 
   update(): void {
-    this.#dbService.update('people', { id: 1, email: 'asd', name: 'charles' }).subscribe((result) => {
-      console.log('result: ', result);
-    });
+    this.#run('update', this.#dbService.update('people', { id: 1, email: 'asd', name: 'charles' }));
   }
 
   delete(): void {
-    this.#dbService.delete('people', 3).subscribe((result) => {
-      console.log('result: ', result);
-    });
+    this.#run('delete', this.#dbService.delete('people', 3));
   }
 
   clean(): void {
-    this.#dbService.clear('people').subscribe((result) => {
-      console.log('result: ', result);
-    });
+    this.#run('clear', this.#dbService.clear('people'));
   }
 
   count(): void {
-    this.#dbService.count('people').subscribe((result) => {
-      console.log('result: ', result);
-    });
+    this.#run('count', this.#dbService.count('people'));
   }
 
   countByIndex(): void {
-    this.#dbService.countByIndex('people', 'email').subscribe((result) => {
-      console.log('result: ', result);
-    });
+    this.#run('countByIndex', this.#dbService.countByIndex('people', 'email'));
   }
 
   bulkDelete(): void {
-    this.#dbService.bulkDelete('people', [5, 6]).subscribe((result) => {
-      console.log('result: ', result);
-    });
+    this.#run('bulkDelete', this.#dbService.bulkDelete('people', [5, 6]));
   }
 
   deleteStore(): void {
-    this.#dbService.deleteObjectStore(this.storneNameToDelete).subscribe((result) => {
-      console.log('result: ', result);
-    });
+    this.#run('deleteObjectStore', this.#dbService.deleteObjectStore(this.storeNameToDelete()));
   }
 
-  createStore(storeName: string): void {
-    console.log('storeName', storeName);
+  createStore(): void {
     const storeSchema = {
-      store: storeName,
+      store: this.storeName(),
       storeConfig: { keyPath: 'id', autoIncrement: true },
       storeSchema: [
         { name: 'name', keypath: 'name', options: { unique: false } },
@@ -142,66 +123,59 @@ export class AppComponent {
       ],
     };
 
-    this.#dbService.createObjectStore(storeSchema);
+    this.#dbService
+      .createObjectStore(storeSchema)
+      .then(() => this.lastResult.set({ createObjectStore: storeSchema.store }));
   }
 
   getAll(): void {
-    this.getAll$.subscribe((d) => {
-      console.log(d);
-    });
+    this.#run('getAll', this.#dbService.getAll('people'));
   }
 
   getByKey(): void {
-    this.#dbService.getByKey('people', 1).subscribe((d) => {
-      console.log(d);
-    });
+    this.#run('getByKey', this.#dbService.getByKey('people', 1));
   }
 
   deleteAllByIndex(): void {
-    forkJoin([
-      this.#dbService.add('people', {
-        name: 'John',
-        email: `email number ${Math.random() * 10}`,
-      }),
-      this.#dbService.add('people', {
-        name: 'John',
-        email: `email number ${Math.random() * 10}`,
-      }),
-    ])
-      .pipe(
-        switchMap((data1, data2) => {
-          console.log(data1, data2);
-          return this.#dbService.deleteAllByIndex('people', 'name', IDBKeyRange.only('John'));
-        })
-      )
-      .subscribe((result) => console.log(result));
+    this.#run(
+      'deleteAllByIndex',
+      forkJoin([
+        this.#dbService.add('people', {
+          name: 'John',
+          email: `email number ${Math.random() * 10}`,
+        }),
+        this.#dbService.add('people', {
+          name: 'John',
+          email: `email number ${Math.random() * 10}`,
+        }),
+      ]).pipe(switchMap(() => this.#dbService.deleteAllByIndex('people', 'name', IDBKeyRange.only('John'))))
+    );
   }
 
   getAllObjectStoreNames(): void {
-    this.#dbService.getAllObjectStoreNames().subscribe((storeNames: string[]): void => {
-      console.log(storeNames);
-    });
+    this.#run('getAllObjectStoreNames', this.#dbService.getAllObjectStoreNames());
   }
 
   addTwoAndGetAllByIndex(): void {
     // #209 getAllByIndex with multiple result should resolve observable
-    forkJoin([
-      this.#dbService.add('people', {
-        name: `desmond`,
-        email: `email number ${Math.random() * 10}`,
-      }),
-      this.#dbService.add('people', {
-        name: `desmond`,
-        email: `email number ${Math.random() * 10}`,
-      }),
-    ])
-      .pipe(switchMap(() => this.#dbService.getAllByIndex('people', 'name', IDBKeyRange.only('desmond'))))
-      .subscribe((result) => console.log(result));
+    this.#run(
+      'getAllByIndex',
+      forkJoin([
+        this.#dbService.add('people', {
+          name: `desmond`,
+          email: `email number ${Math.random() * 10}`,
+        }),
+        this.#dbService.add('people', {
+          name: `desmond`,
+          email: `email number ${Math.random() * 10}`,
+        }),
+      ]).pipe(switchMap(() => this.#dbService.getAllByIndex('people', 'name', IDBKeyRange.only('desmond'))))
+    );
   }
 
   testUpdateCursorXTimes(x = 3) {
     this.#dbService
-      .openCursor({
+      .openCursor<Person>({
         storeName: 'people',
         direction: 'next',
         mode: DBMode.readwrite,
@@ -220,13 +194,14 @@ export class AppComponent {
         },
         complete: () => {
           console.log('No (other) records');
+          this.people.reload();
         },
       });
   }
 
   testUpdateCursor() {
     this.#dbService
-      .openCursor({
+      .openCursor<Person>({
         storeName: 'people',
         direction: 'prev',
         mode: DBMode.readwrite,
@@ -242,31 +217,40 @@ export class AppComponent {
         },
         complete: () => {
           console.log('No (other) records');
+          this.people.reload();
         },
       });
   }
 
-  public async versionDatabase(): Promise<void> {
-    this.#dbService
-      .getDatabaseVersion()
-      .pipe(
-        tap((response) => console.log('Versione database => ', response)),
+  versionDatabase(): void {
+    this.#run(
+      'getDatabaseVersion',
+      this.#dbService.getDatabaseVersion().pipe(
         catchError((err) => {
           console.error('Error recover version => ', err);
-          return throwError(err);
+          return throwError(() => err);
         })
       )
-      .subscribe();
+    );
   }
 
   deleteDatabase(): void {
-    this.#dbService.deleteDatabase().subscribe(
-      () => {
-        console.log('database deleted');
+    this.#run('deleteDatabase', this.#dbService.deleteDatabase());
+  }
+
+  /** Subscribes to an operation, shows its result on the page and refreshes the people list. */
+  #run<T>(operation: string, source: Observable<T>): void {
+    const observer: Partial<Observer<T>> = {
+      next: (result) => {
+        console.log(`result ${operation} => `, result);
+        this.lastResult.set({ [operation]: result });
       },
-      (error) => {
-        console.error('error deleting database: ', error);
-      }
-    );
+      error: (error) => {
+        console.error(`error ${operation} => `, error);
+        this.lastResult.set({ [operation]: 'error', error: String(error) });
+      },
+      complete: () => this.people.reload(),
+    };
+    source.subscribe(observer);
   }
 }
