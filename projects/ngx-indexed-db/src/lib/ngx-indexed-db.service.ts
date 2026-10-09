@@ -191,11 +191,11 @@ export class NgxIndexedDBService {
     const promises = new Promise<number[]>((resolve, reject) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db: IDBDatabase) => {
-          const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, resolve, reject));
+          const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, reject, resolve));
           const objectStore = transaction.objectStore(storeName);
 
           const results = values.map((value) => {
-            return new Promise<number>((resolve1) => {
+            return new Promise<number>((resolve1, reject1) => {
               const key = value.key;
               delete value.key;
 
@@ -206,6 +206,8 @@ export class NgxIndexedDBService {
                 const result = (evt.target as IDBOpenDBRequest).result;
                 resolve1((result as unknown) as number);
               };
+              // A failed request aborts the whole transaction, which also fails every other pending request.
+              request.onerror = (evt: Event) => reject1(evt);
             });
           });
 
