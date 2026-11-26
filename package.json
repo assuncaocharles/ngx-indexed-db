@@ -1,6 +1,6 @@
 {
   "name": "ngx-indexed-db",
-  "version": "22.0.0",
+  "version": "23.0.0",
   "files": [
     "dist/ngx-indexed-db/**/*"
   ],
@@ -15,7 +15,6 @@
     "build:library": "ng build --project ngx-indexed-db",
     "test": "ng test",
     "lint": "ng lint",
-    "e2e": "ng e2e",
     "format": "prettier \"projects/**/*.{ts,json}\" --write",
     "serve:ssr:ssr-playground": "node dist/ssr-playground/server/server.mjs"
   },
@@ -47,34 +46,24 @@
     "zone.js": "~0.16.3"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "^22.3.0",
     "@angular/build": "^22.3.0",
     "@angular/cli": "^22.3.0",
     "@angular/compiler-cli": "^22.3.0",
     "@commitlint/config-conventional": "^12.1.4",
     "@types/express": "^4.17.25",
-    "@types/jasmine": "~3.6.0",
-    "@types/jasminewd2": "~2.0.3",
     "@types/node": "^24.10.7",
+    "@vitest/browser-playwright": "^5.1.2",
     "angular-eslint": "^22.8.0",
     "commitlint": "^12.1.4",
     "cz-conventional-changelog": "3.2.0",
     "eslint": "^9.39.2",
     "husky": ">=4",
-    "istanbul-lib-instrument": "^6.0.3",
-    "jasmine-core": "~3.8.0",
-    "jasmine-spec-reporter": "~5.0.0",
-    "karma": "^6.4.0",
-    "karma-chrome-launcher": "~3.1.0",
-    "karma-coverage-istanbul-reporter": "~3.0.2",
-    "karma-jasmine": "~4.0.0",
-    "karma-jasmine-html-reporter": "^1.5.0",
     "lint-staged": "^16.2.7",
+    "playwright": "^1.65.1",
     "prettier": "2.1.1",
-    "protractor": "~7.0.0",
-    "ts-node": "~8.3.0",
     "typescript": "^6.0.3",
-    "typescript-eslint": "^8.74.0"
+    "typescript-eslint": "^8.74.0",
+    "vitest": "^5.0.0"
   },
   "config": {
     "commitizen": {

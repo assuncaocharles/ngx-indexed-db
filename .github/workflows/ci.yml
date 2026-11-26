@@ -31,3 +31,12 @@ jobs:
         run: |
           npm install --immutable --immutable-cache --check-cache
           npm run build:lib
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Test
+        run: npm test -- --watch=false

@@ -5,7 +5,7 @@ import { routes } from './app.routes';
 import { provideClientHydration, withNoIncrementalHydration } from '@angular/platform-browser';
 import { provideIndexedDb, DBConfig } from 'ngx-indexed-db';
 
-const dbConfig: DBConfig = {
+export const dbConfig: DBConfig = {
   name: 'MyDb',
   version: 1,
   objectStoresMeta: [
