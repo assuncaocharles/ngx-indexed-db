@@ -11,14 +11,14 @@ Your users keep their IndexedDB data between visits, so schema changes have to u
 
 ## What happens automatically
 
-During an upgrade, any object store listed in `objectStoresMeta` that doesn't exist yet is created, together with its indexes. Adding a whole new store only takes two steps:
+During an upgrade, any object store listed in `objectStoresMeta` that doesn't exist yet is created, together with its indexes. Indexes declared in a store's `storeSchema` that the store doesn't have yet are added too. Adding a store or an index only takes two steps:
 
-1. Add it to `objectStoresMeta`.
+1. Add it to `objectStoresMeta`, or the index to the store's `storeSchema`.
 2. Increase `version`.
 
 ## Writing migrations
 
-For anything else, such as an index on an existing store or a data transformation, provide a `migrationFactory`. It returns one function per version. Each function receives the database and the upgrade transaction:
+For anything else, such as changing or removing an index, or transforming data, provide a `migrationFactory`. It returns one function per version. Each function receives the database and the upgrade transaction:
 
 ```ts title="db.config.ts"
 import { DBConfig } from 'ngx-indexed-db';
@@ -27,12 +27,15 @@ export function migrationFactory() {
   return {
     // v2 added the "animals" store. It is created automatically, so no entry is needed.
     3: (db: IDBDatabase, transaction: IDBTransaction) => {
+      // Make "email" unique: an existing index can't be changed, so it is recreated.
       const people = transaction.objectStore('people');
-      people.createIndex('country', 'country', { unique: false });
+      people.deleteIndex('email');
+      people.createIndex('email', 'email', { unique: true });
     },
     4: (db: IDBDatabase, transaction: IDBTransaction) => {
+      // Drop an index that is no longer used. First-time visitors never had it.
       const people = transaction.objectStore('people');
-      people.createIndex('age', 'age', { unique: false });
+      if (people.indexNames.contains('nickname')) people.deleteIndex('nickname');
     },
   };
 }

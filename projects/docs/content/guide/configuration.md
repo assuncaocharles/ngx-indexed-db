@@ -51,7 +51,30 @@ storeSchema: [
 - **`options`** are passed to [`IDBObjectStore.createIndex()`](https://developer.mozilla.org/docs/Web/API/IDBObjectStore/createIndex). `unique` rejects duplicate values, and `multiEntry` indexes each element of an array property separately.
 
 > [!NOTE]
-> Stores and indexes are only created while IndexedDB upgrades the database, which happens when `version` goes up. If you add a store or index to an existing app, bump `version`. Stores listed in `objectStoresMeta` that don't exist yet are created automatically during the upgrade; a new index on an existing store needs a [migration](/guide/migrations).
+> Stores and indexes are only created while IndexedDB upgrades the database, which happens when `version` goes up. If you add a store or an index to an existing app, bump `version`.
+
+### Adding an index later
+
+To index a store that users already have, add the index to its `storeSchema` and increase `version`:
+
+```ts
+export const dbConfig: DBConfig = {
+  name: 'MyDb',
+  version: 2, // was 1
+  objectStoresMeta: [
+    {
+      store: 'people',
+      storeConfig: { keyPath: 'id', autoIncrement: true },
+      storeSchema: [
+        { name: 'name', keypath: 'name', options: { unique: false } },
+        { name: 'email', keypath: 'email', options: { unique: false } }, // new
+      ],
+    },
+  ],
+};
+```
+
+During the upgrade, every index declared in `storeSchema` that's missing from its store is created, and IndexedDB fills it from the records already stored. Existing indexes are never changed or removed automatically: to change an index's `keypath` or `options`, or to drop one, write a [migration](/guide/migrations).
 
 ## Version mismatches
 
