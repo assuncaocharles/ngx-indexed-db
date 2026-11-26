@@ -31,6 +31,10 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      # Also fails if a public service method is missing from the API reference.
+      - name: Build docs
+        run: npm run docs:build
+
       # Use the Google Chrome preinstalled on the runner instead of
       # downloading Chromium and its system deps via Playwright on every run.
       - name: Test
