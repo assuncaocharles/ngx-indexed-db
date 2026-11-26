@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DBMode, NgxIndexedDBService } from 'ngx-indexed-db';
 import { of, throwError, forkJoin } from 'rxjs';
@@ -8,6 +8,7 @@ import { catchError, switchMap, tap } from 'rxjs/operators';
   selector: 'app-root',
   imports: [FormsModule],
   templateUrl: './app.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: './app.component.css',
 })
 export class AppComponent {

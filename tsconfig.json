@@ -1,11 +1,11 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
-    "baseUrl": "./",
     "outDir": "./dist/out-tsc",
     "sourceMap": true,
     "esModuleInterop": true,
     "declaration": false,
+    "strict": false,
     "experimentalDecorators": true,
     "moduleResolution": "bundler",
     "importHelpers": true,
@@ -13,8 +13,8 @@
     "module": "ES2020",
     "paths": {
       "ngx-indexed-db": [
-        "dist/ngx-indexed-db/ngx-indexed-db",
-        "dist/ngx-indexed-db"
+        "./dist/ngx-indexed-db/ngx-indexed-db",
+        "./dist/ngx-indexed-db"
       ]
     },
     "useDefineForClassFields": false
