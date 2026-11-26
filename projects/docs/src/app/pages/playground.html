@@ -1,0 +1,151 @@
+<main class="playground container">
+  <header class="playground__intro">
+    <p class="eyebrow">Playground</p>
+    <h1>Try it in your browser</h1>
+    <p>
+      Everything below calls the real <code>NgxIndexedDBService</code> against an IndexedDB database named
+      <code>{{ dbName }}</code> on this site. Open DevTools → Application → IndexedDB to watch it change, or read the
+      <a routerLink="/guide/querying">querying guide</a>.
+    </p>
+  </header>
+
+  <div class="playground__grid">
+    <section class="panel" aria-labelledby="records-title">
+      <header class="panel__header">
+        <div>
+          <h2 id="records-title">people</h2>
+          <p class="panel__meta">
+            @if (filter(); as filter) {
+            <span class="chip">Filtered: {{ filter }}</span>
+            <button class="link-btn" type="button" (click)="refresh()">Show all</button>
+            } @else { {{ people().length }} records · keyPath <code>id</code> · indexes <code>name</code>,
+            <code>email</code> (unique), <code>age</code>
+            }
+          </p>
+        </div>
+        <div class="panel__actions">
+          <button class="btn btn--sm" type="button" (click)="addRandom()">+ 3 random</button>
+          <button class="btn btn--sm" type="button" (click)="count()">Count</button>
+          <button class="btn btn--sm btn--danger" type="button" (click)="clear()" [disabled]="!people().length">
+            Clear
+          </button>
+        </div>
+      </header>
+
+      <form class="add-form" (ngSubmit)="add()" aria-label="Add a person">
+        <input name="name" [(ngModel)]="draft.name" placeholder="Name" required aria-label="Name" />
+        <input name="email" [(ngModel)]="draft.email" placeholder="Email" type="email" required aria-label="Email" />
+        <input name="age" [(ngModel)]="draft.age" type="number" min="0" max="150" aria-label="Age" />
+        <button class="btn btn--primary btn--sm" type="submit">add()</button>
+      </form>
+
+      <div class="table-scroll">
+        <table class="records">
+          <thead>
+            <tr>
+              <th scope="col">id</th>
+              <th scope="col">name</th>
+              <th scope="col">email</th>
+              <th scope="col">age</th>
+              <th scope="col"><span class="visually-hidden">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (person of people(); track person.id) {
+            <tr>
+              <td class="records__id">{{ person.id }}</td>
+              <td>{{ person.name }}</td>
+              <td class="records__email">{{ person.email }}</td>
+              <td>{{ person.age }}</td>
+              <td class="records__actions">
+                <button
+                  class="btn btn--ghost btn--sm"
+                  type="button"
+                  (click)="birthday(person)"
+                  [attr.aria-label]="'Increase age of ' + person.name"
+                >
+                  update() +1
+                </button>
+                <button
+                  class="btn btn--ghost btn--sm btn--danger"
+                  type="button"
+                  (click)="remove(person)"
+                  [attr.aria-label]="'Delete ' + person.name"
+                >
+                  delete
+                </button>
+              </td>
+            </tr>
+            } @empty {
+            <tr>
+              <td class="records__empty" colspan="5">
+                @if (!ready()) { Opening the database… } @else if (filter()) { No records match this query. } @else {
+                The store is empty. Add someone above, or click <strong>+ 3 random</strong>. }
+              </td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <div class="playground__side">
+      <section class="panel" aria-labelledby="query-title">
+        <h2 id="query-title" class="panel__title">Query an index</h2>
+        <form class="query-form" (ngSubmit)="runQuery()">
+          <label>
+            <span>Index</span>
+            <select name="index" [(ngModel)]="query.index">
+              <option value="name">name</option>
+              <option value="email">email</option>
+              <option value="age">age</option>
+            </select>
+          </label>
+          <label>
+            <span>Operator</span>
+            <select name="op" [(ngModel)]="query.op">
+              @for (op of operators(); track op.id) {
+              <option [value]="op.id">{{ op.label }}</option>
+              }
+            </select>
+          </label>
+          <label class="query-form__value">
+            <span>Value</span>
+            <input name="value" [(ngModel)]="query.value" required />
+          </label>
+          <button class="btn btn--primary btn--sm" type="submit">getAllByIndex()</button>
+        </form>
+        <p class="hint">
+          Unique indexes reject duplicates.
+          <button class="link-btn" type="button" (click)="addDuplicate()" [disabled]="!people().length">
+            Add a duplicate email
+          </button>
+          to see the error.
+        </p>
+      </section>
+
+      <section class="panel log" aria-labelledby="log-title">
+        <header class="log__header">
+          <h2 id="log-title" class="panel__title">Activity</h2>
+          @if (log().length) {
+          <button class="link-btn" type="button" (click)="clearLog()">Clear</button>
+          }
+        </header>
+        <ol class="log__list" aria-live="polite">
+          @for (entry of log(); track entry.id) {
+          <li class="log__entry" [class.is-error]="!entry.ok">
+            <code class="log__call">db.{{ entry.call }}</code>
+            <div class="log__result">
+              <span class="log__status">{{ entry.ok ? '✓' : '✕' }}</span>
+              <span class="log__value">{{ entry.result }}</span>
+              <span class="log__ms">{{ entry.ms }} ms</span>
+            </div>
+          </li>
+          } @empty {
+          <li class="log__empty">Calls you make appear here, with their result and duration.</li>
+          }
+        </ol>
+      </section>
+    </div>
+  </div>
+</main>

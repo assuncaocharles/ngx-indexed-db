@@ -48,3 +48,6 @@ Thumbs.db
 
 # Vitest browser-mode attachments
 /.vitest
+
+# Generated docs content
+/projects/docs/src/app/content/generated/
