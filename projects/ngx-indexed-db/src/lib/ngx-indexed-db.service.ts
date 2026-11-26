@@ -158,22 +158,23 @@ export class NgxIndexedDBService {
           const objectStore = transaction.objectStore(storeName);
           const hasKey = Boolean(key);
           const request: IDBRequest<IDBValidKey> = hasKey ? objectStore.add(value, key) : objectStore.add(value);
+          let stored: T & WithID;
 
-          request.onsuccess = async (evt: Event) => {
-            const result: any = (evt.target as IDBOpenDBRequest).result;
-            const getRequest: IDBRequest = objectStore.get(result) as IDBRequest<T>;
-            getRequest.onsuccess = (event: Event) => {
-              obs.next((event.target as IDBRequest<T & WithID>).result);
-              obs.complete();
-            };
-
-            getRequest.onerror = (event: Event) => {
-              obs.error(event);
-            };
+          request.onsuccess = (evt: Event) => {
+            const result = (evt.target as IDBRequest<IDBValidKey>).result;
+            const getRequest = objectStore.get(result) as IDBRequest<T & WithID>;
+            getRequest.onsuccess = () => (stored = getRequest.result);
+            getRequest.onerror = (event: Event) => obs.error(event);
           };
 
           request.onerror = (event: Event) => {
             obs.error(event);
+          };
+
+          // Only report success once the write is committed (#402).
+          transaction.oncomplete = () => {
+            obs.next(stored);
+            obs.complete();
           };
         })
         .catch((error) => obs.error(error));
@@ -190,25 +191,22 @@ export class NgxIndexedDBService {
     const promises = new Promise<number[]>((resolve, reject) => {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db: IDBDatabase) => {
-          const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, resolve, reject));
+          // A failed insert aborts the transaction, which rejects through its error/abort handlers.
+          const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, reject));
           const objectStore = transaction.objectStore(storeName);
+          const keys: number[] = new Array(values.length);
 
-          const results = values.map((value) => {
-            return new Promise<number>((resolve1) => {
-              const key = value.key;
-              delete value.key;
+          values.forEach((value, index) => {
+            const key = value.key;
+            delete value.key;
 
-              const hasKey = Boolean(key);
-              const request: IDBRequest<IDBValidKey> = hasKey ? objectStore.add(value, key) : objectStore.add(value);
-
-              request.onsuccess = (evt: Event) => {
-                const result = (evt.target as IDBOpenDBRequest).result;
-                resolve1((result as unknown) as number);
-              };
-            });
+            const hasKey = Boolean(key);
+            const request: IDBRequest<IDBValidKey> = hasKey ? objectStore.add(value, key) : objectStore.add(value);
+            request.onsuccess = () => (keys[index] = request.result as number);
           });
 
-          resolve(Promise.all(results));
+          // Only report success once the writes are committed (#402).
+          transaction.oncomplete = () => resolve(keys);
         })
         .catch((reason) => reject(reason));
     });
@@ -381,15 +379,20 @@ export class NgxIndexedDBService {
           const objectStore = transaction.objectStore(storeName);
 
           const request: IDBRequest<IDBValidKey> = objectStore.put(value);
+          let stored: T;
 
-          request.onsuccess = async (evt: Event) => {
-            const result: any = (evt.target as IDBOpenDBRequest).result;
+          request.onsuccess = (evt: Event) => {
+            const result = (evt.target as IDBRequest<IDBValidKey>).result;
+            const getRequest = objectStore.get(result) as IDBRequest<T>;
+            getRequest.onsuccess = () => (stored = getRequest.result);
+            getRequest.onerror = (event: Event) => obs.error(event);
+          };
+          request.onerror = (event: Event) => obs.error(event);
 
-            const getRequest: IDBRequest = objectStore.get(result) as IDBRequest<T>;
-            getRequest.onsuccess = (event: Event) => {
-              obs.next((event.target as IDBRequest<T & WithID>).result);
-              obs.complete();
-            };
+          // Only report success once the write is committed (#402).
+          transaction.oncomplete = () => {
+            obs.next(stored);
+            obs.complete();
           };
         })
         .catch((reason) => obs.error(reason));
@@ -415,15 +418,15 @@ export class NgxIndexedDBService {
             optionsGenerator(DBMode.readwrite, storeName, (e) => obs.error(e))
           );
           const objectStore = transaction.objectStore(storeName);
+          let lastKey: IDBValidKey;
 
           items.forEach((item, index: number) => {
             const request = objectStore.put(item);
 
             if (index === items.length - 1) {
               request.onsuccess = (evt: Event) => {
+                lastKey = (evt.target as IDBRequest<IDBValidKey>).result;
                 transaction.commit();
-                obs.next((evt.target as IDBRequest<IDBValidKey>).result);
-                obs.complete();
               };
             }
 
@@ -432,6 +435,12 @@ export class NgxIndexedDBService {
               obs.error(evt);
             };
           });
+
+          // Only report success once the writes are committed (#402).
+          transaction.oncomplete = () => {
+            obs.next(lastKey);
+            obs.complete();
+          };
         })
         .catch((reason) => {
           transaction?.abort();
@@ -521,7 +530,10 @@ export class NgxIndexedDBService {
       openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
         .then((db) => {
           validateBeforeTransaction(db, storeName, (e) => obs.error(e));
-          const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, obs.error));
+          const transaction = createTransaction(
+            db,
+            optionsGenerator(DBMode.readwrite, storeName, (e) => obs.error(e))
+          );
           const objectStore = transaction.objectStore(storeName);
           const index = objectStore.index(indexName);
           const request = index.openCursor(query, direction);
@@ -532,10 +544,13 @@ export class NgxIndexedDBService {
             if (cursor) {
               cursor.delete();
               cursor.continue();
-            } else {
-              obs.next();
-              obs.complete();
             }
+          };
+
+          // Only report success once the deletions are committed (#402).
+          transaction.oncomplete = () => {
+            obs.next();
+            obs.complete();
           };
         })
         .catch((reason) => obs.error(reason));
