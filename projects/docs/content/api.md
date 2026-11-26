@@ -179,6 +179,19 @@ this.db
   });
 ```
 
+## ready
+
+Every method already waits for the database to be set up, so you only need this to hold something else until the database exists, such as app startup, a route, or a test. It also works in lazy-loaded routes and modules. See [Waiting until the database is ready](/guide/configuration#waiting-until-the-database-is-ready).
+
+```ts
+bootstrapApplication(App, {
+  providers: [
+    provideIndexedDb(dbConfig),
+    provideAppInitializer(() => inject(NgxIndexedDBService).ready()),
+  ],
+});
+```
+
 ## selectDb
 
 Only needed when you register more than one database. See [Multiple databases](/guide/multiple-databases).

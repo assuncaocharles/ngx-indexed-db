@@ -11,7 +11,7 @@ order: 6
 
 IndexedDB only exists in browsers. When your app renders on the server, through Angular SSR or prerendering, the library swaps in a placeholder IndexedDB implementation, so injecting `NgxIndexedDBService` never throws. This documentation site is itself prerendered with `ngx-indexed-db` installed.
 
-The placeholder never stores or returns data. **On the server, the service's Observables never emit.** Run database work in the browser only, for example with `afterNextRender()`:
+The placeholder never stores or returns data. **On the server, the service's Observables never emit**, while `ready()` resolves immediately so it can't hold up rendering. Run database work in the browser only, for example with `afterNextRender()`:
 
 ```ts
 import { Component, afterNextRender, inject, signal } from '@angular/core';

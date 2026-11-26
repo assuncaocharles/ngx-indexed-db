@@ -40,6 +40,7 @@ const API_GROUPS = [
     id: 'schema',
     title: 'Schema & database',
     methods: [
+      'ready',
       'selectDb',
       'getDatabaseVersion',
       'getAllObjectStoreNames',
