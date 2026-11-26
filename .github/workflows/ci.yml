@@ -4,39 +4,36 @@ on:
     paths-ignore:
       - '.angular/**'
 
+# Cancel superseded runs when new commits are pushed to the same PR.
+concurrency:
+  group: ci-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [24.x]
+    timeout-minutes: 15
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Cache node modules
-        uses: actions/cache@v4
+      - uses: actions/setup-node@v4
         with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
+          node-version: 24.x
+          cache: npm
 
-      - name: Node ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
 
-      - name: npm ci and npm run build
-        run: |
-          npm install --immutable --immutable-cache --check-cache
-          npm run build:lib
+      - name: Build library
+        run: npm run build:lib
 
       - name: Lint
         run: npm run lint
 
-      - name: Install Playwright Chromium
-        run: npx playwright install --with-deps chromium
-
+      # Use the Google Chrome preinstalled on the runner instead of
+      # downloading Chromium and its system deps via Playwright on every run.
       - name: Test
         run: npm test -- --watch=false
+        env:
+          CHROME_BIN: /usr/bin/google-chrome
