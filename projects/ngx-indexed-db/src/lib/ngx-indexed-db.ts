@@ -69,6 +69,9 @@ export async function CreateObjectStore(
         }
       }
 
+      // Runs after migrations, so an index a migration already created is simply skipped.
+      createMissingIndexes(database, request.transaction!, storeSchemas);
+
       database.close();
       resolve();
     };
@@ -82,6 +85,26 @@ export async function CreateObjectStore(
       reject(error);
     };
   });
+}
+
+/**
+ * Creates indexes declared in `storeSchema` that an existing store doesn't have yet, so adding an
+ * index only takes a schema entry and a version bump. Existing indexes are never changed or removed.
+ */
+function createMissingIndexes(
+  database: IDBDatabase,
+  transaction: IDBTransaction,
+  storeSchemas: ObjectStoreMeta[]
+): void {
+  for (const { store, storeSchema } of storeSchemas) {
+    if (!database.objectStoreNames.contains(store)) continue;
+    const objectStore = transaction.objectStore(store);
+    for (const index of storeSchema) {
+      if (!objectStore.indexNames.contains(index.name)) {
+        objectStore.createIndex(index.name, index.keypath, index.options);
+      }
+    }
+  }
 }
 
 export function DeleteObjectStore(dbName: string, version: number, storeName: string): Observable<void> {
