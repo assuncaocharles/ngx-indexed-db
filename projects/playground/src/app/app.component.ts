@@ -1,8 +1,56 @@
 import { DBMode, NgxIndexedDBService } from 'ngx-indexed-db';
 import { forkJoin, of, throwError } from 'rxjs';
 import { catchError, switchMap, tap } from 'rxjs/operators';
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+
+interface Person {
+  id: number;
+  name: string;
+  email?: string;
+}
+
+/**
+ * Deterministic demo data: names share prefixes, and every third person has no email.
+ * Ids are explicit because clear() does not reset the autoIncrement counter.
+ */
+const SEARCH_NAMES = [
+  'Ada',
+  'Adam',
+  'Adele',
+  'Adrian',
+  'Agata',
+  'Alan',
+  'Alba',
+  'Alberto',
+  'Alice',
+  'Alina',
+  'Bea',
+  'Ben',
+  'Benito',
+  'Bianca',
+  'Bob',
+  'Bruno',
+  'Carla',
+  'Carlo',
+  'Carmen',
+  'Chiara',
+  'Dario',
+  'Davide',
+  'Diana',
+  'Elena',
+  'Elio',
+  'Emma',
+  'Enzo',
+  'Fabio',
+  'Federica',
+  'Franco',
+];
+const SEARCH_PEOPLE: Person[] = SEARCH_NAMES.map((name, i) =>
+  i % 3 === 2
+    ? { id: i + 1, name }
+    : { id: i + 1, name, email: `${name.toLowerCase()}@${i % 2 ? 'test.org' : 'example.com'}` }
+);
 
 @Component({
   selector: 'app-root',
@@ -17,6 +65,19 @@ export class AppComponent {
   getAll$;
 
   readonly #dbService = inject(NgxIndexedDBService);
+
+  readonly directions: IDBCursorDirection[] = ['next', 'prev', 'nextunique', 'prevunique'];
+  readonly searchPrefix = signal('');
+  readonly searchEmail = signal('');
+  readonly searchDirection = signal<IDBCursorDirection>('next');
+  readonly searchOffset = signal(0);
+  readonly searchLimit = signal(5);
+  readonly searchResults = signal<Person[]>([]);
+  readonly searchError = signal<string | null>(null);
+  readonly searchPage = computed(() => {
+    const limit = this.searchLimit();
+    return limit > 0 ? Math.floor(this.searchOffset() / limit) + 1 : 1;
+  });
 
   constructor() {
     this.getAll$ = this.#dbService.getAll('people');
@@ -268,5 +329,54 @@ export class AppComponent {
         console.error('error deleting database: ', error);
       }
     );
+  }
+
+  seedSearchData(): void {
+    this.#dbService
+      .clear('people')
+      .pipe(switchMap(() => this.#dbService.bulkAdd('people', SEARCH_PEOPLE)))
+      .subscribe({
+        next: () => this.newSearch(),
+        error: (error) => this.searchError.set(String(error)),
+      });
+  }
+
+  newSearch(): void {
+    this.searchOffset.set(0);
+    this.search();
+  }
+
+  search(): void {
+    const email = this.searchEmail().trim().toLowerCase();
+    this.#dbService
+      .find<Person>({
+        storeName: 'people',
+        indexName: 'name',
+        prefix: this.searchPrefix(),
+        filter: email ? (person) => person.email?.toLowerCase().includes(email) ?? false : undefined,
+        direction: this.searchDirection(),
+        offset: this.searchOffset(),
+        limit: this.searchLimit(),
+      })
+      .subscribe({
+        next: (people) => {
+          this.searchError.set(null);
+          this.searchResults.set(people);
+        },
+        error: (error) => {
+          this.searchResults.set([]);
+          this.searchError.set(error instanceof Error ? error.message : String(error));
+        },
+      });
+  }
+
+  prevPage(): void {
+    this.searchOffset.set(Math.max(0, this.searchOffset() - this.searchLimit()));
+    this.search();
+  }
+
+  nextPage(): void {
+    this.searchOffset.set(this.searchOffset() + this.searchLimit());
+    this.search();
   }
 }

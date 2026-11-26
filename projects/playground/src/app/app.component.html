@@ -28,3 +28,65 @@
   <input type="text" [(ngModel)]="storneNameToDelete" name="store" #store />
   <button (click)="deleteStore()">Delete store</button>
 </div>
+<hr />
+<section class="search">
+  <h2>Search</h2>
+  <button (click)="seedSearchData()">Reset &amp; seed search data</button>
+  <div class="search-controls">
+    <label>
+      Prefix (name, case-sensitive)
+      <input type="text" [(ngModel)]="searchPrefix" name="searchPrefix" />
+    </label>
+    <label>
+      Email contains
+      <input type="text" [(ngModel)]="searchEmail" name="searchEmail" />
+    </label>
+    <label>
+      Direction
+      <select [(ngModel)]="searchDirection" name="searchDirection">
+        @for (direction of directions; track direction) {
+          <option [value]="direction">{{ direction }}</option>
+        }
+      </select>
+    </label>
+    <label>
+      Offset
+      <input type="number" min="0" [(ngModel)]="searchOffset" name="searchOffset" />
+    </label>
+    <label>
+      Limit
+      <input type="number" min="1" [(ngModel)]="searchLimit" name="searchLimit" />
+    </label>
+  </div>
+  <button (click)="newSearch()">Search</button>
+  <button (click)="prevPage()" [disabled]="searchOffset() === 0">Prev page</button>
+  <button (click)="nextPage()" [disabled]="searchResults().length < searchLimit()">Next page</button>
+
+  @if (searchError(); as error) {
+    <p class="search-error">{{ error }}</p>
+  } @else {
+    <p>{{ searchResults().length }} results · page {{ searchPage() }}</p>
+    <table>
+      <thead>
+        <tr>
+          <th>id</th>
+          <th>name</th>
+          <th>email</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (person of searchResults(); track person.id) {
+          <tr>
+            <td>{{ person.id }}</td>
+            <td>{{ person.name }}</td>
+            <td>{{ person.email ?? '—' }}</td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="3">No results</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  }
+</section>

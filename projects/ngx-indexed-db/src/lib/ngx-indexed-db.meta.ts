@@ -58,6 +58,32 @@ export type NgxIDBCursorWithValue<
   K extends IDBValidKey = IDBValidKey
 > = NgxIDBCursor<P, K, V> & { value: V };
 
+/** Options for `find()`. */
+export interface FindOptions<T> {
+  /** The name of the store to query. */
+  storeName: string;
+  /** The index to read through. When omitted, the object store itself is read in primary key order. */
+  indexName?: string;
+  /** The key or key range to read. `null` is the same as leaving it out. Cannot be combined with `prefix`. */
+  query?: IDBValidKey | IDBKeyRange | null;
+  /**
+   * Matches the string keys that start with this value (case-sensitive), using the index.
+   * An empty string is the same as leaving it out. Cannot be combined with `query`.
+   */
+  prefix?: string;
+  /**
+   * Keeps only the records for which it returns `true`. It is called on every record in the range,
+   * so it does not use the index, and it must be synchronous.
+   */
+  filter?: (value: T) => boolean;
+  /** A string telling the cursor which direction to travel. Defaults to `'next'`. */
+  direction?: IDBCursorDirection;
+  /** How many matching records to skip, counted after `filter`. An integer >= 0, defaults to 0. */
+  offset?: number;
+  /** The maximum number of records to return. An integer >= 1, or `Infinity` (the default) for no limit. */
+  limit?: number;
+}
+
 export const CONFIG_TOKEN = new InjectionToken<Record<string, DBConfig>>('NgxIndexedDB DB Config');
 export const INDEXED_DB = new InjectionToken<IDBFactory>('Indexed DB');
 /**
