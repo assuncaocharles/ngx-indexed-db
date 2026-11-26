@@ -73,7 +73,7 @@ export class AppModule {}
 
 ## Use the service
 
-Inject `NgxIndexedDBService` and call its methods. Each one returns an `Observable` that emits once and completes.
+Inject `NgxIndexedDBService` and call its methods. Each one returns an `Observable` that emits once and completes. Methods that write data emit only after their transaction has committed, so when you get the result, the data is saved.
 
 ```ts title="people.component.ts"
 import { Component, inject } from '@angular/core';
