@@ -19,7 +19,8 @@
     "serve:ssr:ssr-playground": "node dist/ssr-playground/server/server.mjs",
     "docs:content": "node projects/docs/scripts/build-content.mjs",
     "docs:start": "npm run docs:content && ng serve docs",
-    "docs:build": "npm run docs:content && ng build docs && node projects/docs/scripts/postbuild.mjs"
+    "docs:build": "npm run docs:content && ng build docs && node projects/docs/scripts/postbuild.mjs",
+    "docs:og": "node projects/docs/scripts/og-image.mjs"
   },
   "lint-staged": {
     "*.{ts,js}": [

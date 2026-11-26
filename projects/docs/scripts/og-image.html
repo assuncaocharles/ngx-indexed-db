@@ -1,0 +1,217 @@
+<!doctype html>
+<!--
+  Social preview image (Open Graph / Twitter card) for the docs site, rendered at 1200×630.
+  Regenerate projects/docs/public/og.png with: npm run docs:og
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=JetBrains+Mono:wght@400;500&display=block"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        width: 1200px;
+        height: 630px;
+      }
+      body {
+        position: relative;
+        overflow: hidden;
+        background: #0a0c11;
+        color: #e8eaf0;
+        font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      .grid {
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(#1c2130 1px, transparent 1px), linear-gradient(90deg, #1c2130 1px, transparent 1px);
+        background-size: 48px 48px;
+        mask-image: radial-gradient(ellipse 80% 75% at 30% 20%, #000 20%, transparent 75%);
+      }
+      .glow {
+        position: absolute;
+        top: -260px;
+        left: -120px;
+        width: 1100px;
+        height: 700px;
+        background:
+          radial-gradient(closest-side, rgb(98 70 234 / 38%), transparent),
+          radial-gradient(closest-side at 75% 65%, rgb(229 57 123 / 26%), transparent);
+        filter: blur(30px);
+      }
+      .content {
+        position: relative;
+        display: grid;
+        grid-template-columns: 1fr 430px;
+        gap: 48px;
+        height: 100%;
+        padding: 64px 72px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        font-size: 30px;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      .brand svg {
+        width: 56px;
+        height: 56px;
+      }
+      h1 {
+        margin: 48px 0 22px;
+        font-size: 68px;
+        font-weight: 800;
+        line-height: 1.04;
+        letter-spacing: -0.04em;
+      }
+      .gradient {
+        background: linear-gradient(120deg, #8b74ff 0%, #c06bf0 50%, #ff6fa5 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .lede {
+        margin: 0;
+        max-width: 560px;
+        color: #a0a8b8;
+        font-size: 26px;
+        line-height: 1.45;
+      }
+      .footer {
+        position: absolute;
+        left: 72px;
+        bottom: 56px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        color: #8b93a5;
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
+        font-size: 20px;
+      }
+      .chip {
+        padding: 10px 18px;
+        border: 1px solid #2a3040;
+        border-radius: 12px;
+        background: rgb(23 27 37 / 80%);
+        color: #e8eaf0;
+      }
+      .chip span {
+        color: #6c7486;
+      }
+      .window {
+        align-self: center;
+        margin-top: 40px;
+        overflow: hidden;
+        border: 1px solid #262c3b;
+        border-radius: 18px;
+        background: #0f1218;
+        box-shadow:
+          0 40px 80px -20px rgb(0 0 0 / 70%),
+          0 0 0 1px rgb(139 116 255 / 8%);
+      }
+      .window__bar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        height: 46px;
+        padding: 0 18px;
+        border-bottom: 1px solid #232835;
+        background: #12151d;
+        color: #a0a8b8;
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
+        font-size: 15px;
+      }
+      .window__bar i {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #303747;
+      }
+      .window__bar span {
+        margin-left: 10px;
+      }
+      pre {
+        margin: 0;
+        padding: 22px 24px 26px;
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
+        font-size: 17px;
+        line-height: 1.62;
+        color: #e1e4e8;
+      }
+      .k {
+        color: #f97583;
+      }
+      .f {
+        color: #b392f0;
+      }
+      .s {
+        color: #9ecbff;
+      }
+      .t {
+        color: #79b8ff;
+      }
+      .c {
+        color: #6a737d;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="glow"></div>
+    <div class="grid"></div>
+    <main class="content">
+      <section>
+        <div class="brand">
+          <svg viewBox="0 0 64 64" aria-hidden="true">
+            <defs>
+              <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#6246ea" />
+                <stop offset=".55" stop-color="#a43fe0" />
+                <stop offset="1" stop-color="#e5397b" />
+              </linearGradient>
+            </defs>
+            <rect width="64" height="64" rx="15" fill="url(#g)" />
+            <g fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round">
+              <ellipse cx="32" cy="19" rx="14" ry="5.5" />
+              <path d="M18 19v26c0 3 6.3 5.5 14 5.5S46 48 46 45V19" />
+              <path d="M18 32c0 3 6.3 5.5 14 5.5S46 35 46 32" />
+            </g>
+          </svg>
+          ngx-indexed-db
+        </div>
+        <h1>IndexedDB for Angular, <span class="gradient">without the plumbing.</span></h1>
+        <p class="lede">Typed, Observable-based, with migrations and SSR support.</p>
+      </section>
+
+      <div class="window">
+        <div class="window__bar"><i></i><i></i><i></i><span>people.service.ts</span></div>
+        <pre>db = <span class="f">inject</span>(<span class="t">NgxIndexedDBService</span>);
+
+<span class="f">add</span>(person: <span class="t">Person</span>) {
+  <span class="k">return</span> <span class="k">this</span>.db.<span class="f">add</span>(<span class="s">'people'</span>, person);
+}
+
+<span class="f">byEmail</span>(email: <span class="t">string</span>) {
+  <span class="k">return</span> <span class="k">this</span>.db
+    .<span class="f">getByIndex</span>(<span class="s">'people'</span>,
+      <span class="s">'email'</span>, email);
+}</pre>
+      </div>
+    </main>
+    <footer class="footer">
+      <span class="chip"><span>$</span> npm i ngx-indexed-db</span>
+      assuncaocharles.github.io/ngx-indexed-db
+    </footer>
+  </body>
+</html>

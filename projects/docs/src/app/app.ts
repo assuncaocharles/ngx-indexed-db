@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter, map } from 'rxjs';
+import { SeoService } from './core/seo.service';
 import { UiStateService } from './core/ui-state.service';
 import { Footer } from './layout/footer';
 import { Header } from './layout/header';
@@ -44,12 +45,14 @@ import { SearchDialog } from './layout/search-dialog';
 export class App {
   private readonly router = inject(Router);
   private readonly ui = inject(UiStateService);
+  private readonly seo = inject(SeoService);
 
   private readonly url = toSignal(
     this.router.events.pipe(
       filter((e) => e instanceof NavigationEnd),
       map((e) => {
         this.ui.navOpen.set(false);
+        this.seo.setUrl(e.urlAfterRedirects);
         return e.urlAfterRedirects;
       }),
     ),
