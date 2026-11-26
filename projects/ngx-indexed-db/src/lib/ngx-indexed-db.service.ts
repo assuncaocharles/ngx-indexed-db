@@ -1,5 +1,5 @@
 import { Injectable, isDevMode, inject } from '@angular/core';
-import { Observable, combineLatest, from } from 'rxjs';
+import { Observable, Subscriber, combineLatest, from } from 'rxjs';
 import { switchMap, take } from 'rxjs/operators';
 import { createTransaction, optionsGenerator, validateBeforeTransaction } from '../utils';
 import { CloseDbConnection } from './decorators';
@@ -8,6 +8,7 @@ import {
   CONFIG_TOKEN,
   DBConfig,
   DBMode,
+  FindOptions,
   INDEXED_DB,
   IndexKey,
   NgxIDBCursor,
@@ -775,6 +776,103 @@ export class NgxIndexedDBService {
   }
 
   /**
+   * Returns the records of a store or an index that match a key range or a string prefix,
+   * optionally filtered and paginated, reading them with a single cursor.
+   * `query` and `prefix` use the index (or the primary key), so only the matching range is read.
+   * `filter` is called on every record in that range, which makes it a scan of the whole range; it must be
+   * synchronous, because the transaction closes on its own while you `await`.
+   * Reading stops as soon as `limit` records are collected, or when you unsubscribe.
+   * The Observable errors if `prefix` and `query` are both given, if `offset` is not an integer >= 0,
+   * if `limit` is not an integer >= 1 or `Infinity`, or if `filter` throws.
+   * @param options The options of the query
+   * @param options.storeName The name of the store to query
+   * @param options.indexName The index to read through. When omitted, the store is read in primary key order
+   * @param options.query The key or key range criteria to apply
+   * @param options.prefix Matches the string keys that start with this value (case-sensitive)
+   * @param options.filter A synchronous predicate applied to each record in the range
+   * @param options.direction A string telling the cursor which direction to travel
+   * @param options.offset How many matching records to skip, counted after `filter`
+   * @param options.limit The maximum number of records to return
+   */
+  @CloseDbConnection()
+  find<T>(options: FindOptions<T>): Observable<T[]> {
+    const { storeName, indexName, query, prefix, filter, direction, offset = 0, limit = Infinity } = options;
+
+    return new Observable((obs: Subscriber<T[]>) => {
+      const invalid = findOptionsError(options);
+      if (invalid) {
+        obs.error(invalid);
+        return;
+      }
+
+      this.open()
+        .then((db: IDBDatabase) => {
+          validateBeforeTransaction(db, storeName, (e) => obs.error(e));
+          if (obs.closed) {
+            return;
+          }
+
+          const transaction = createTransaction(
+            db,
+            optionsGenerator(DBMode.readonly, storeName, (e) => obs.error(e))
+          );
+          const objectStore = transaction.objectStore(storeName);
+          const source: IDBObjectStore | IDBIndex =
+            indexName === undefined ? objectStore : objectStore.index(indexName);
+          const range = prefix ? IDBKeyRange.bound(prefix, prefix + '\uffff') : query;
+          const request = source.openCursor(range, direction);
+
+          const data: T[] = [];
+          let advancePending = !filter && offset > 0;
+          let toSkip = filter ? offset : 0;
+
+          request.onerror = (e) => obs.error(e);
+          request.onsuccess = () => {
+            if (obs.closed) {
+              return;
+            }
+
+            const cursor = request.result;
+            if (!cursor) {
+              obs.next(data);
+              obs.complete();
+              return;
+            }
+
+            if (advancePending) {
+              advancePending = false;
+              cursor.advance(offset);
+              return;
+            }
+
+            const value: T = cursor.value;
+            let matches = true;
+            if (filter) {
+              try {
+                matches = filter(value);
+              } catch (error) {
+                obs.error(error);
+                return;
+              }
+            }
+
+            if (matches) {
+              if (toSkip > 0) {
+                toSkip--;
+              } else if (data.push(value) >= limit) {
+                obs.next(data);
+                obs.complete();
+                return;
+              }
+            }
+            cursor.continue();
+          };
+        })
+        .catch((reason: unknown) => obs.error(reason));
+    });
+  }
+
+  /**
    * Returns all primary keys by an index.
    * @param storeName The name of the store to query
    * @param query The key or key range criteria to apply
@@ -892,6 +990,24 @@ export class NgxIndexedDBService {
         .catch((reason) => obs.error(reason));
     });
   }
+}
+
+/** Returns the error for invalid {@link FindOptions}, or `undefined` when they are valid. */
+function findOptionsError<T>(options: FindOptions<T>): Error | undefined {
+  const { query, prefix, offset = 0, limit = Infinity } = options;
+  if (prefix && query !== undefined && query !== null) {
+    return new Error('NgxIndexedDB: find() accepts either query or prefix, not both');
+  }
+
+  if (!Number.isInteger(offset) || offset < 0) {
+    return new Error(`NgxIndexedDB: find() offset must be an integer >= 0, got ${offset}`);
+  }
+
+  if (limit !== Infinity && (!Number.isInteger(limit) || limit < 1)) {
+    return new Error(`NgxIndexedDB: find() limit must be an integer >= 1 or Infinity, got ${limit}`);
+  }
+
+  return undefined;
 }
 
 /** Whether an `indexedDB.open()` failure means the browser already has a newer version. */

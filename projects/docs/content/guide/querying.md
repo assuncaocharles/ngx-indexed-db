@@ -63,6 +63,40 @@ this.db.getAllByIndex<Person>('people', 'name', null, 'prev').subscribe(); // Z 
 
 The directions are `'next'` (the default), `'prev'`, `'nextunique'` and `'prevunique'`.
 
+## Searching and paginating
+
+`find()` combines a range, a filter and pagination in one call, on a store or on an index:
+
+```ts
+// Second page of 10 people whose name starts with 'Ad' and who have an email
+this.db
+  .find<Person>({
+    storeName: 'people',
+    indexName: 'name',
+    prefix: 'Ad',
+    filter: (person) => person.email !== undefined,
+    offset: 10,
+    limit: 10,
+  })
+  .subscribe((page) => {});
+```
+
+`query` and `prefix` use the index, so only the matching range is read. `prefix` matches string keys only and is case-sensitive: to search regardless of case, store a lowercased copy of the field and index that instead. `offset` counts the records that pass `filter`, and reading stops as soon as `limit` records are found.
+
+Every skipped record is still walked over, and with `filter` each one is also read and checked, so a large `offset` gets slower the deeper you go. For deep pages on a large store, start each page after the last key of the previous one instead:
+
+```ts
+// Next page: the 10 records after the last id already shown
+this.db
+  .find<Person>({ storeName: 'people', query: IDBKeyRange.lowerBound(lastId, true), limit: 10 })
+  .subscribe((page) => {});
+```
+
+This works best on the primary key or a unique index: on an index with repeated values, records that share the last key would be skipped.
+
+> [!WARNING]
+> `filter` is not backed by an index: it is called on every record in the range, so on a large store narrow the range with `query` or `prefix` first. It must also be synchronous; the transaction closes on its own while you `await`.
+
 ## Cursors
 
 Cursors walk through records one at a time, which avoids loading a large store into memory at once. The Observable emits a cursor for each record. **Call `cursor.continue()` to move to the next one**; the Observable completes once the transaction finishes.

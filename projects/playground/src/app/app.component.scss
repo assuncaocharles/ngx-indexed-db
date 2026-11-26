@@ -1,3 +1,32 @@
 button, input {
     margin-right: 10px;
 }
+
+.search-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 12px 0;
+}
+
+.search-controls label {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.search table {
+    border-collapse: collapse;
+    margin-top: 8px;
+}
+
+.search th,
+.search td {
+    border: 1px solid #ccc;
+    padding: 4px 8px;
+    text-align: left;
+}
+
+.search-error {
+    color: #b00020;
+}

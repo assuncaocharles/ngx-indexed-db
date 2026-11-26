@@ -27,7 +27,7 @@ const API_GROUPS = [
   {
     id: 'reading',
     title: 'Reading data',
-    methods: ['getByKey', 'getByID', 'bulkGet', 'getAll', 'getByIndex', 'getAllByIndex', 'getAllKeysByIndex'],
+    methods: ['getByKey', 'getByID', 'bulkGet', 'getAll', 'getByIndex', 'getAllByIndex', 'find', 'getAllKeysByIndex'],
   },
   { id: 'counting', title: 'Counting', methods: ['count', 'countByIndex'] },
   {
@@ -60,6 +60,7 @@ const API_TYPES = [
   'DBMode',
   'WithID',
   'IndexKey',
+  'FindOptions',
   'NgxIDBCursor',
   'NgxIDBCursorWithValue',
   'INDEXED_DB',

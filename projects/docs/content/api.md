@@ -93,6 +93,18 @@ this.db
   .subscribe((people) => console.log(people));
 ```
 
+## find
+
+Reads a store, or an index with `indexName`, with a single cursor and returns the matching records. Narrow the range with `query` (a key or key range) or `prefix` (string keys that start with it, case-sensitive), but not both. `filter` keeps the records it returns `true` for; `offset` skips matches after `filter`, and `limit` caps the result. Reading stops as soon as `limit` is reached.
+
+```ts
+this.db
+  .find<Person>({ storeName: 'people', indexName: 'name', prefix: 'Ad', offset: 10, limit: 10 })
+  .subscribe((page) => console.log(page));
+```
+
+`offset` must be an integer >= 0 and `limit` an integer >= 1 (or `Infinity`, the default); otherwise the Observable errors.
+
 ## getAllKeysByIndex
 
 Reads only keys, which is cheaper than loading full records.
