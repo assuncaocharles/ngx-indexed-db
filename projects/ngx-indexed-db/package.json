@@ -5,7 +5,7 @@
     ".": "./src/public-api.ts"
   },
   "description": "Angular wrapper to IndexedDB database.",
-  "version": "23.1.0",
+  "version": "23.1.1",
   "license": "ISC",
   "private": false,
   "keywords": [
