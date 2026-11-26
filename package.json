@@ -16,7 +16,10 @@
     "test": "ng test",
     "lint": "ng lint",
     "format": "prettier \"projects/**/*.{ts,json}\" --write",
-    "serve:ssr:ssr-playground": "node dist/ssr-playground/server/server.mjs"
+    "serve:ssr:ssr-playground": "node dist/ssr-playground/server/server.mjs",
+    "docs:content": "node projects/docs/scripts/build-content.mjs",
+    "docs:start": "npm run docs:content && ng serve docs",
+    "docs:build": "npm run docs:content && ng build docs && node projects/docs/scripts/postbuild.mjs"
   },
   "lint-staged": {
     "*.{ts,js}": [
@@ -59,8 +62,10 @@
     "eslint": "^9.39.2",
     "husky": ">=4",
     "lint-staged": "^16.2.7",
+    "marked": "^18.2.0",
     "playwright": "^1.65.1",
     "prettier": "2.1.1",
+    "shiki": "^4.6.0",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.74.0",
     "vitest": "^5.0.0"

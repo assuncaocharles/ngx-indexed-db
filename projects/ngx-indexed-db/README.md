@@ -4,6 +4,8 @@
 
 `ngx-indexed-db` is a service (CSR & SSR) that wraps IndexedDB database in an Angular service combined with the power of observables.
 
+**[Documentation, API reference and live playground →](https://assuncaocharles.github.io/ngx-indexed-db/)**
+
 ## Installation
 
 ```bash
