@@ -2,10 +2,10 @@ import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
 
 import { routes } from './app.routes';
-import { provideClientHydration } from '@angular/platform-browser';
+import { provideClientHydration, withNoIncrementalHydration } from '@angular/platform-browser';
 import { provideIndexedDb, DBConfig } from 'ngx-indexed-db';
 
-const dbConfig: DBConfig = {
+export const dbConfig: DBConfig = {
   name: 'MyDb',
   version: 1,
   objectStoresMeta: [
@@ -29,7 +29,7 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
-    provideClientHydration(),
+    provideClientHydration(withNoIncrementalHydration()),
     provideIndexedDb(dbConfig),
   ],
 };

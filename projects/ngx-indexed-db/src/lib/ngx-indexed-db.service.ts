@@ -1,4 +1,4 @@
-import { Inject, Injectable, isDevMode } from '@angular/core';
+import { Injectable, isDevMode, inject } from '@angular/core';
 import { Observable, combineLatest, from } from 'rxjs';
 import { take } from 'rxjs/operators';
 import { createTransaction, optionsGenerator, validateBeforeTransaction } from '../utils';
@@ -19,13 +19,13 @@ import {
 
 @Injectable()
 export class NgxIndexedDBService {
-  private defaultDatabaseName?: string = null;
-  private selectedDb: string;
+  private dbConfigs = inject<Record<string, DBConfig>>(CONFIG_TOKEN);
+  private indexedDB = inject<IDBFactory>(INDEXED_DB);
 
-  constructor(
-    @Inject(CONFIG_TOKEN) private dbConfigs: Record<string, DBConfig>,
-    @Inject(INDEXED_DB) private indexedDB: IDBFactory
-  ) {
+  private defaultDatabaseName?: string;
+  private selectedDb?: string;
+
+  constructor() {
     Object.values(this.dbConfigs).forEach((dbConfig, _, ref) => this.instanciateConfig(dbConfig, ref.length === 1));
   }
 
@@ -71,7 +71,13 @@ export class NgxIndexedDBService {
   }
 
   private get dbConfig(): DBConfig {
-    return this.dbConfigs[this.selectedDb];
+    return this.dbConfigs[this.selectedDb!];
+  }
+
+  /** Increments the selected database version and returns the new value. */
+  private nextVersion(): number {
+    this.dbConfig.version = (this.dbConfig.version ?? 0) + 1;
+    return this.dbConfig.version;
   }
 
   /**
@@ -119,13 +125,7 @@ export class NgxIndexedDBService {
     migrationFactory?: () => { [key: number]: (db: IDBDatabase, transaction: IDBTransaction) => void }
   ): Promise<void> {
     const storeSchemas: ObjectStoreMeta[] = [storeSchema];
-    await CreateObjectStore(
-      this.indexedDB,
-      this.dbConfig.name,
-      ++this.dbConfig.version,
-      storeSchemas,
-      migrationFactory
-    );
+    await CreateObjectStore(this.indexedDB, this.dbConfig.name, this.nextVersion(), storeSchemas, migrationFactory);
   }
 
   /**
@@ -355,8 +355,8 @@ export class NgxIndexedDBService {
             obs.error(evt);
           };
 
-          request.onsuccess = ({ target: { result: ResultAll } }: RequestEvent<T>) => {
-            obs.next(ResultAll as T[]);
+          request.onsuccess = (event: Event) => {
+            obs.next((event as RequestEvent<T>).target.result as T[]);
             obs.complete();
           };
         })
@@ -818,7 +818,7 @@ export class NgxIndexedDBService {
    * @param storeName The name of the store to query
    */
   deleteObjectStore(storeName: string): Observable<void> {
-    return DeleteObjectStore(this.dbConfig.name, ++this.dbConfig.version, storeName);
+    return DeleteObjectStore(this.dbConfig.name, this.nextVersion(), storeName);
   }
 
   /**

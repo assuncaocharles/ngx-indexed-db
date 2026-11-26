@@ -16,6 +16,12 @@ OR
 $ yarn add ngx-indexed-db
 ```
 
+### Compatibility
+
+| ngx-indexed-db | Angular       |
+| -------------- | ------------- |
+| 23.x           | 16.x – 22.x   |
+
 ## Usage
 
 ### With Module
