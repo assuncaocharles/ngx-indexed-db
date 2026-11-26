@@ -5,7 +5,7 @@
     "sourceMap": true,
     "esModuleInterop": true,
     "declaration": false,
-    "strict": false,
+    "strict": true,
     "experimentalDecorators": true,
     "moduleResolution": "bundler",
     "importHelpers": true,

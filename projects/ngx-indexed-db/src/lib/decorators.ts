@@ -3,9 +3,9 @@ import { finalize } from 'rxjs/operators';
 import { closeDatabase, openedDatabases } from './ngx-indexed-db';
 
 export function CloseDbConnection(): MethodDecorator {
-  return function (_target: object, _propertyKey: string, descriptor: PropertyDescriptor): PropertyDescriptor {
-    const originalMethod = descriptor.value;
-    descriptor.value = function (...args: unknown[]) {
+  return function <T>(_target: object, _propertyKey: string | symbol, descriptor: TypedPropertyDescriptor<T>) {
+    const originalMethod = descriptor.value as (...args: unknown[]) => unknown;
+    descriptor.value = function (this: unknown, ...args: unknown[]) {
       const result = originalMethod.apply(this, args);
 
       if (result instanceof Observable) {
@@ -20,7 +20,7 @@ export function CloseDbConnection(): MethodDecorator {
         );
       }
       return result;
-    };
+    } as T;
     return descriptor;
   };
 }

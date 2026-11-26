@@ -6,8 +6,5 @@
     "outDir": "../../out-tsc/spec",
     "types": ["jasmine"]
   },
-  "include": ["src/**/*.spec.ts", "src/**/*.d.ts"],
-  "angularCompilerOptions": {
-    "strictTemplates": false
-  }
+  "include": ["src/**/*.spec.ts", "src/**/*.d.ts"]
 }

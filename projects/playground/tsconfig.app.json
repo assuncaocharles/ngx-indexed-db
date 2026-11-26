@@ -6,8 +6,5 @@
     "types": ["node"]
   },
   "files": ["src/main.ts"],
-  "include": ["src/**/*.d.ts"],
-  "angularCompilerOptions": {
-    "strictTemplates": false
-  }
+  "include": ["src/**/*.d.ts"]
 }

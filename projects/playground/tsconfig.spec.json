@@ -6,8 +6,5 @@
     "types": ["jasmine"]
   },
   "files": ["src/test.ts"],
-  "include": ["src/**/*.spec.ts", "src/**/*.d.ts"],
-  "angularCompilerOptions": {
-    "strictTemplates": false
-  }
+  "include": ["src/**/*.spec.ts", "src/**/*.d.ts"]
 }

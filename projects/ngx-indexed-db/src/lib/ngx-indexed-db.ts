@@ -34,7 +34,7 @@ export function openDatabase(
 export async function CreateObjectStore(
   indexedDB: IDBFactory,
   dbName: string,
-  version: number,
+  version: number | undefined,
   storeSchemas: ObjectStoreMeta[],
   migrationFactory?: () => { [key: number]: (db: IDBDatabase, transaction: IDBTransaction) => void }
 ): Promise<void> {
@@ -65,7 +65,7 @@ export async function CreateObjectStore(
           .sort((a, b) => a - b);
 
         for (const v of migrationKeys) {
-          storeMigrations[v](database, request.transaction);
+          storeMigrations[v](database, request.transaction!);
         }
       }
 

@@ -13,8 +13,8 @@ import { catchError, switchMap, tap } from 'rxjs/operators';
 })
 export class AppComponent {
   title = 'ssr-playground';
-  storeName: string;
-  storneNameToDelete: string;
+  storeName = '';
+  storneNameToDelete = '';
   getAll$;
 
   readonly #dbService = inject(NgxIndexedDBService);
@@ -25,11 +25,11 @@ export class AppComponent {
 
   add(): void {
     //prepare random person data with or without email for count by index
-    const randomPerson = {
+    const randomPerson: { name: string; email?: string } = {
       name: `charles number ${Math.random() * 10}`,
     };
     if (Math.random().toFixed(0) === '1') {
-      randomPerson['email'] = `email number ${Math.random() * 10}`;
+      randomPerson.email = `email number ${Math.random() * 10}`;
     }
 
     this.#dbService.add('people', randomPerson).subscribe((result) => {

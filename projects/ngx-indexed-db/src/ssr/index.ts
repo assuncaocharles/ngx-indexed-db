@@ -15,5 +15,5 @@ export function indexedDbFactory(): IDBFactory {
   assertInInjectionContext(indexedDbFactory);
   const platformId = inject(PLATFORM_ID);
   const serverIndexedDB = inject(SERVER_INDEXED_DB, { optional: true }) ?? new ServerIndexedDB();
-  return isPlatformBrowser(platformId) ? inject(DOCUMENT).defaultView.indexedDB : serverIndexedDB;
+  return isPlatformBrowser(platformId) ? inject(DOCUMENT).defaultView!.indexedDB : serverIndexedDB;
 }
