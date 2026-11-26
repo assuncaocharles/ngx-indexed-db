@@ -76,6 +76,26 @@ export const dbConfig: DBConfig = {
 
 During the upgrade, every index declared in `storeSchema` that's missing from its store is created, and IndexedDB fills it from the records already stored. Existing indexes are never changed or removed automatically: to change an index's `keypath` or `options`, or to drop one, write a [migration](/guide/migrations).
 
+## Waiting until the database is ready
+
+The database is created or upgraded in the background as soon as `NgxIndexedDBService` is first injected. You don't need to wait for it before querying: every method waits until setup has finished.
+
+To hold something else until the database exists, for example to clear data at startup before the rest of the app reads it, await `ready()`:
+
+```ts title="app.config.ts"
+import { ApplicationConfig, inject, provideAppInitializer } from '@angular/core';
+import { NgxIndexedDBService, provideIndexedDb } from 'ngx-indexed-db';
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideIndexedDb(dbConfig),
+    provideAppInitializer(() => inject(NgxIndexedDBService).ready()),
+  ],
+};
+```
+
+`ready()` returns a `Promise`, so it also works in a route resolver or guard, including in lazy-loaded routes. If setup fails, it rejects with the error. With [several databases](/guide/multiple-databases), pass the name of the one to wait for: `ready('cache')`. During server-side rendering it resolves immediately, so it never holds up the render.
+
 ## Version mismatches
 
-If the database in the browser has a higher version than your config, for example after a newer deployment of your app ran in the same browser, the library uses the browser's version. In development mode it also logs a warning so you can bring the config up to date.
+If the database in the browser has a higher version than your config, for example after a newer deployment of your app ran in the same browser, or after `createObjectStore()` raised the version at runtime, the library uses the browser's version. In development mode it also logs a warning so you can bring the config up to date.

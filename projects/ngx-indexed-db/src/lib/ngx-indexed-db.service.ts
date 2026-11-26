@@ -1,6 +1,6 @@
 import { Injectable, isDevMode, inject } from '@angular/core';
 import { Observable, combineLatest, from } from 'rxjs';
-import { take } from 'rxjs/operators';
+import { switchMap, take } from 'rxjs/operators';
 import { createTransaction, optionsGenerator, validateBeforeTransaction } from '../utils';
 import { CloseDbConnection } from './decorators';
 import { CreateObjectStore, DeleteObjectStore, openDatabase } from './ngx-indexed-db';
@@ -16,6 +16,7 @@ import {
   RequestEvent,
   WithID,
 } from './ngx-indexed-db.meta';
+import { ServerIndexedDB } from '../ssr/server-indexed-db';
 
 @Injectable()
 export class NgxIndexedDBService {
@@ -24,9 +25,37 @@ export class NgxIndexedDBService {
 
   private defaultDatabaseName?: string;
   private selectedDb?: string;
+  /** Settles once each database has been created or upgraded; every operation waits for it. */
+  private readonly setup = new Map<string, Promise<void>>();
 
   constructor() {
-    Object.values(this.dbConfigs).forEach((dbConfig, _, ref) => this.instanciateConfig(dbConfig, ref.length === 1));
+    Object.values(this.dbConfigs).forEach((dbConfig, _, ref) => {
+      const setup = this.instanciateConfig(dbConfig, ref.length === 1);
+      // Surface setup failures right away; ready() and every operation still reject with them.
+      setup.catch((error) => console.error(error));
+      this.setup.set(dbConfig.name, setup);
+    });
+  }
+
+  /**
+   * Resolves once the database has been created or upgraded and is ready to use.
+   * Operations already wait for this on their own; use it to hold app startup or a route until the
+   * database exists, for example with `provideAppInitializer()`. On the server it resolves immediately.
+   * @param databaseName The database to wait for. Defaults to the selected database.
+   */
+  ready(databaseName?: string): Promise<void> {
+    const name = databaseName ?? this.selectedDb ?? this.defaultDatabaseName;
+    const setup = name ? this.setup.get(name) : undefined;
+    if (!setup) {
+      return Promise.reject(new Error(`NgxIndexedDB: Database ${name ?? '(none selected)'} is not initialized.`));
+    }
+    return setup;
+  }
+
+  /** Opens the selected database once its setup has finished, at its current version. */
+  private open(): Promise<IDBDatabase> {
+    const config = this.dbConfig;
+    return this.ready(config.name).then(() => openDatabase(this.indexedDB, config.name, config.version));
   }
 
   private async instanciateConfig(dbConfig: DBConfig, isOnlyConfig: boolean): Promise<void> {
@@ -45,29 +74,40 @@ export class NgxIndexedDBService {
       this.selectedDb = dbConfig.name;
     }
 
-    await CreateObjectStore(
-      this.indexedDB,
-      dbConfig.name,
-      dbConfig.version,
-      dbConfig.objectStoresMeta,
-      dbConfig.migrationFactory
-    );
+    // The server-side placeholder never answers requests, so there is nothing to wait for.
+    if (this.indexedDB instanceof ServerIndexedDB) {
+      return;
+    }
 
-    openDatabase(this.indexedDB, dbConfig.name).then((db) => {
-      if (db.version !== dbConfig.version) {
-        if (isDevMode()) {
-          console.warn(`
+    try {
+      await CreateObjectStore(
+        this.indexedDB,
+        dbConfig.name,
+        dbConfig.version,
+        dbConfig.objectStoresMeta,
+        dbConfig.migrationFactory
+      );
+    } catch (error) {
+      // The browser already has a newer version (e.g. after createObjectStore() or a newer deployment):
+      // adopt that version below instead of failing every later operation.
+      if (!isVersionError(error)) {
+        throw error;
+      }
+    }
+
+    const db = await openDatabase(this.indexedDB, dbConfig.name);
+    if (db.version !== dbConfig.version) {
+      if (isDevMode()) {
+        console.warn(`
             Your DB Config doesn't match the most recent version of the DB with name ${dbConfig.name}, please update it
             DB current version: ${db.version};
             Your configuration: ${dbConfig.version};
             `);
-          console.warn(`Using latest version ${db.version}`);
-        }
-        this.dbConfigs[dbConfig.name].version = db.version;
+        console.warn(`Using latest version ${db.version}`);
       }
-
-      db.close();
-    });
+      this.dbConfigs[dbConfig.name].version = db.version;
+    }
+    db.close();
   }
 
   private get dbConfig(): DBConfig {
@@ -87,7 +127,7 @@ export class NgxIndexedDBService {
   @CloseDbConnection()
   getDatabaseVersion(): Observable<number | string> {
     return new Observable((obs) => {
-      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+      this.open()
         .then((db: IDBDatabase) => {
           obs.next(db.version);
           obs.complete();
@@ -124,6 +164,7 @@ export class NgxIndexedDBService {
     migrationFactory?: () => { [key: number]: (db: IDBDatabase, transaction: IDBTransaction) => void }
   ): Promise<void> {
     const storeSchemas: ObjectStoreMeta[] = [storeSchema];
+    await this.ready(this.dbConfig.name);
     await CreateObjectStore(this.indexedDB, this.dbConfig.name, this.nextVersion(), storeSchemas, migrationFactory);
   }
 
@@ -137,6 +178,7 @@ export class NgxIndexedDBService {
     migrationFactory?: () => { [key: number]: (db: IDBDatabase, transaction: IDBTransaction) => void }
   ): Promise<void> {
     const storeSchemas: ObjectStoreMeta[] = [storeSchema];
+    await this.ready(this.dbConfig.name);
     await CreateObjectStore(this.indexedDB, this.dbConfig.name, this.dbConfig.version, storeSchemas, migrationFactory);
   }
 
@@ -149,7 +191,7 @@ export class NgxIndexedDBService {
   @CloseDbConnection()
   add<T>(storeName: string, value: T, key?: any): Observable<T & WithID> {
     return new Observable((obs) => {
-      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+      this.open()
         .then((db: IDBDatabase) => {
           const transaction = createTransaction(
             db,
@@ -189,7 +231,7 @@ export class NgxIndexedDBService {
   @CloseDbConnection()
   bulkAdd<T>(storeName: string, values: Array<T & { key?: any }>): Observable<number[]> {
     const promises = new Promise<number[]>((resolve, reject) => {
-      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+      this.open()
         .then((db: IDBDatabase) => {
           // A failed insert aborts the transaction, which rejects through its error/abort handlers.
           const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, reject));
@@ -223,7 +265,7 @@ export class NgxIndexedDBService {
   bulkDelete(storeName: string, keys: IDBValidKey[]): Observable<number[]> {
     const promises = keys.map((key) => {
       return new Promise<number>((resolve, reject) => {
-        openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+        this.open()
           .then((db: IDBDatabase) => {
             const transaction = createTransaction(db, optionsGenerator(DBMode.readwrite, storeName, reject, resolve));
             const objectStore = transaction.objectStore(storeName);
@@ -251,7 +293,7 @@ export class NgxIndexedDBService {
   @CloseDbConnection()
   getByKey<T>(storeName: string, key: IDBValidKey): Observable<T> {
     return new Observable<T>((obs) => {
-      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+      this.open()
         .then((db: IDBDatabase) => {
           const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error));
           const objectStore = transaction.objectStore(storeName);
@@ -293,7 +335,7 @@ export class NgxIndexedDBService {
   @CloseDbConnection()
   getByID<T>(storeName: string, id: string | number): Observable<T> {
     return new Observable((obs) => {
-      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+      this.open()
         .then((db: IDBDatabase) => {
           validateBeforeTransaction(db, storeName, (e) => obs.error(e));
           const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error, obs.next));
@@ -317,7 +359,7 @@ export class NgxIndexedDBService {
   @CloseDbConnection()
   getByIndex<T>(storeName: string, indexName: string, key: IDBValidKey): Observable<T> {
     return new Observable((obs) => {
-      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+      this.open()
         .then((db) => {
           validateBeforeTransaction(db, storeName, (e) => obs.error(e));
           const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error));
@@ -340,7 +382,7 @@ export class NgxIndexedDBService {
   @CloseDbConnection()
   getAll<T>(storeName: string): Observable<T[]> {
     return new Observable((obs) => {
-      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+      this.open()
         .then((db) => {
           validateBeforeTransaction(db, storeName, (e) => obs.error(e));
           const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error, obs.next));
@@ -369,7 +411,7 @@ export class NgxIndexedDBService {
   @CloseDbConnection()
   update<T>(storeName: string, value: T): Observable<T> {
     return new Observable((obs) => {
-      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+      this.open()
         .then((db) => {
           validateBeforeTransaction(db, storeName, (e) => obs.error(e));
           const transaction = createTransaction(
@@ -410,7 +452,7 @@ export class NgxIndexedDBService {
   public bulkPut<T>(storeName: string, items: T[]): Observable<IDBValidKey> {
     let transaction: IDBTransaction;
     return new Observable((obs) => {
-      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+      this.open()
         .then((db) => {
           validateBeforeTransaction(db, storeName, (e) => obs.error(e));
           transaction = createTransaction(
@@ -457,7 +499,7 @@ export class NgxIndexedDBService {
   @CloseDbConnection()
   delete<T>(storeName: string, query: IDBValidKey | IDBKeyRange): Observable<T[]> {
     return new Observable((obs) => {
-      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+      this.open()
         .then((db) => {
           validateBeforeTransaction(db, storeName, (e) => obs.error(e));
           const transaction = createTransaction(
@@ -492,7 +534,7 @@ export class NgxIndexedDBService {
   @CloseDbConnection()
   deleteByKey(storeName: string, query: IDBValidKey | IDBKeyRange): Observable<void> {
     return new Observable((obs) => {
-      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+      this.open()
         .then((db) => {
           validateBeforeTransaction(db, storeName, (e) => obs.error(e));
           const transaction = createTransaction(
@@ -527,7 +569,7 @@ export class NgxIndexedDBService {
     direction?: IDBCursorDirection
   ): Observable<void> {
     return new Observable((obs) => {
-      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+      this.open()
         .then((db) => {
           validateBeforeTransaction(db, storeName, (e) => obs.error(e));
           const transaction = createTransaction(
@@ -564,7 +606,7 @@ export class NgxIndexedDBService {
   @CloseDbConnection()
   clear(storeName: string): Observable<void> {
     return new Observable((obs) => {
-      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+      this.open()
         .then((db) => {
           validateBeforeTransaction(db, storeName, (e) => obs.error(e));
           const transaction = createTransaction(
@@ -590,7 +632,7 @@ export class NgxIndexedDBService {
   @CloseDbConnection()
   deleteDatabase(): Observable<void> {
     return new Observable((obs) => {
-      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+      this.open()
         .then(async (db) => {
           db.close();
           const deleteDBRequest = this.indexedDB.deleteDatabase(this.dbConfig.name);
@@ -630,7 +672,7 @@ export class NgxIndexedDBService {
     const { storeName, query, direction, mode = DBMode.readonly } = options;
 
     return new Observable((obs) => {
-      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+      this.open()
         .then((db) => {
           validateBeforeTransaction(db, storeName, (e) => obs.error(e));
           const transaction = createTransaction(db, optionsGenerator(mode, storeName, obs.error));
@@ -671,7 +713,7 @@ export class NgxIndexedDBService {
     const { storeName, indexName, query, direction, mode = DBMode.readonly } = options;
 
     return new Observable((obs) => {
-      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+      this.open()
         .then((db) => {
           validateBeforeTransaction(db, storeName, (e) => obs.error(e));
           const transaction = createTransaction(db, optionsGenerator(mode, storeName, obs.error));
@@ -707,7 +749,7 @@ export class NgxIndexedDBService {
     direction?: IDBCursorDirection
   ): Observable<T[]> {
     return new Observable((obs) => {
-      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+      this.open()
         .then((db) => {
           validateBeforeTransaction(db, storeName, (e) => obs.error(e));
           const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error));
@@ -746,7 +788,7 @@ export class NgxIndexedDBService {
     direction?: IDBCursorDirection
   ): Observable<IndexKey<P, K>[]> {
     return new Observable((obs) => {
-      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+      this.open()
         .then((db) => {
           validateBeforeTransaction(db, storeName, (e) => obs.error(e));
           const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error));
@@ -783,7 +825,7 @@ export class NgxIndexedDBService {
   @CloseDbConnection()
   count(storeName: string, query?: IDBValidKey | IDBKeyRange): Observable<number> {
     return new Observable((obs) => {
-      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+      this.open()
         .then((db) => {
           validateBeforeTransaction(db, storeName, (e) => obs.error(e));
           const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error));
@@ -808,7 +850,7 @@ export class NgxIndexedDBService {
   @CloseDbConnection()
   countByIndex(storeName: string, indexName: string, query?: IDBValidKey | IDBKeyRange): Observable<number> {
     return new Observable((obs) => {
-      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+      this.open()
         .then((db) => {
           validateBeforeTransaction(db, storeName, (e) => obs.error(e));
           const transaction = createTransaction(db, optionsGenerator(DBMode.readonly, storeName, obs.error));
@@ -830,7 +872,10 @@ export class NgxIndexedDBService {
    * @param storeName The name of the store to query
    */
   deleteObjectStore(storeName: string): Observable<void> {
-    return DeleteObjectStore(this.dbConfig.name, this.nextVersion(), storeName);
+    const config = this.dbConfig;
+    return from(this.ready(config.name)).pipe(
+      switchMap(() => DeleteObjectStore(config.name, this.nextVersion(), storeName))
+    );
   }
 
   /**
@@ -839,7 +884,7 @@ export class NgxIndexedDBService {
   @CloseDbConnection()
   getAllObjectStoreNames(): Observable<string[]> {
     return new Observable((obs) => {
-      openDatabase(this.indexedDB, this.dbConfig.name, this.dbConfig.version)
+      this.open()
         .then((db) => {
           obs.next(Array.from(db.objectStoreNames));
           obs.complete();
@@ -847,4 +892,10 @@ export class NgxIndexedDBService {
         .catch((reason) => obs.error(reason));
     });
   }
+}
+
+/** Whether an `indexedDB.open()` failure means the browser already has a newer version. */
+function isVersionError(error: unknown): boolean {
+  const target = (error as Event | undefined)?.target as IDBOpenDBRequest | undefined;
+  return target?.error?.name === 'VersionError';
 }
