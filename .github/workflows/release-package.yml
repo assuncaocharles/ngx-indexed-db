@@ -14,8 +14,8 @@ jobs:
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org/
-      - run: npm install
-      - run: npm pack
+          cache: npm
+      - run: npm ci --no-audit --no-fund
       - run: npm run build:lib
       - name: Publish
         working-directory: ./dist/ngx-indexed-db
