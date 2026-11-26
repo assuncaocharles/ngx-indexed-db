@@ -5,20 +5,48 @@ on:
     branches:
       - master
 
+# Publishing uses npm trusted publishing (OIDC): no npm token is stored in the repository.
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
 jobs:
-  build:
+  publish:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
         with:
+          # Node 24 ships npm 11.5.1+, which trusted publishing requires.
           node-version: 24
           registry-url: https://registry.npmjs.org/
           cache: npm
-      - run: npm ci --no-audit --no-fund
-      - run: npm run build:lib
-      - name: Publish
+
+      - name: Check whether this version is already published
+        id: version
+        run: |
+          VERSION=$(node -p "require('./projects/ngx-indexed-db/package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          if npm view "ngx-indexed-db@$VERSION" version >/dev/null 2>&1; then
+            echo "ngx-indexed-db@$VERSION is already on npm; skipping publish."
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - if: steps.version.outputs.publish == 'true'
+        run: npm ci --no-audit --no-fund
+
+      - if: steps.version.outputs.publish == 'true'
+        run: npm run build:lib
+
+      - name: Publish ngx-indexed-db@${{ steps.version.outputs.version }}
+        if: steps.version.outputs.publish == 'true'
         working-directory: ./dist/ngx-indexed-db
         run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
