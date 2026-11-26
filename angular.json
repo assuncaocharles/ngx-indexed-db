@@ -6,21 +6,22 @@
     "ngx-indexed-db": {
       "projectType": "library",
       "root": "projects/ngx-indexed-db",
-      "sourceRoot": "projects/ngx-indexed-db/src",
+      "sourceRoot": "projects/ngx-indexed-db",
       "prefix": "lib",
       "architect": {
         "build": {
-          "builder": "@angular-devkit/build-angular:ng-packagr",
+          "builder": "@angular/build:library",
           "options": {
-            "project": "projects/ngx-indexed-db/ng-package.json"
+            "tsConfig": "projects/ngx-indexed-db/tsconfig.lib.json",
+            "outputPath": "dist/ngx-indexed-db"
           },
           "configurations": {
             "production": {
               "tsConfig": "projects/ngx-indexed-db/tsconfig.lib.prod.json"
             },
             "development": {
-              "tsConfig": "projects/ngx-indexed-db/tsconfig.lib.json",
-              "watch": true
+              "watch": true,
+              "compilationMode": "full"
             }
           },
           "defaultConfiguration": "production"
@@ -36,10 +37,7 @@
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {
-            "lintFilePatterns": [
-              "projects/ngx-indexed-db/**/*.ts",
-              "projects/ngx-indexed-db/**/*.html"
-            ]
+            "lintFilePatterns": ["projects/ngx-indexed-db/**/*.ts", "projects/ngx-indexed-db/**/*.html"]
           }
         }
       }
@@ -64,17 +62,10 @@
             },
             "index": "projects/playground/src/index.html",
             "browser": "projects/playground/src/main.ts",
-            "polyfills": [
-              "zone.js"
-            ],
+            "polyfills": ["zone.js"],
             "tsConfig": "projects/playground/tsconfig.app.json",
-            "assets": [
-              "projects/playground/src/favicon.ico",
-              "projects/playground/src/assets"
-            ],
-            "styles": [
-              "projects/playground/src/styles.scss"
-            ],
+            "assets": ["projects/playground/src/favicon.ico", "projects/playground/src/assets"],
+            "styles": ["projects/playground/src/styles.scss"],
             "scripts": [],
             "clearScreen": true
           },
@@ -135,29 +126,18 @@
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
             "main": "projects/playground/src/test.ts",
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing"
-            ],
+            "polyfills": ["zone.js", "zone.js/testing"],
             "tsConfig": "projects/playground/tsconfig.spec.json",
             "karmaConfig": "projects/playground/karma.conf.js",
-            "assets": [
-              "projects/playground/src/favicon.ico",
-              "projects/playground/src/assets"
-            ],
-            "styles": [
-              "projects/playground/src/styles.scss"
-            ],
+            "assets": ["projects/playground/src/favicon.ico", "projects/playground/src/assets"],
+            "styles": ["projects/playground/src/styles.scss"],
             "scripts": []
           }
         },
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {
-            "lintFilePatterns": [
-              "projects/playground/**/*.ts",
-              "projects/playground/**/*.html"
-            ]
+            "lintFilePatterns": ["projects/playground/**/*.ts", "projects/playground/**/*.html"]
           }
         },
         "e2e": {
@@ -187,9 +167,7 @@
             "outputPath": "dist/ssr-playground",
             "index": "projects/ssr-playground/src/index.html",
             "browser": "projects/ssr-playground/src/main.ts",
-            "polyfills": [
-              "zone.js"
-            ],
+            "polyfills": ["zone.js"],
             "tsConfig": "projects/ssr-playground/tsconfig.app.json",
             "assets": [
               {
@@ -197,9 +175,7 @@
                 "input": "projects/ssr-playground/public"
               }
             ],
-            "styles": [
-              "projects/ssr-playground/src/styles.css"
-            ],
+            "styles": ["projects/ssr-playground/src/styles.css"],
             "scripts": [],
             "server": "projects/ssr-playground/src/main.server.ts",
             "prerender": true,
@@ -250,10 +226,7 @@
         "test": {
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
-            "polyfills": [
-              "zone.js",
-              "zone.js/testing"
-            ],
+            "polyfills": ["zone.js", "zone.js/testing"],
             "tsConfig": "projects/ssr-playground/tsconfig.spec.json",
             "assets": [
               {
@@ -261,19 +234,14 @@
                 "input": "projects/ssr-playground/public"
               }
             ],
-            "styles": [
-              "projects/ssr-playground/src/styles.css"
-            ],
+            "styles": ["projects/ssr-playground/src/styles.css"],
             "scripts": []
           }
         },
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {
-            "lintFilePatterns": [
-              "projects/ssr-playground/**/*.ts",
-              "projects/ssr-playground/**/*.html"
-            ]
+            "lintFilePatterns": ["projects/ssr-playground/**/*.ts", "projects/ssr-playground/**/*.html"]
           }
         }
       }
@@ -281,9 +249,7 @@
   },
   "cli": {
     "analytics": false,
-    "schematicCollections": [
-      "angular-eslint"
-    ]
+    "schematicCollections": ["angular-eslint"]
   },
   "schematics": {
     "@schematics/angular:component": {

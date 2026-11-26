@@ -1,6 +1,9 @@
 {
   "name": "ngx-indexed-db",
   "author": "Charles Assunção",
+  "exports": {
+    ".": "./src/public-api.ts"
+  },
   "description": "Angular wrapper to IndexedDB database.",
   "version": "22.0.0",
   "license": "ISC",
@@ -23,8 +26,5 @@
   "peerDependencies": {
     "@angular/common": ">=10.0.6 < 23.0.0",
     "@angular/core": ">=10.0.6 < 23.0.0"
-  },
-  "dependencies": {
-    "tslib": "^2.0.0"
   }
 }
