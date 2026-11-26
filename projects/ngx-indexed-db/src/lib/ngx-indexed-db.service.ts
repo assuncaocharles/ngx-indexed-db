@@ -81,9 +81,8 @@ export class NgxIndexedDBService {
   }
 
   /**
-   * The function return the current version of database
-   *
-   * @Return the current version of database as number
+   * Returns the current version of the database.
+   * @returns The database version
    */
   @CloseDbConnection()
   getDatabaseVersion(): Observable<number | string> {
@@ -117,7 +116,7 @@ export class NgxIndexedDBService {
 
   /**
    * Allows to create a new object store ad-hoc
-   * @param storeName The name of the store to be created
+   * @param storeSchema The schema of the store to be created
    * @param migrationFactory The migration factory if exists
    */
   async createObjectStore(
@@ -131,7 +130,7 @@ export class NgxIndexedDBService {
   /**
    * Create dynamic store if not already without incrementing version
    * For Dynamic store
-   * @param storeName The name of the store to create
+   * @param storeSchema The schema of the store to create
    */
   async createDynamicObjectStore(
     storeSchema: ObjectStoreMeta,
@@ -142,7 +141,7 @@ export class NgxIndexedDBService {
   }
 
   /**
-   * Adds new entry in the store and returns its key
+   * Adds a new entry to the store and returns the stored entry, including its key.
    * @param storeName The name of the store to add the item
    * @param value The entry to be added
    * @param key The optional key for the entry
@@ -182,9 +181,9 @@ export class NgxIndexedDBService {
   }
 
   /**
-   * Adds new entries in the store and returns its key
-   * @param storeName The name of the store to add the item
-   * @param values The entries to be added containing optional key attribute
+   * Adds several entries in a single transaction and returns their keys.
+   * @param storeName The name of the store to add the items
+   * @param values The entries to be added, each with an optional `key` attribute
    */
   @CloseDbConnection()
   bulkAdd<T>(storeName: string, values: Array<T & { key?: any }>): Observable<number[]> {
@@ -218,8 +217,8 @@ export class NgxIndexedDBService {
   }
 
   /**
-   * Delete entries in the store and returns current entries in the store
-   * @param storeName The name of the store to add the item
+   * Deletes the entries with the given keys.
+   * @param storeName The name of the store to delete the items from
    * @param keys The keys to be deleted
    */
   @CloseDbConnection()
@@ -365,7 +364,7 @@ export class NgxIndexedDBService {
   }
 
   /**
-   * Adds or updates a record in store with the given value and key. Return all items present in the store
+   * Adds or updates an entry (an IndexedDB `put`) and returns the stored entry.
    * @param storeName The name of the store to update
    * @param value The new value for the entry
    */
@@ -398,13 +397,11 @@ export class NgxIndexedDBService {
   }
 
   /**
-   * Adds or updates a record in store with the given value and key. Return all items present in the store
+   * Adds or updates several entries in a single transaction.
+   * If any write fails, the transaction is aborted and none of the writes are kept.
    * @param storeName The name of the store to update
-   * @param items The values to update in the DB
-   *
-   * @Return The return value is an Observable with the primary key of the object that was last in given array
-   *
-   * @error If the call to bulkPut fails the transaction will be aborted and previously inserted entities will be deleted
+   * @param items The values to write
+   * @returns The primary key of the last entry in `items`
    */
   @CloseDbConnection()
   public bulkPut<T>(storeName: string, items: T[]): Observable<IDBValidKey> {
@@ -444,7 +441,7 @@ export class NgxIndexedDBService {
   }
 
   /**
-   * Returns all items from the store after delete.
+   * Deletes the matching entries and returns every entry left in the store.
    * @param storeName The name of the store to have the entry deleted
    * @param query The key or key range criteria to apply
    */
@@ -479,7 +476,7 @@ export class NgxIndexedDBService {
   }
 
   /**
-   * Returns after a successful delete.
+   * Deletes the matching entries and completes once the deletion is committed.
    * @param storeName The name of the store to have the entry deleted
    * @param query The key or key range criteria to apply
    */
