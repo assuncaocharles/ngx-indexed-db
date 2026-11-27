@@ -124,10 +124,15 @@ import { VERSION } from '../content/generated/meta';
     </header>
   `,
   styles: `
-    .header {
+    /* The host is the element in the page flow, so it is the one that has to stick:
+       a sticky child of a 64px-tall host would scroll away with it. */
+    :host {
       position: sticky;
       top: 0;
       z-index: 50;
+      display: block;
+    }
+    .header {
       height: var(--header-h);
       border-bottom: 1px solid var(--border);
       background: color-mix(in srgb, var(--bg) 82%, transparent);
